@@ -31,41 +31,68 @@ La escalera es datos, no código: `armor-stand-boss.phase-thresholds` contiene l
 
 ### Comportamiento de la IA
 
-- **Modo suelo** elige entre Círculo de Curación (<40% HP, 25%), Vuelo (15%), Sello de Escudo (35%), Ataque de Suelo (55%), Bombardeo Flotante (por defecto).
-- **Modo vuelo** lanza un ataque aéreo 50 ticks después de que termine el anterior; tras cinco distintos (y 10–20 s en el aire) aterriza o cae en picado con AirSlam, y nunca pasa más de 40 s arriba.
+- **Un solo reloj de ataque** — todos los ataques comparten la misma pausa: `attack-interval-ticks` (50, 2.5 s) después de que termine el anterior, el tick de ataque sortea el *tipo* de ataque con `attack-type-weights` (cuerpo a cuerpo 30, a distancia 20, vuelo 10, bombardeo flotante 8, sello de escudo 8, Juicio de la Égida 8, defensa 12) y luego un ataque de ese tipo. Un ataque no puede volver hasta que se hayan lanzado otros tres, sean del tipo que sean.
+- **Modo vuelo** sortea entre ataques aéreos (`aerial`, 80) y a distancia (`ranged`) con el mismo reloj; tras cinco aéreos distintos (y 10–20 s en el aire) aterriza o cae en picado con AirSlam, y nunca pasa más de 40 s arriba.
+- **Tras el sello de escudo** sortea entre ataques a distancia, el Juicio de la Égida y la Llamada del Triángulo (`summon`, 25).
 - **Un ataque a la vez** — mientras un ataque se anima la IA ni lo gira ni empieza el siguiente; los tiempos de espera solo cuentan cuando está libre, así que un ataque largo nunca se come la pausa que le sigue.
-- **Estados defensivos** (aleatorios, solo por debajo del 50% de HP, en el suelo): **Piel de Piedra** (×0.5 daño recibido), **Barrera Reflectante** (×0.7 daño + 30% reflejado), **Escudo Absorbente** (absorbedor de 100 HP que visualmente cambia de azul a rojo). Sus duraciones salen de `defense-duration-stone-skin-ticks` (200), `defense-duration-reflect-barrier-ticks` (160) y `defense-duration-absorb-shield-ticks` (300).
+- **Defensas** (por debajo del 90% de HP, en el suelo, un estado a la vez): **Piel de Piedra** (×0.5 daño recibido), **Barrera Reflectante** (×0.7 daño + 30% reflejado), **Escudo Absorbente** (absorbedor de 100 HP que visualmente cambia de azul a rojo), **Baluarte** (×0.35 daño, pero queda inmóvil tras sus murallas), **Aura de Espinas** (×0.8 daño, cada golpe pincha al atacante por 3 y quien esté a menos de 6 bloques recibe un pinchazo cada segundo) y **Imagen Residual** (el 35% de los golpes fallan). Sus duraciones salen de `defense-duration-*-ticks`: piel de piedra 200, barrera reflectante 160, escudo absorbente 300, baluarte 120, aura de espinas 200, imagen residual 160.
+- **Defensas de curación** (por debajo del 70% de HP, una a la vez): **Círculo de Curación**, **Regeneración** (cura `regeneration-heal-percent` (5%) en 8 s mientras sigue peleando), **Sifón de Almas** (ata a hasta tres jugadores a menos de 16 bloques y los drena, curándose cuatro veces lo que quita; alejarse 20 bloques rompe la atadura) y **Capullo de Obsidiana** (invulnerable 3 s dentro de pilares de obsidiana mientras cura `obsidian-cocoon-heal-percent` (4%), y luego una onda expansiva).
 - **Recuperación de suelo** — un jefe en modo suelo solo ataca mientras `isOnGround` es cierto. Si se queda sin bloque sólido debajo (vacío, agua, un agujero, un borde), flotaba en silencio para siempre. Tras `ground-recovery-grace-ticks` (40) ticks sin suelo se teletransporta a la columna más cercana con piso y espacio libre, prefiriendo la zona de su objetivo actual y recurriendo al spawn del mundo si no encuentra nada, y reanuda el ataque con los cooldowns reiniciados.
 - **Despawn** — sin nadie en un radio de 100 bloques el jefe sigue peleando durante `no-player-despawn-ticks` (200, ~10 s) antes de despawnear y limpiar sus tareas, sellos, música y barra de jefe. Ponlo a `0` para que el jefe se vaya en cuanto la arena se vacíe.
 - **Daño penetrante** — con `penetrating-damage: true` los golpes del jefe ignoran armadura y encantamientos de Protección (se reaplican como daño `OUT_OF_WORLD`, con cap de `max-damage-dealt` (15) por golpe). La Resistencia solo se perfora *en parte*: `penetrating-resistance-pierce: 0.2` hace que el jefe ignore el 20% de la mitigación de la poción, así que un jugador con Resistencia I (20% de reducción) sigue bloqueando el 16% del golpe. `0.0` deja la Resistencia totalmente efectiva y `1.0` la ignora por completo. Usa `/msc debug [jugador]` tras un golpe para ver el desglose completo (daño del evento, las reducciones devueltas, la perforación aplicada y el valor final); el mismo comando también informa de lo que Nix y Jack Star hacen y reciben de ese jugador.
 
 ### Mecánicas especiales
 
-- **Juicio de la Égida** (`groundslam`) — con su propio reloj, fuera de las tablas: lanza el escudo al cielo, donde gira y proyecta un pentagrama ardiente bajo cada jugador durante dos segundos; cuando baja la lanza, columnas de luz caen del escudo sobre cada pentagrama — `seal-damage` (15) en un radio de 4 bloques + empuje hacia arriba — y el escudo vuelve a su mano.
+- **Juicio de la Égida** (`groundslam`) — un tipo más del tick de ataque: lanza el escudo al cielo, donde gira y proyecta un pentagrama ardiente bajo cada jugador durante dos segundos; cuando baja la lanza, columnas de luz caen del escudo sobre cada pentagrama — `seal-damage` (15) en un radio de 4 bloques + empuje hacia arriba — y el escudo vuelve a su mano.
 - **Alas** — alas ardientes construidas como unas de verdad: un hueso oscuro que sale de la espalda entre los omóplatos y sube por un codo y una muñeca, plumas largas colgando de él que brillan de rojo a naranja hacia las puntas, y una fila más corta de coberteras. Aletean despacio, girando toda el ala desde su raíz.
 - **Sello de Escudo** — seis grandes escudos de luz giran a su alrededor a la altura del pecho durante 200 ticks, ×0.7 daño entrante; al final se pliegan de nuevo en uno.
-- **Círculo de Curación** — se arrodilla en un círculo de runas verdes durante 200 ticks mientras hilos de luz suben hacia él, curando un 0.15% por tick hasta el 3% de su HP máxima. Golpearlo dentro del círculo es la respuesta.
+- **Círculo de Curación** — se arrodilla en un círculo de runas verdes durante 200 ticks mientras hilos de luz suben hacia él, curando `healing-circle-heal-percent` (5%) de su HP máxima repartido por igual durante todo el arrodillamiento. Golpearlo dentro del círculo es la respuesta.
 - **Bombardeo Flotante ("CrossBarrage")** — sube si está en el suelo y dispara ráfagas de rayos en forma de X desde el aire, `hover-barrage-damage` (12) + knockback.
 - **Llamada del Triángulo** — clava la lanza y alza dos sellos de fuego de pie; columnas de luz bajan a través de ellos y salen los refuerzos (escala con el número de jugadores):
   - Modo aéreo: Ghast Infernal + Fantasma Acechador Nocturno (que lleva un Esqueleto Francotirador con arco Power V / Infinity).
   - Modo suelo: Bestia de Guerra Ravager (300 HP, 24 de daño) que lleva un Evocador Sacerdote Oscuro (40 HP, Velocidad I).
   - Las invocaciones llevan la etiqueta `MSC_ArmorBossSummoned`; el fuego amigo entre el jefe y sus invocaciones está desactivado.
 
+### Pasivas por fase y el cambio de fase
+
+Cada cambio de fase es una escena: el Centinela cae sobre una rodilla, el poder sube en espiral desde el suelo, se alza rugiendo dentro de un pilar de luz (intocable hasta el clímax), estalla la explosión propia de la fase y todos los jugadores a menos de 60 bloques ven la pasiva que acaba de ganar. Las pasivas se acumulan:
+
+| Fase | Pasiva | Efecto |
+|---|---|---|
+| 2 (≤80%) | **Furia** | ataca un 15% antes |
+| 3 (≤60%) | **Piel de Obsidiana** | recibe un 15% menos de daño |
+| 4 (≤40%) | **Tempestad** | otro 15% más rápido; un rayo avisado sobre un jugador cada 10 s |
+| 5 (≤20%) | **Voluntad Inmortal** | regenera un 0.25% de su vida por segundo, hace un 20% más de daño y sus ataques destructivos salen el doble |
+
+### Ritos de invocación (10)
+
+Se sortean como tipo propio (`attack-type-weights.summoning`, 10). Las invocaciones llevan la etiqueta de invocación, nunca dañan al jefe ni entre ellas, y se disuelven al acabar su tiempo o al caer el Centinela; no lanza otro rito mientras haya `max-summons` (8) vivas.
+
+- **Criaturas nuevas:** `lancesquires` (dos escuderos de obsidiana que embisten con su lanza), `obsidianmender` (cura al jefe un 0.4% por segundo hasta que lo maten), `emberhounds` (tres lobos en llamas que te prenden fuego), `voidwisps` (tres fuegos fatuos que atraviesan paredes y estallan), `obsidianbrute` (un bruto del doble de tamaño que golpea el suelo cada cuatro segundos).
+- **Criaturas del plugin:** `elementalconclave` (Elemental de Fuego, Gólem de Escarcha, Invocador de Tormentas), `shadowambush` (Pícaros Sombríos y Reptadores del Vacío alrededor del objetivo), `necropolisrite` (Segador de Almas y dos Escudos de Hueso), `arcanecovenant` (Mago del Caos, Bruja Venenosa, Caballero del End).
+- **`championcall`** — una vez por fase se abre un portal y entra un jefe del plugin al azar (NIX, DIO, Garou, Mahoraga o Kinger). Pelea hasta caer; si el Centinela cae antes, el portal se lo lleva. JackStar queda fuera: al aparecer invoca a otro jefe.
+
+### Ataques destructivos (10)
+
+Se sortean como tipo propio (`attack-type-weights.destructive`, 6), con al menos `destructive-gap-ticks` (400, 20 s) entre uno y otro. Cada uno tiene una carga larga y ruidosa — una cuadrícula de objetivo en el suelo y un aviso en la pantalla de todos los que estén cerca — y un golpe de alcance enorme. El mundo nunca se rompe; los cráteres son de escombros.
+
+`orbitalstrike` (la cuadrícula fija el objetivo, rayos convergen desde la órbita, cúpula roja), `meteorimpact` (un meteoro del tamaño de una casa cayendo durante cinco segundos), `supernova` (solo el ojo de la tormenta a sus pies es seguro), `judgmentpillars` (columnas de luz por la arena y bajo cada jugador), `earthsplitter` (una cruz de grietas de treinta bloques), `voidcollapse` (un agujero negro arrastra a todos y colapsa), `obsidiantsunami` (un muro de obsidiana barre la arena; busca el hueco), `solarlance` (una lanza de luz solar de catorce bloques), `worldbreaker` (salta treinta bloques y aterriza con tres ondas expansivas), `apocalypserain` (lluvia de meteoros durante cinco segundos).
+
 ### Ataques animados
 
 Cada ataque es una **coreografía**: un aviso en el suelo que dice *dónde* (de rojo a amarillo según se calienta), una preparación del cuerpo que dice *cuándo*, el golpe y una recuperación de vuelta a la guardia. Brazos, piernas, cabeza y torso del Centinela pasan por poses reales calculadas a partir del modelo del armor stand, así que la punta de la lanza, la cara del escudo y las manos son de donde salen los efectos. Mientras un ataque se reproduce es dueño del cuerpo: la IA no lo gira ni empieza otro ataque hasta que termina. Los objetos (escudos, lanzas, pilares de obsidiana, meteoros) son display entities con la etiqueta `MSC_AttackProp` y se eliminan al terminar el ataque o al reiniciar el servidor.
 
-### Registro de ataques — 61 ataques en total
+### Registro de ataques — 96 ataques en total
 
-Todos los ataques son clases que extienden `ChoreographedAttack` bajo `entities/boss/attack/<aerial|ground|ranged|defensive>/`, registrados en `ArmorStandBoss.initAttacks()` y despachados polimórficamente vía `attackRegistry.get(name).execute(instance)`. Activa cualquiera manualmente:
+Todos los ataques son clases que extienden `ChoreographedAttack` bajo `entities/boss/attack/<aerial|ground|ranged|defensive|summon|destructive>/`, registrados en `ArmorStandBoss.initAttacks()` y despachados polimórficamente vía `attackRegistry.get(name).execute(instance)`. Activa cualquiera manualmente:
 
 ```
 /msc attack <nombre-del-ataque> [rango]
 ```
 
-Los 61 nombres los lista `/msc attack help` (cuatro páginas, una por categoría) y los ofrece el autocompletado. `/msc attack` también acepta las mecánicas de arriba (`flyup`, `land`, `heal`, `reset`, las cuatro transiciones `phase*`) y el alias heredado `crossbarrage` de `hoverbarrage`.
+Los 96 nombres los lista `/msc attack help` (seis páginas, una por categoría) y los ofrece el autocompletado. `/msc attack` también acepta las mecánicas de arriba (`flyup`, `land`, `heal`, `reset`, las cuatro transiciones `phase*`) y el alias heredado `crossbarrage` de `hoverbarrage`.
 
-| Suelo (21) | Aéreos (18) | A distancia (16) | Defensivos (6) |
+| Suelo (24) | Aéreos (20) | A distancia (20) | Defensivos (12) |
 |---|---|---|---|
 | groundslam | starfall | lancesnipe | stoneskin |
 | groundshatter | aerialrush | meteorstorm | reflectbarrier |
@@ -80,14 +107,17 @@ Los 61 nombres los lista `/msc attack help` (cuatro páginas, una por categoría
 | doombeam | rainoflances | arcanemissiles |  |
 | lanceflurry | airslam | spiritbeam |  |
 | whirlwindslash | hoverbarrage (crossbarrage) | soultethers |  |
-| executionsweep | eclipsefall | plaguebrand |  |
-| obsidianspire | bladering | runemines |  |
-| earthmaw | obsidianwings |  |  |
-| shadowstep | voidmeteor | obsidianprison |  |
-| runeward | phantomlegion |  |  |
-| sunderingcharge |  |  |  |
-| spearcyclone |  |  |  |
-| cataclysm |  |  |  |
+| executionsweep | eclipsefall | plaguebrand | regeneration |
+| obsidianspire | bladering | runemines | soulsiphon |
+| earthmaw | obsidianwings |  | obsidiancocoon |
+| shadowstep | voidmeteor | obsidianprison | bulwark |
+| runeward | phantomlegion |  | thornaura |
+| sunderingcharge |  |  | afterimage |
+| spearcyclone | spiralstorm | shardburst |  |
+| cataclysm | chainhook | gravityorb |  |
+| tremorlance |  | javelinvolley |  |
+| aegisrush |  | sweepinglaser |  |
+| gravecleaver |  |  |  |
 
 Objetivos adicionales de `/msc attack` para **mecánicas y transiciones de fase**: `flyup`, `land`, `heal`, `reset`, `phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`.
 
@@ -199,7 +229,7 @@ Un verdugo colosal e implacable construido a partir de un **modelo personalizado
 
 | Estadística | Valor por defecto |
 |---|---|
-| Salud | `nix-executioner.health` (450.0) |
+| Salud | `nix-executioner.health` (2000.0) |
 | Hitbox | `nix-executioner.hitbox-scale` (1.9) — tamaño del stand invisible por el que se golpea el traje (acotado a 0.25–8) |
 | Rango de agresión | `nix-executioner.aggro-range` (28.0 bloques) |
 | Velocidad de movimiento | `nix-executioner.move-speed` (0.30) |
@@ -208,6 +238,10 @@ Un verdugo colosal e implacable construido a partir de un **modelo personalizado
 | Cap de daño recibido | `nix-executioner.max-damage-per-hit` (100.0 por golpe; `0` desactiva el cap) |
 | Cooldowns | cuerpo a cuerpo 20 ticks · cadenas 80 ticks |
 | Ritual de Invocación | **El Cadalso del Verdugo** en la Boss Dimension (sacrificando `Sentencia de Muerte`) · `/msc spawn nix` (OP) |
+
+### Daño verdadero y ataques destructivos
+
+Todos los golpes de NIX son **daño verdadero**, el mismo que hace el Centinela de Obsidiana: ignora armadura y Protección, cada golpe tiene un tope de `max-damage-dealt` (15) y la Resistencia solo conserva parte de su efecto (`true-damage-pierce`, 0.2). Además de sus especiales tiene tres **ataques destructivos**, como mucho uno cada `destructive-cooldown-ticks` (600): **Gran Guillotina** (una guillotina de dieciséis bloques sobre el objetivo; sal de la línea), **Luna de Sangre** (sube una luna roja y luego tres olas de sangre que se saltan) y **Día de Ejecución** (ocho hachas gigantes barren hacia el centro por sus radios, dos veces; quédate entre ellas).
 
 ### Habilidades y Mecánicas
 
@@ -245,7 +279,7 @@ Cinco fases, tres vidas y un cuerpo construido con once cabezas de skin.
 
 | Campo | Valor |
 |---|---|
-| Vida | `jackstar-architect.health` (700.0) |
+| Vida | `jackstar-architect.health` (1000.0) |
 | Hitbox | `jackstar-architect.hitbox-scale` (1.2) — tamaño del stand invisible por el que se golpea el traje (acotado a 0.25–8) |
 | Vidas | 3 — las dos primeras "muertes" ejecutan un reinicio **Watchdog** que restaura el 50% de la vida, y la última el 40% |
 | Fases | 1 >80% · 2 >60% · 3 >40% · 4 >20% · 5 (kernel panic) ≤20% |
@@ -260,13 +294,17 @@ Once cabezas de skin (`ItemDisplay`, etiqueta `msc_jackstar_part`) forman la cab
 
 ### Movimientos de firma
 
-Uno cada `special-cooldown-ticks` (200) + hasta 2 s, un 30% antes desde la fase 4, elegido según la distancia y anunciado en el chat de la arena como una línea de código. Mientras se reproduce es dueño del cuerpo y la rutina normal espera.
+Uno cada `special-cooldown-ticks` (200) + hasta 2 s, un 10% antes en la fase 5, elegido según la distancia y anunciado en el chat de la arena como una línea de código. Mientras se reproduce es dueño del cuerpo y la rutina normal espera.
 
 | Movimiento | Seña de la animación | Clave de daño (por defecto) |
 |---|---|---|
 | **fork()** | Echa atrás el brazo derecho con un cubo de alambre girando en la mano, la izquierda apuntando, y lo lanza. Cada vez que el cubo cae revienta y **se bifurca en dos** que saltan a los lados, tres generaciones: 1 + 2 + 4 explosiones, cada una con su anillo de caída visible antes. | `fork-bomb-damage` (10; ×0.6 en las bifurcaciones) |
 | **Lluvia Binaria** | Las dos manos en alto, tecleando hacia el cielo mientras una lámina de código verde se desplaza sobre la arena. Bajo y delante de los jugadores se encienden celdas y en cada una cae un **1 o un 0**. | `binary-rain-damage` (8) |
 | **Stack Overflow** | Una postura baja de carrera con las dos hojas hacia atrás, y **cuatro tajos en carrera** a través del objetivo, cada uno apilado como un marco "[ ]" que queda dibujado en el suelo. Cuando la pila se llena se desborda: cada marco detona a lo largo de su línea en orden inverso. | `stack-overflow-damage` (14; la mitad en la propia carrera) |
+
+### Daño verdadero y ataques destructivos
+
+Todos los golpes de Jack Star son **daño verdadero**, como los del Centinela (`max-damage-dealt` 15, `true-damage-pierce` 0.2). Solo empieza un especial cada `special-attack-gap-ticks` (112, 5.6 s). Desde la fase 2 añade tres **ataques destructivos**, como mucho uno cada `destructive-cooldown-ticks` (500): **Kernel Nuke** (cuenta atrás de cinco segundos, cuadrícula fijada y una cúpula de once bloques), **Disk Format** (la arena se vuelve una cuadrícula de sectores y se borran todos menos los verdes) y **sudo laser** (un rayo que gira a su alrededor; solo sus pies son seguros).
 
 ### Subprocesos
 
@@ -287,7 +325,7 @@ DIO camina amenazante (letras ゴゴゴ suben a su alrededor) con su Stand **The
 
 | Campo | Valor |
 |---|---|
-| Vida | `dio-brando.health` (900) — por debajo del 50% se enfurece ("WRYYYY!"): pausas más cortas, tiempo detenido más largo y más cuchillos |
+| Vida | `dio-brando.health` (1500) — por debajo del 50% se enfurece ("WRYYYY!"): pausas más cortas, tiempo detenido más largo y más cuchillos |
 | Detección / velocidad | `aggro-range` (32) · `move-speed` (0.26) |
 | Tope de daño recibido | `max-damage-per-hit` (100) |
 
@@ -301,3 +339,7 @@ DIO camina amenazante (letras ゴゴゴ suben a su alrededor) con su Stand **The
 | **Puñetazo de The World** | Su ataque básico a corta distancia: un puñetazo fuerte con retroceso. | `punch-damage` (12) |
 
 Saluda a quien se le acerca ("¿Oh? ¿Te estás acercando a mí?"). Sus cuchillos, la apisonadora y las letras amenazantes son objetos de display que se borran al terminar el ataque, al morir el jefe o al reiniciar; `/msc kill` elimina a DIO y a The World.
+### Daño verdadero y La Hora Final
+
+Todos los golpes de DIO y The World son **daño verdadero**, como los del Centinela (`max-damage-dealt` 15, `true-damage-pierce` 0.2). Su ataque destructivo, **La Hora Final**, llega como mucho una vez cada `final-hour-cooldown-ticks` (900): bajo él se extiende una esfera de reloj dorada de dieciséis bloques, la aguja gira y se detiene en una hora que brilla en verde, y entonces "ZA WARUDO" — The World golpea una a una todas las demás horas. Corre a la hora iluminada.
+

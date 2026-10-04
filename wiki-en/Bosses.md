@@ -31,41 +31,68 @@ The ladder is data, not code: `armor-stand-boss.phase-thresholds` holds the heal
 
 ### AI behaviour
 
-- **Ground mode** chooses between HealingCircle (<40% HP, 25%), FlyUp (15%), ShieldSeal (35%), GroundAttack (55%), HoverBarrage (default).
-- **Flying mode** throws an aerial attack 50 ticks after the previous one has finished; after five different ones (and 10–20 s in the air) it lands or dives down with AirSlam, and never stays up more than 40 s.
+- **One attack clock** — every attack shares the same pause: `attack-interval-ticks` (50, 2.5 s) after the last one ends, the attack tick rolls the *kind* of attack with `attack-type-weights` (melee 30, ranged 20, flight 10, hover barrage 8, shield seal 8, Aegis Judgment 8, defence 12) and then an attack of that kind. An attack cannot come back until three others have been thrown, whatever their kind.
+- **Flying mode** rolls between aerial attacks (`aerial`, 80) and ranged ones (`ranged`) on the same clock; after five different aerial ones (and 10–20 s in the air) it lands or dives down with AirSlam, and never stays up more than 40 s.
+- **Behind the shield seal** it rolls between ranged attacks, Aegis Judgment and the Triangle Call (`summon`, 25).
 - **One attack at a time** — while an attack is animating the AI neither turns him nor starts the next one; the cooldowns only count while he is free, so a long attack never eats the pause after it.
-- **Defense states** (random, only below 50% HP, on ground): **Stone Skin** (×0.5 dmg taken), **Reflect Barrier** (×0.7 dmg + 30% reflect), **Absorb Shield** (100-HP absorber that visually shifts blue → red). Their durations come from `defense-duration-stone-skin-ticks` (200), `defense-duration-reflect-barrier-ticks` (160) and `defense-duration-absorb-shield-ticks` (300).
+- **Defences** (below 90% HP, on ground, one state at a time): **Stone Skin** (×0.5 dmg taken), **Reflect Barrier** (×0.7 dmg + 30% reflect), **Absorb Shield** (100-HP absorber that visually shifts blue → red), **Bulwark** (×0.35 dmg, but rooted behind ramparts), **Thorn Aura** (×0.8 dmg, every hit stings the attacker for 3, anyone within 6 blocks is pricked each second) and **Afterimage** (35% of hits miss). Their durations come from `defense-duration-*-ticks`: stone skin 200, reflect barrier 160, absorb shield 300, bulwark 120, thorn aura 200, afterimage 160.
+- **Healing defences** (below 70% HP, one at a time): **Healing Circle**, **Regeneration** (heals `regeneration-heal-percent` (5%) over 8 s while it keeps fighting), **Soul Siphon** (tethers up to three players within 16 blocks and drains them, healing four times what it takes; running 20 blocks away snaps a tether) and **Obsidian Cocoon** (invulnerable for 3 s inside obsidian pillars while it heals `obsidian-cocoon-heal-percent` (4%), then a shockwave).
 - **Ground recovery** — a grounded boss only attacks while `isOnGround` is true. If it ends up with no solid block under it (void, water, a hole, a cliff edge), it hovers silently forever. After `ground-recovery-grace-ticks` (40) without ground it teleports to the nearest column with a floor and headroom, preferring the area around its current target and falling back to the world spawn, then resumes attacking with its cooldowns reset.
 - **Despawn** — with nobody inside a 100-block radius the boss keeps fighting for `no-player-despawn-ticks` (200, ~10 s) before it despawns and cleans up its tasks, seals, music and boss bar. Set it to `0` to remove the boss as soon as the arena empties.
 - **Penetrating damage** — with `penetrating-damage: true` the boss's own hits bypass armour and Protection enchantments (they are re-applied as `OUT_OF_WORLD` damage, capped at `max-damage-dealt` (15) per hit). Resistance is only *partially* pierced: `penetrating-resistance-pierce: 0.2` makes the boss ignore 20% of the potion's mitigation, so a player with Resistance I (20% reduction) still blocks 16% of the hit. `0.0` leaves Resistance fully effective, `1.0` ignores it entirely. Use `/msc debug [player]` after a hit to see the whole breakdown (event damage, the reductions credited back, the pierce applied and the final value); the same command also reports what Nix and Jack Star deal to and take from that player.
 
 ### Special mechanics
 
-- **Aegis Judgment** (`groundslam`) — on its own clock, outside the pools: he hurls his shield into the sky, where it turns and casts a burning pentagram under every player for two seconds; when his spear comes down, columns of light fall from the shield into every pentagram — `seal-damage` (15) in a 4-block radius + knock-up — and the shield drops back into his hand.
+- **Aegis Judgment** (`groundslam`) — one kind of the attack tick: he hurls his shield into the sky, where it turns and casts a burning pentagram under every player for two seconds; when his spear comes down, columns of light fall from the shield into every pentagram — `seal-damage` (15) in a 4-block radius + knock-up — and the shield drops back into his hand.
 - **Wings** — burning wings built like real ones: a dark bone that leaves his back between the shoulder blades and rises through an elbow and a wrist, long flight feathers hanging from it that glow from red to orange towards their tips, and a shorter row of coverts. They beat slowly, the whole wing turning about its root.
 - **Shield Seal** — six great shields of light wheel around him at chest height for 200 ticks, ×0.7 incoming damage; they fold back into one at the end.
-- **Healing Circle** — he kneels in a circle of green runes for 200 ticks with threads of light rising into him, healing 0.15% a tick up to 3% of his max HP. Hurting him inside the circle is the counter.
+- **Healing Circle** — he kneels in a circle of green runes for 200 ticks with threads of light rising into him, healing `healing-circle-heal-percent` (5%) of his max HP spread evenly over the whole kneel. Hurting him inside the circle is the counter.
 - **Hover Barrage ("CrossBarrage")** — rises if grounded and fires volleys of X-shaped beams from the air, `hover-barrage-damage` (12) + knockback.
 - **Triangle Call** — he plants the spear and raises two standing seals of fire; columns of light come down through them and reinforcements step out (scales with player count):
   - Air mode: Infernal Ghast + Night Stalker Phantom (carrying Sniper Skeleton with Power V Infinity bow).
   - Ground mode: War Beast Ravager (300 HP, 24 dmg) carrying a Dark Priest Evoker (40 HP, Speed I).
   - Summons are `MSC_ArmorBossSummoned` tagged; friendly-fire between the boss and its summons is disabled.
 
+### Phase passives and the phase change
+
+Each change of phase is a scene: the Sentinel buckles to one knee, power spirals up out of the ground, it rises roaring inside a pillar of light (untouchable until the climax), the phase's blast goes off and every player within 60 blocks sees the passive it just gained. Passives stack:
+
+| Phase | Passive | Effect |
+|---|---|---|
+| 2 (≤80%) | **Fury** | attacks come 15% sooner |
+| 3 (≤60%) | **Obsidian Hide** | 15% less damage taken |
+| 4 (≤40%) | **Tempest** | attacks 15% sooner again; a telegraphed lightning bolt on a player every 10 s |
+| 5 (≤20%) | **Undying Will** | regenerates 0.25% of its health a second, deals 20% more damage, destructive attacks twice as likely |
+
+### Summoning rites (10)
+
+Rolled as their own kind (`attack-type-weights.summoning`, 10). Minions carry the summon tag, never hurt the boss or each other, and dissolve when their time runs out or the Sentinel falls; no rite is cast while `max-summons` (8) are alive.
+
+- **New creatures:** `lancesquires` (two obsidian squires that lunge with their lances), `obsidianmender` (heals the boss 0.4% a second until killed), `emberhounds` (three burning wolves that set you alight), `voidwisps` (three wisps that drift through walls and burst), `obsidianbrute` (a twice-sized brute that slams the ground every four seconds).
+- **The plugin's own creatures:** `elementalconclave` (Flame Elemental, Frost Golem, Storm Caller), `shadowambush` (Shadow Rogues and Void Crawlers around the target), `necropolisrite` (Soul Reaper and two Bone Shields), `arcanecovenant` (Chaos Mage, Venom Witch, Ender Knight).
+- **`championcall`** — once per phase, a gate opens and a random boss of the plugin steps through (NIX, DIO, Garou, Mahoraga or Kinger). It fights until it falls; if the Sentinel falls first the gate takes it back. JackStar is left out: his arrival calls in another boss.
+
+### Destructive attacks (10)
+
+Rolled as their own kind (`attack-type-weights.destructive`, 6), at least `destructive-gap-ticks` (400, 20 s) apart. Each has a long, loud charge — a targeting grid on the floor, a warning on every screen in range — and a blow of enormous reach. The world is never broken; craters are made of debris.
+
+`orbitalstrike` (grid locks on, beams converge from orbit, red dome), `meteorimpact` (a house-sized meteor falling for five seconds), `supernova` (only the eye of the storm at its feet is safe), `judgmentpillars` (columns of light across the arena and under every player), `earthsplitter` (a cross of fissures torn thirty blocks out), `voidcollapse` (a black hole drags everyone in, then collapses), `obsidiantsunami` (a wall of obsidian rolls over the arena; find the gap), `solarlance` (a fourteen-block spear of sunlight), `worldbreaker` (leaps thirty blocks up and lands with three shockwaves), `apocalypserain` (meteors rain for five seconds).
+
 ### Animated attacks
 
 Every attack is a **choreography**: a telegraph on the floor that says *where* (red to yellow as it heats up), a wind-up of the body that says *when*, the blow, and a recovery back to the guard. The Sentinel's arms, legs, head and body move through real poses computed from the armor stand model, so the spear tip, the shield face and the hands are where the effects come from. While an attack plays, it owns the body: the AI does not turn him or start another attack until it is done. Props (shields, spears, obsidian pillars, meteors) are display entities tagged `MSC_AttackProp` and are removed when the attack ends or the server restarts.
 
-### Attack registry — 61 attacks total
+### Attack registry — 96 attacks total
 
-All attacks are classes extending `ChoreographedAttack` under `entities/boss/attack/<aerial|ground|ranged|defensive>/`, registered in `ArmorStandBoss.initAttacks()` and dispatched polymorphically via `attackRegistry.get(name).execute(instance)`. Trigger any one manually:
+All attacks are classes extending `ChoreographedAttack` under `entities/boss/attack/<aerial|ground|ranged|defensive|summon|destructive>/`, registered in `ArmorStandBoss.initAttacks()` and dispatched polymorphically via `attackRegistry.get(name).execute(instance)`. Trigger any one manually:
 
 ```
 /msc attack <attack-name> [range]
 ```
 
-All 61 names are listed by `/msc attack help` (four pages, one per category) and offered by tab completion. `/msc attack` also accepts the mechanics above (`flyup`, `land`, `heal`, `reset`, the four `phase*` transitions) plus `hoverbarrage`'s legacy alias `crossbarrage`.
+All 96 names are listed by `/msc attack help` (six pages, one per category) and offered by tab completion. `/msc attack` also accepts the mechanics above (`flyup`, `land`, `heal`, `reset`, the four `phase*` transitions) plus `hoverbarrage`'s legacy alias `crossbarrage`.
 
-| Ground (21) | Aerial (18) | Ranged (16) | Defensive (6) |
+| Ground (24) | Aerial (20) | Ranged (20) | Defensive (12) |
 |---|---|---|---|
 | groundslam | starfall | lancesnipe | stoneskin |
 | groundshatter | aerialrush | meteorstorm | reflectbarrier |
@@ -80,14 +107,17 @@ All 61 names are listed by `/msc attack help` (four pages, one per category) and
 | doombeam | rainoflances | arcanemissiles |  |
 | lanceflurry | airslam | spiritbeam |  |
 | whirlwindslash | hoverbarrage (crossbarrage) | soultethers |  |
-| executionsweep | eclipsefall | plaguebrand |  |
-| obsidianspire | bladering | runemines |  |
-| earthmaw | obsidianwings |  |  |
-| shadowstep | voidmeteor | obsidianprison |  |
-| runeward | phantomlegion |  |  |
-| sunderingcharge |  |  |  |
-| spearcyclone |  |  |  |
-| cataclysm |  |  |  |
+| executionsweep | eclipsefall | plaguebrand | regeneration |
+| obsidianspire | bladering | runemines | soulsiphon |
+| earthmaw | obsidianwings |  | obsidiancocoon |
+| shadowstep | voidmeteor | obsidianprison | bulwark |
+| runeward | phantomlegion |  | thornaura |
+| sunderingcharge |  |  | afterimage |
+| spearcyclone | spiralstorm | shardburst |  |
+| cataclysm | chainhook | gravityorb |  |
+| tremorlance |  | javelinvolley |  |
+| aegisrush |  | sweepinglaser |  |
+| gravecleaver |  |  |  |
 
 Additional `/msc attack` targets for **mechanics & phase transitions**: `flyup`, `land`, `heal`, `reset`, `phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`.
 
@@ -199,7 +229,7 @@ A towering, ruthless executioner constructed from a custom **27-piece ItemDispla
 
 | Stat | Default |
 |---|---|
-| Health | `nix-executioner.health` (450.0) |
+| Health | `nix-executioner.health` (2000.0) |
 | Hitbox | `nix-executioner.hitbox-scale` (1.9) — size of the invisible stand the suit is hit through (clamped to 0.25–8) |
 | Aggro range | `nix-executioner.aggro-range` (28.0 blocks) |
 | Move speed | `nix-executioner.move-speed` (0.30) |
@@ -208,6 +238,10 @@ A towering, ruthless executioner constructed from a custom **27-piece ItemDispla
 | Damage cap taken | `nix-executioner.max-damage-per-hit` (100.0 per hit; `0` disables the cap) |
 | Cooldowns | melee 20 ticks · chain pull 80 ticks |
 | Summon Ritual | **The Executioner's Scaffold** in Boss Dimension (sacrificing `Executioner's Warrant`) · `/msc spawn nix` (OP) |
+
+### True damage and destructive attacks
+
+Every hit NIX lands is **true damage**, the same kind the Obsidian Sentinel deals: armour and Protection are ignored, each hit is capped at `max-damage-dealt` (15) and Resistance keeps only part of its effect (`true-damage-pierce`, 0.2). On top of his specials he has three **destructive attacks**, at most one per `destructive-cooldown-ticks` (600): **Grand Guillotine** (a sixteen-block guillotine over the target; step off the line), **Blood Moon** (a red moon rises, then three jumpable waves of blood) and **Execution Day** (eight giant axes sweep in along their spokes, twice; stand between them).
 
 ### Abilities & Mechanics
 
@@ -245,7 +279,7 @@ Five phases, three lives and a body built out of eleven skin heads.
 
 | Field | Value |
 |---|---|
-| Health | `jackstar-architect.health` (700.0) |
+| Health | `jackstar-architect.health` (1000.0) |
 | Hitbox | `jackstar-architect.hitbox-scale` (1.2) — size of the invisible stand the suit is hit through (clamped to 0.25–8) |
 | Lives | 3 — the first two "deaths" run a **Watchdog** reboot that restores 50% HP, the last one 40% |
 | Phases | 1 >80% · 2 >60% · 3 >40% · 4 >20% · 5 (kernel panic) ≤20% |
@@ -260,13 +294,17 @@ Eleven skin heads (`ItemDisplay`, tag `msc_jackstar_part`) form the head, the to
 
 ### Signature moves
 
-One every `special-cooldown-ticks` (200) + up to 2 s, 30% sooner from phase 4, picked by distance and announced in the arena chat as a line of code. While one plays it owns the body and the regular routine waits.
+One every `special-cooldown-ticks` (200) + up to 2 s, 10% sooner in phase 5, picked by distance and announced in the arena chat as a line of code. While one plays it owns the body and the regular routine waits.
 
 | Move | Animation signature | Damage key (default) |
 |---|---|---|
 | **fork()** | He cocks his right arm back with a spinning wireframe cube in his hand, the left hand aiming, and throws it. Every time the cube lands it bursts and **forks into two** that hop sideways, three generations deep: 1 + 2 + 4 explosions, each with its landing ring shown in advance. | `fork-bomb-damage` (10; ×0.6 for the forks) |
 | **Binary Rain** | Both hands raised, fingers typing at the sky while a sheet of green code scrolls over the arena. Glowing cells light up under and ahead of the players and a falling **1 or 0** crashes into each one. | `binary-rain-damage` (8) |
 | **Stack Overflow** | A low sprinting stance with both blades swept back, then **four dashing cuts** through the target, each one pushed as a "[ ]" frame that stays drawn on the floor. When the stack is full it overflows: every frame detonates along its line in reverse order. | `stack-overflow-damage` (14; half on the dash itself) |
+
+### True damage and destructive attacks
+
+Every hit Jack Star lands is **true damage**, like the Sentinel's (`max-damage-dealt` 15, `true-damage-pierce` 0.2). Only one special starts every `special-attack-gap-ticks` (112, 5.6 s). From phase 2 he adds three **destructive attacks**, at most one per `destructive-cooldown-ticks` (500): **Kernel Nuke** (a five-second countdown, a locked grid and a dome eleven blocks wide), **Disk Format** (the arena becomes a grid of sectors and all but the green ones are wiped) and **sudo laser** (a beam swept all the way around him; only his feet are safe).
 
 ### Subprocesses
 
@@ -286,7 +324,7 @@ DIO walks in menacingly (ゴゴゴ letters drift up around him) with his Stand *
 
 | Field | Value |
 |---|---|
-| Health | `dio-brando.health` (900) — below 50% he enrages ("WRYYYY!"): shorter pauses, longer time stop, more knives |
+| Health | `dio-brando.health` (1500) — below 50% he enrages ("WRYYYY!"): shorter pauses, longer time stop, more knives |
 | Aggro / speed | `aggro-range` (32) · `move-speed` (0.26) |
 | Damage cap taken | `max-damage-per-hit` (100) |
 
@@ -300,3 +338,7 @@ DIO walks in menacingly (ゴゴゴ letters drift up around him) with his Stand *
 | **The World's punch** | His basic attack at close range: a heavy punch with knockback. | `punch-damage` (12) |
 
 He greets anyone who walks up to him ("Oh? You're approaching me?"). His knives, the road roller and the menacing letters are display props removed when an attack ends, the boss dies or the server restarts; `/msc kill` removes DIO and The World.
+### True damage and the Final Hour
+
+Every hit DIO and The World land is **true damage**, like the Sentinel's (`max-damage-dealt` 15, `true-damage-pierce` 0.2). His destructive attack, **The Final Hour**, comes at most once per `final-hour-cooldown-ticks` (900): a golden clock face sixteen blocks wide spreads under him, its hand sweeps round and stops on one hour that glows green, then "ZA WARUDO" — The World pummels every other hour in turn. Run to the lit hour.
+
