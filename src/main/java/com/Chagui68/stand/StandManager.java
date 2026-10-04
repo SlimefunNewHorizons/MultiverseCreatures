@@ -356,7 +356,7 @@ public final class StandManager implements Listener {
             }
         }
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 0.8f, 1.6f);
-        player.getWorld().spawnParticle(Particle.FLASH, player.getEyeLocation(), 1);
+        player.getWorld().spawnParticle(Particle.FLASH, player.getEyeLocation(), 1, org.bukkit.Color.fromRGB(0xB57BFF));
         Component line = MscText.rich(DARK_PURPLE, "✦ Hermit Purple ", GRAY, "reveals ", GOLD, found + "", GRAY,
                 " beings around you");
         if (nearest != null) {

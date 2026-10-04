@@ -190,7 +190,7 @@ public class JackInvocationManager implements Listener {
                     Location rod = rods.get(step);
                     world.strikeLightningEffect(rod);
                     world.playSound(rod, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 2.0f, 0.8f + (step * 0.2f));
-                    world.spawnParticle(Particle.FLASH, rod, 1);
+                    world.spawnParticle(Particle.FLASH, rod, 1, org.bukkit.Color.WHITE);
                 } else if (step == rods.size()) {
                     // Deep sonic boom + center lightning
                     world.strikeLightningEffect(center);
