@@ -19,9 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <p>Page 1 also gained the three ground attacks that only the wiki documented
  * ({@code lanceflurry}, {@code whirlwindslash}, {@code executionsweep}), so the help menu now
- * advertises all 61 registered attacks: the legacy pages plus the ten attacks of the second wave
+ * advertises all 96 registered attacks: the legacy pages plus the ten attacks of the second wave
  * (four ground, three aerial, three ranged) and the six of the third (three ground, two aerial, one
- * ranged) appended to the page they belong to. The ground slam's line changed with its redesign.
+ * ranged) appended to the page they belong to, and six defences at the end of page 4. The ground
+ * slam's line changed with its redesign.
  */
 class AttackCatalogueTest {
 
@@ -50,7 +51,10 @@ class AttackCatalogueTest {
             " &e• runeward &8- &7Plants a pulsing rune ward that outlives the cast",
             " &e• sunderingcharge &8- &7Spear-dragging charge that leaves an erupting fissure",
             " &e• spearcyclone &8- &7Whirled spear unleashes a roaming cyclone",
-            " &e• cataclysm &8- &7Three rings of the arena erupt from the inside out");
+            " &e• cataclysm &8- &7Three rings of the arena erupt from the inside out",
+            " &e• tremorlance &8- &7Three spear blows, three widening shockwaves to jump",
+            " &e• aegisrush &8- &7Shield-first charge flinging everyone in its lane aside",
+            " &e• gravecleaver &8- &7Overhead cleave splitting a fissure of obsidian shards");
 
     private static final List<String> LEGACY_PAGE_2 = List.of(
             " &e• starfall &8- &7Calling celestial stars crashing down",
@@ -70,7 +74,9 @@ class AttackCatalogueTest {
             " &e• bladering &8- &7Orbiting lance ring fired out one by one",
             " &e• obsidianwings &8- &7Wing beats sweeping obsidian shards outward",
             " &e• voidmeteor &8- &7Obsidian meteor hurled down into a void crater",
-            " &e• phantomlegion &8- &7Spectral copies lunge through the target one by one");
+            " &e• phantomlegion &8- &7Spectral copies lunge through the target one by one",
+            " &e• spiralstorm &8- &7Lances raining down a spiral wound around the target",
+            " &e• chainhook &8- &7Hooked chains that drag whoever stays on the mark");
 
     private static final List<String> LEGACY_PAGE_3 = List.of(
             " &e• lancesnipe &8- &7High-velocity sniper lance projectile",
@@ -88,7 +94,11 @@ class AttackCatalogueTest {
             " &e• soultethers &8- &7Visible tethers hook players and reel them in",
             " &e• plaguebrand &8- &7Brands a player with a plague that spreads",
             " &e• runemines &8- &7Scatters armed runes that burst when stepped on",
-            " &e• obsidianprison &8- &7Cages of obsidian spikes collapse on each player");
+            " &e• obsidianprison &8- &7Cages of obsidian spikes collapse on each player",
+            " &e• shardburst &8- &7Fan of nine obsidian shards punched from the shield",
+            " &e• gravityorb &8- &7Slow void sphere that drags players in, then implodes",
+            " &e• javelinvolley &8- &7Three javelins thrown where the target is going",
+            " &e• sweepinglaser &8- &7Knee-high red beam sweeping a 120-degree arc");
 
     private static final List<String> LEGACY_PAGE_4 = List.of(
             " &e• stoneskin &8- &7Hardens boss defense, reducing all damage",
@@ -96,25 +106,59 @@ class AttackCatalogueTest {
             " &e• absorbshield &8- &7Barrier converting incoming damage into healing",
             " &e• shieldseal &8- &7Protective ancient ward preventing melee strikes",
             " &e• healingcircle &8- &7Radiant circle regenerating boss vitality",
-            " &e• trianglecall &8- &7Sacred geometric barrier summoning reinforcements");
+            " &e• trianglecall &8- &7Sacred geometric barrier summoning reinforcements",
+            " &e• regeneration &8- &7Orbiting obsidian shards mending the boss as it fights",
+            " &e• soulsiphon &8- &7Soul tethers draining nearby players to heal the boss",
+            " &e• obsidiancocoon &8- &7Invulnerable obsidian shell that heals, then bursts",
+            " &e• bulwark &8- &7Braced behind ramparts: a third of the damage, but rooted",
+            " &e• thornaura &8- &7Thorns that sting attackers and prick anyone close",
+            " &e• afterimage &8- &7Ghost copies that make a third of all hits miss");
+
+    private static final List<String> PAGE_5 = List.of(
+            " &e• lancesquires &8- &7Two obsidian squires that lunge with their lances",
+            " &e• obsidianmender &8- &7Acolyte beaming life into the boss until it dies",
+            " &e• emberhounds &8- &7Pack of three burning wolves that set you alight",
+            " &e• voidwisps &8- &7Three void wisps that drift through walls and burst",
+            " &e• obsidianbrute &8- &7Twice-sized brute slamming the ground every few seconds",
+            " &e• elementalconclave &8- &7Flame Elemental, Frost Golem and Storm Caller at once",
+            " &e• shadowambush &8- &7Shadow Rogues and Void Crawlers rising around the target",
+            " &e• necropolisrite &8- &7A Soul Reaper flanked by two Bone Shields",
+            " &e• arcanecovenant &8- &7Chaos Mage, Venom Witch and Ender Knight together",
+            " &e• championcall &8- &7Once per phase: a random boss of the multiverse joins");
+
+    private static final List<String> PAGE_6 = List.of(
+            " &e• orbitalstrike &8- &7Targeting grid, lock on, a red dome from orbit",
+            " &e• meteorimpact &8- &7House-sized meteor falling for five seconds",
+            " &e• supernova &8- &7A star swells and explodes; only its eye is safe",
+            " &e• judgmentpillars &8- &7Columns of light firing across the arena",
+            " &e• earthsplitter &8- &7A giant cross of fissures torn thirty blocks out",
+            " &e• voidcollapse &8- &7A black hole drags everyone in, then collapses",
+            " &e• obsidiantsunami &8- &7A wall of obsidian rolls over the arena; find the gap",
+            " &e• solarlance &8- &7A fourteen-block spear of sunlight hurled at you",
+            " &e• worldbreaker &8- &7Leaps into the sky and lands with three shockwaves",
+            " &e• apocalypserain &8- &7The sky turns red and meteors rain for five seconds");
 
     @Test
-    @DisplayName("Help pages match the 61 registered attacks")
+    @DisplayName("Help pages match the 96 registered attacks")
     void helpPagesMatchLegacyText() {
         assertEquals(LEGACY_PAGE_1, AttackCatalogue.helpLines(1));
         assertEquals(LEGACY_PAGE_2, AttackCatalogue.helpLines(2));
         assertEquals(LEGACY_PAGE_3, AttackCatalogue.helpLines(3));
         assertEquals(LEGACY_PAGE_4, AttackCatalogue.helpLines(4));
+        assertEquals(PAGE_5, AttackCatalogue.helpLines(5));
+        assertEquals(PAGE_6, AttackCatalogue.helpLines(6));
     }
 
     @Test
-    @DisplayName("Help menu keeps its four titled pages")
+    @DisplayName("Help menu keeps its six titled pages")
     void helpMenuShape() {
-        assertEquals(4, AttackCatalogue.pages());
+        assertEquals(6, AttackCatalogue.pages());
         assertEquals("GROUND ATTACKS & EARTH CONTROL", AttackCatalogue.pageTitle(1));
         assertEquals("AERIAL ASSAULTS & CELESTIAL RUSHES", AttackCatalogue.pageTitle(2));
         assertEquals("RANGED ARTILLERY & MAGIC PROJECTIONS", AttackCatalogue.pageTitle(3));
         assertEquals("DEFENSIVE SHIELDS & MAGIC SEALS", AttackCatalogue.pageTitle(4));
+        assertEquals("SUMMONING RITES & CHAMPIONS", AttackCatalogue.pageTitle(5));
+        assertEquals("DESTRUCTIVE CATACLYSMS", AttackCatalogue.pageTitle(6));
     }
 
     @Test
@@ -123,7 +167,8 @@ class AttackCatalogueTest {
         List<String> names = AttackCatalogue.names();
         Set<String> distinct = new HashSet<>(names);
         assertEquals(names.size(), distinct.size(), "duplicate attack in " + names);
-        assertEquals(LEGACY_PAGE_1.size() + LEGACY_PAGE_2.size() + LEGACY_PAGE_3.size() + LEGACY_PAGE_4.size(),
+        assertEquals(LEGACY_PAGE_1.size() + LEGACY_PAGE_2.size() + LEGACY_PAGE_3.size() + LEGACY_PAGE_4.size()
+                        + PAGE_5.size() + PAGE_6.size(),
                 names.size(), "every help line must correspond to one attack name");
         for (String name : names) {
             assertEquals(name.toLowerCase(), name, "tab completion expects lowercase names: " + name);

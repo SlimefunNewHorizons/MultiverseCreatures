@@ -150,7 +150,9 @@ public final class LiveStage implements Stage {
     @Override
     public void damage(Victim victim, double amount) {
         if (victim instanceof PlayerVictim pv) {
-            MscEntityUtils.damageBy(body.entidad(), pv.player, amount);
+            // The Sentinel's last phase (Undying Will) hits harder; earlier phases leave it at 1.
+            double dealt = amount * com.Chagui68.entities.boss.SentinelPassives.forPhase(instance.currentPhase).damageDealt();
+            MscEntityUtils.damageBy(body.entidad(), pv.player, dealt);
         }
     }
 

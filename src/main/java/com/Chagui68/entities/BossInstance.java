@@ -20,7 +20,7 @@ import java.util.UUID;
 public class BossInstance {
     public enum ShieldState {NORMAL, PLANTED, SLAM_DONE}
 
-    public enum DefenseState {NONE, STONE_SKIN, REFLECT_BARRIER, ABSORB_SHIELD}
+    public enum DefenseState {NONE, STONE_SKIN, REFLECT_BARRIER, ABSORB_SHIELD, BULWARK, THORNS, EVASION}
 
     /**
      * The boss body.
@@ -36,10 +36,11 @@ public class BossInstance {
     public ShieldState shieldState = ShieldState.NORMAL;
     public Entity shieldHolder;
     public int shieldTimer = 0;
-    public int shieldCooldown = 0;
-    public int aerialCooldown = 0;
-    public int hoverBarrageCooldown = 0;
-    public int groundAttackCooldown = 0;
+    /**
+     * Ticks since the last attack ended. Every attack shares this one clock: when it reaches the
+     * configured interval the attack tick rolls the next one.
+     */
+    public int attackClock = 0;
     public boolean hoverBarrageActive = false;
     public boolean triangleCallActive = false;
     public boolean isFlying = false;
@@ -68,6 +69,27 @@ public class BossInstance {
     public boolean healingCircleActive = false;
     public int healingCircleTimer = 0;
     public double healingCircleHealed = 0;
+    /** A healing defence other than the circle is running (regeneration, soul siphon, cocoon). */
+    public boolean regenerating = false;
+    /** Minions called by the summoning rites, still bound to this fight. */
+    public final List<UUID> summons = new ArrayList<>();
+    /** The phase in which a boss was last called to the fight; one call per phase. */
+    public int championPhase = -1;
+    /** The {@link #clock} tick before which no destructive attack may start. */
+    public long destructiveReadyAt = 0;
+    /** A {@code /msc dummy} preview: attacks animate, but summoning rites call nobody. */
+    public boolean preview = false;
+    /** A ground attack has lifted the boss off the floor on purpose; the ground check leaves it be. */
+    public boolean airborneAttack = false;
+
+    /** How many summoned minions are still alive, forgetting the ones that are gone. */
+    public int liveSummons() {
+        summons.removeIf(id -> {
+            org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(id);
+            return e == null || !e.isValid() || e.isDead();
+        });
+        return summons.size();
+    }
     public BukkitRunnable healingCircleTask;
     /**
      * The boss tick loop.
@@ -102,7 +124,6 @@ public class BossInstance {
     public int invulnerableTimer = 0;
     public DefenseState activeDefense = DefenseState.NONE;
     public int defenseTimer = 0;
-    public int defenseCooldown = 0;
     public double absorbShieldHealth = 0;
     public BukkitRunnable defenseTask;
 

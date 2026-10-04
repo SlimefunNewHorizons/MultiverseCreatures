@@ -32,4 +32,39 @@ class MscRetiredDefaultsTest {
         assertEquals(english, config.getStringList(path));
         assertEquals(edited, config.getStringList("entities.dio-brando.death-messages"));
     }
+
+    @Test
+    @DisplayName("An untouched old boss health takes the new default; an edited one is kept")
+    void replacesOnlyUntouchedNumbers() {
+        MemoryConfiguration defaults = new MemoryConfiguration();
+        defaults.set("entities.nix-executioner.health", 2000.0);
+        defaults.set("entities.dio-brando.health", 1500.0);
+        defaults.set("entities.dio-brando.max-damage-per-hit", 75.0);
+
+        MemoryConfiguration config = new MemoryConfiguration();
+        config.set("entities.nix-executioner.health", 450.0);
+        config.set("entities.dio-brando.health", 1200.0);
+        // YAML reads "100" without a decimal point as an int: it still counts as the old default.
+        config.set("entities.dio-brando.max-damage-per-hit", 100);
+
+        Set<String> replaced = MscConfigMigration.replaceRetiredDefaults(config, defaults);
+
+        assertEquals(Set.of("entities.nix-executioner.health", "entities.dio-brando.max-damage-per-hit"), replaced);
+        assertEquals(2000.0, config.getDouble("entities.nix-executioner.health"));
+        assertEquals(1200.0, config.getDouble("entities.dio-brando.health"));
+        assertEquals(75.0, config.getDouble("entities.dio-brando.max-damage-per-hit"));
+    }
+
+    @Test
+    @DisplayName("JackStar's old 8 s pause between specials becomes the 30% faster one")
+    void retiresJackSpecialGap() {
+        MemoryConfiguration defaults = new MemoryConfiguration();
+        defaults.set("entities.jackstar-architect.special-attack-gap-ticks", 112);
+        MemoryConfiguration config = new MemoryConfiguration();
+        config.set("entities.jackstar-architect.special-attack-gap-ticks", 160);
+
+        MscConfigMigration.replaceRetiredDefaults(config, defaults);
+
+        assertEquals(112, config.getInt("entities.jackstar-architect.special-attack-gap-ticks"));
+    }
 }

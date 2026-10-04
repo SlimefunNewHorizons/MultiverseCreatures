@@ -2,6 +2,7 @@ package com.Chagui68.entities.boss;
 
 import com.Chagui68.MultiverseCreatures;
 import com.Chagui68.entities.boss.DioMoves.Attack;
+import com.Chagui68.entities.boss.fx.Ease;
 import com.Chagui68.entities.boss.fx.Fx;
 import com.Chagui68.entities.boss.fx.LiveStage;
 import com.Chagui68.entities.boss.fx.Palette;
@@ -118,6 +119,10 @@ public class DioBoss implements Listener {
     private double aggroRange;
     private double moveSpeed;
     private double maxDamagePerHit;
+    /** Ceiling on one hit DIO or The World lands; their hits are true damage, like the Sentinel's. */
+    private double maxDamageDealt;
+    /** Share of a player's Resistance their true damage ignores. */
+    private double trueDamagePierce;
     private double punchDamage;
     private double barrageDamage;
     private double barrageFinisherDamage;
@@ -127,6 +132,8 @@ public class DioBoss implements Listener {
     private int timeStopTicks;
     private double timeStopRadius;
     private int timeStopCooldownTicks;
+    /** Least ticks between two Final Hours. */
+    private int finalHourCooldownTicks;
     private int attackCooldownTicks;
 
     public DioBoss(MultiverseCreatures plugin) {
@@ -144,10 +151,12 @@ public class DioBoss implements Listener {
 
     public void reloadConfig() {
         var config = plugin.getConfig();
-        health = config.getDouble("entities.dio-brando.health", 900.0);
+        health = config.getDouble("entities.dio-brando.health", 1500.0);
         aggroRange = config.getDouble("entities.dio-brando.aggro-range", 32.0);
         moveSpeed = config.getDouble("entities.dio-brando.move-speed", 0.26);
-        maxDamagePerHit = config.getDouble("entities.dio-brando.max-damage-per-hit", 100.0);
+        maxDamagePerHit = config.getDouble("entities.dio-brando.max-damage-per-hit", 75.0);
+        maxDamageDealt = config.getDouble("entities.dio-brando.max-damage-dealt", TrueDamage.DEFAULT_CAP);
+        trueDamagePierce = config.getDouble("entities.dio-brando.true-damage-pierce", TrueDamage.DEFAULT_PIERCE);
         punchDamage = config.getDouble("entities.dio-brando.punch-damage", 12.0);
         barrageDamage = config.getDouble("entities.dio-brando.barrage-damage", 2.5);
         barrageFinisherDamage = config.getDouble("entities.dio-brando.barrage-finisher-damage", 14.0);
@@ -157,6 +166,7 @@ public class DioBoss implements Listener {
         timeStopTicks = Math.max(20, config.getInt("entities.dio-brando.time-stop-ticks", 100));
         timeStopRadius = config.getDouble("entities.dio-brando.time-stop-radius", 40.0);
         timeStopCooldownTicks = Math.max(100, config.getInt("entities.dio-brando.time-stop-cooldown-ticks", 700));
+        finalHourCooldownTicks = Math.max(200, config.getInt("entities.dio-brando.final-hour-cooldown-ticks", 900));
         attackCooldownTicks = Math.max(10, config.getInt("entities.dio-brando.attack-cooldown-ticks", 45));
     }
 
@@ -328,6 +338,7 @@ public class DioBoss implements Listener {
         } else {
             if (inst.attackCooldown > 0) inst.attackCooldown--;
             if (inst.timeStopCooldown > 0) inst.timeStopCooldown--;
+            if (inst.finalHourCooldown > 0) inst.finalHourCooldown--;
             if (target != null && dist <= aggroRange) {
                 Vector toTarget = target.getLocation().toVector().subtract(loc.toVector()).setY(0);
                 if (toTarget.lengthSquared() > 0.01) loc.setDirection(toTarget);
@@ -425,6 +436,7 @@ public class DioBoss implements Listener {
 
     /** Which attack fits the distance, never the same one twice in a row. */
     private Attack pickAttack(DioInstance inst, double dist) {
+        if (inst.finalHourCooldown <= 0 && dist <= 20 && random.nextInt(100) < 40) return Attack.FINAL_HOUR;
         if (inst.timeStopCooldown <= 0 && dist <= timeStopRadius * 0.6) return Attack.TIME_STOP;
         List<Attack> options = new ArrayList<>();
         if (dist <= 3.8) {
@@ -446,6 +458,7 @@ public class DioBoss implements Listener {
             case KNIFE_FAN -> knifeFan(inst, target);
             case EYE_BEAMS -> eyeBeams(inst, target);
             case PUNCH -> punch(inst, target);
+            case FINAL_HOUR -> finalHour(inst);
         };
         t.onFinish(() -> {
             inst.worldControlled = false;
@@ -697,7 +710,7 @@ public class DioBoss implements Listener {
             }
             if (tick % 3 == 0) {
                 for (Player victim : playersInCone(world, spot[0], facing[0], 50, 4.2)) {
-                    MscEntityUtils.damageBy(inst.stand, victim, barrageDamage);
+                    hit(inst, victim, barrageDamage);
                     victim.setVelocity(facing[0].clone().multiply(0.12).setY(0.05));
                 }
             }
@@ -710,7 +723,7 @@ public class DioBoss implements Listener {
             fx.sound(chest, Sfx.IRON_GOLEM_ATTACK, 2f, 0.6f);
             say(inst, "MUDAAAA!", NamedTextColor.GOLD);
             for (Player victim : playersInCone(world, spot[0], facing[0], 55, 4.5)) {
-                MscEntityUtils.damageBy(inst.stand, victim, barrageFinisherDamage);
+                hit(inst, victim, barrageFinisherDamage);
                 victim.setVelocity(facing[0].clone().multiply(2.4).setY(0.7));
             }
         });
@@ -816,7 +829,7 @@ public class DioBoss implements Listener {
             fx.sound(center, Sfx.MACE_SMASH_GROUND, 3f, 0.6f);
             for (Player p : playersNear(center.toLocation(world), 5.5)) {
                 struck.add(p.getUniqueId());
-                MscEntityUtils.damageBy(inst.stand, p, roadRollerDamage);
+                hit(inst, p, roadRollerDamage);
                 Vector away = DioMoves.flat(p.getLocation().toVector().subtract(center));
                 p.setVelocity(away.multiply(1.1).setY(0.8));
             }
@@ -835,7 +848,7 @@ public class DioBoss implements Listener {
             fx.sound(roof, Sfx.ANVIL_LAND, 0.7f, 1.4f + random.nextFloat() * 0.4f);
             if (tick % 6 == 0) {
                 for (Player p2 : playersNear(base.toLocation(world), 4.5)) {
-                    MscEntityUtils.damageBy(inst.stand, p2, barrageDamage);
+                    hit(inst, p2, barrageDamage);
                 }
                 for (Player p2 : playersNear(base.toLocation(world), 30)) {
                     p2.sendActionBar(Component.text(muda(tick / 6 + 1), NamedTextColor.GOLD, TextDecoration.BOLD));
@@ -854,7 +867,7 @@ public class DioBoss implements Listener {
             }
             roller.clear();
             for (Player p : playersNear(center.toLocation(world), 7)) {
-                MscEntityUtils.damageBy(inst.stand, p, roadRollerDamage * 0.5);
+                hit(inst, p, roadRollerDamage * 0.5);
                 p.setVelocity(DioMoves.flat(p.getLocation().toVector().subtract(center)).multiply(1.3).setY(0.9));
             }
             // He steps down beside the wreck.
@@ -995,7 +1008,7 @@ public class DioBoss implements Listener {
             for (Player p : playersNear(k.pos.toLocation(k.display.getWorld()), 3)) {
                 Vector chest = p.getLocation().toVector().add(new Vector(0, 1, 0));
                 if (DioMoves.distanceToSegment(chest, before, k.pos) > 0.9) continue;
-                MscEntityUtils.damageBy(inst.stand, p, knifeDamage);
+                hit(inst, p, knifeDamage);
                 fx.cloud(Particle.CRIT, chest, 6, 0.2, 0.1);
                 k.display.remove();
                 inst.knives.remove(k);
@@ -1059,7 +1072,7 @@ public class DioBoss implements Listener {
                     for (Player p2 : playersNear(from.toLocation(world), length)) {
                         Vector chest = p2.getLocation().toVector().add(new Vector(0, 1, 0));
                         if (DioMoves.distanceToSegment(chest, from, end) <= 0.9) {
-                            MscEntityUtils.damageBy(inst.stand, p2, eyeBeamDamage);
+                            hit(inst, p2, eyeBeamDamage);
                         }
                     }
                 }
@@ -1095,11 +1108,107 @@ public class DioBoss implements Listener {
             fx.sound(fist, Sfx.IRON_GOLEM_ATTACK, 1.5f, 0.8f);
             say(inst, "Muda!", NamedTextColor.YELLOW);
             for (Player victim : playersInCone(world, inst.worldAt, facing[0], 45, 3.8)) {
-                MscEntityUtils.damageBy(inst.stand, victim, punchDamage);
+                hit(inst, victim, punchDamage);
                 victim.setVelocity(facing[0].clone().multiply(1.4).setY(0.45));
             }
         });
         t.span(10, Attack.PUNCH.ticks, (tick, p) -> inst.worldPose = DioMoves.WORLD_PUNCH.lerp(DioMoves.WORLD_IDLE, p));
+        return t;
+    }
+
+    // ------------------------------------------------------------------ the final hour (destructive)
+
+    /**
+     * The Final Hour: a golden clock face sixteen blocks wide spreads out under DIO and its hand
+     * sweeps round, ticking, until it stops on one hour, the only safe one, which glows green. "ZA
+     * WARUDO": time stops for an instant, and The World pummels each of the other eleven hours in
+     * turn. Run to the lit hour before the hand settles.
+     */
+    private Timeline finalHour(DioInstance inst) {
+        World world = inst.stand.getWorld();
+        Fx fx = LiveStage.fxIn(world);
+        final int hours = 12;
+        final double radius = 16;
+        final int sweep = 80;
+        final int stop = 100;
+        final int every = 4;
+        Vector center = ArsenalKit.groundAt(inst.stand.getLocation());
+        int safe = random.nextInt(hours);
+        double sector = 2 * Math.PI / hours;
+        double start = random.nextDouble() * Math.PI * 2;
+        double end = start + sector * (hours * 2 + safe) + sector / 2;
+        inst.finalHourCooldown = finalHourCooldownTicks;
+        Timeline t = new Timeline();
+        t.at(0, () -> {
+            fx.sound(center, Sfx.BELL, 3f, 0.5f);
+            say(inst, "Do you know how long the final hour lasts? One second.", NamedTextColor.GOLD);
+            ArsenalKit.hud(world, center, 50, "THE FINAL HOUR", "Run to the hour the hand stops on");
+        });
+        t.span(0, stop, (tick, p) -> {
+            inst.dioPose = DioMoves.DIO_IDLE.lerp(DioMoves.DIO_SKY, Math.min(1, tick / 20.0));
+            inst.worldControlled = true;
+            Location loc = inst.stand.getLocation();
+            inst.worldAt = loc.toVector().add(new Vector(0, 2.5, 0));
+            inst.worldPose = DioMoves.WORLD_IDLE.lerp(DioMoves.WORLD_SPREAD, Math.min(1, tick / 20.0));
+            Vector floor = center.clone().add(new Vector(0, 0.2, 0));
+            double open = Math.min(1, tick / 20.0);
+            if (tick % 2 == 0) {
+                fx.ring(floor, radius * open, 0.8, tick * 0.02, fx.dust(GOLD, 1.6f));
+                for (int h = 0; h < hours; h++) {
+                    Vector mark = center.clone().add(Shapes.heading(start + h * sector).multiply(radius * open * 0.92)).add(new Vector(0, 0.2, 0));
+                    fx.dust(h % 3 == 0 ? Palette.HOLY : GOLD, 2.0f, 0.2, 2).at(mark);
+                }
+            }
+            double hand = tick < sweep ? start + (end - start) * Ease.at(Ease.OUT, tick / (double) sweep) : end;
+            fx.line(floor, floor.clone().add(Shapes.heading(hand).multiply(radius * open * 0.85)), 0.5, fx.dust(FROZEN, 1.8f));
+            if (tick < sweep && tick % 4 == 0) fx.sound(center, Sfx.NOTE_HAT, 2f, 1.6f);
+            if (tick >= sweep && tick % 2 == 0) {
+                double a = start + safe * sector;
+                fx.draw(Shapes.arc(floor, radius * 0.6, a, a + sector, 12, Shapes.FLAT_U, Shapes.FLAT_V), fx.dust(GREEN, 1.8f));
+                fx.draw(Shapes.arc(floor, radius * 0.95, a, a + sector, 16, Shapes.FLAT_U, Shapes.FLAT_V), fx.dust(GREEN, 1.8f));
+                for (double f = 0; f <= 1; f += 0.25) {
+                    fx.dust(GREEN, 1.6f).at(floor.clone().add(Shapes.heading(a + sector * f).multiply(radius * 0.8)));
+                }
+            }
+        });
+        t.at(stop, () -> {
+            fx.flash(center.clone().add(new Vector(0, 3, 0)), INVERTED);
+            fx.sound(center, Sfx.BELL_RESONATE, 3f, 0.4f);
+            say(inst, "ZA WARUDO!", NamedTextColor.GOLD);
+        });
+        int strike = 0;
+        for (int h = 0; h < hours; h++) {
+            if (h == safe) continue;
+            int hour = h;
+            int at = stop + 6 + strike * every;
+            strike++;
+            t.at(at, () -> {
+                double a = start + hour * sector + sector / 2;
+                Vector mid = center.clone().add(Shapes.heading(a).multiply(radius * 0.55));
+                inst.worldAt = mid.clone().add(new Vector(0, 1.5, 0));
+                inst.worldYaw = DioMoves.yawOf(Shapes.heading(a));
+                inst.worldPose = DioMoves.barrage(hour, random.nextDouble() * 2 - 1, random.nextDouble() * 2 - 1);
+                fx.impact(mid.clone().add(new Vector(0, 0.8, 0)), GOLD, 2.2);
+                fx.draw(Shapes.arc(center.clone().add(new Vector(0, 0.4, 0)), radius * 0.8, a - sector / 2, a + sector / 2, 14,
+                        Shapes.FLAT_U, Shapes.FLAT_V), fx.dust(GOLD, 2.2f));
+                fx.sound(mid, Sfx.PLAYER_ATTACK_STRONG, 2.5f, 0.6f);
+                fx.sound(mid, Sfx.EXPLODE, 1.6f, 1.2f);
+                for (Player p : playersNear(inst.stand.getLocation(), radius + 2)) {
+                    Vector off = p.getLocation().toVector().subtract(center);
+                    double angle = Math.atan2(off.getZ(), off.getX()) - start;
+                    angle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                    if ((int) (angle / sector) != hour) continue;
+                    hit(inst, p, punchDamage * 1.6);
+                    p.setVelocity(Shapes.flat(off).multiply(1.2).setY(0.6));
+                }
+            });
+        }
+        int finish = stop + 6 + strike * every;
+        t.at(finish, () -> say(inst, "Toki wa ugokidasu.", NamedTextColor.YELLOW));
+        t.span(finish, Attack.FINAL_HOUR.ticks, (tick, p) -> {
+            inst.dioPose = DioMoves.DIO_SKY.lerp(DioMoves.DIO_IDLE, p);
+            inst.worldPose = DioMoves.WORLD_PUNCH.lerp(DioMoves.WORLD_IDLE, p);
+        });
         return t;
     }
 
@@ -1267,6 +1376,11 @@ public class DioBoss implements Listener {
         return null;
     }
 
+    /** A hit from DIO or The World: true damage, the same kind every boss deals. */
+    private void hit(DioInstance inst, Player victim, double amount) {
+        TrueDamage.apply(victim, inst.stand, amount, trueDamagePierce, maxDamageDealt);
+    }
+
     private void hurt(ArmorStand stand, Player attacker, double damage) {
         DioInstance inst = active.get(stand.getUniqueId());
         if (inst == null) return;
@@ -1422,6 +1536,8 @@ public class DioBoss implements Listener {
         String lastAttack;
         int attackCooldown = 60;
         int timeStopCooldown = 240;
+        /** Ticks until the Final Hour can strike again; the first waits half a minute. */
+        int finalHourCooldown = 600;
         int tick;
         int phase = 1;
         double walkPhase;

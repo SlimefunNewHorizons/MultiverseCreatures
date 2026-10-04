@@ -165,4 +165,20 @@ class SentinelDefenseTest {
             }
         }
     }
+
+    @Test
+    @DisplayName("The bulwark, the thorn aura and the afterimage each shape the hit their own way")
+    void newDefensiveStates() {
+        SentinelDefense bulwark = new SentinelDefense(false, false, false, DefenseState.BULWARK, 0.0, NO_CAP);
+        assertEquals(100.0 * SentinelDefense.BULWARK_MULTIPLIER, bulwark.resolve(100.0).applied(), EPS);
+
+        SentinelDefense.Result thorns = new SentinelDefense(false, false, false, DefenseState.THORNS, 0.0, NO_CAP).resolve(100.0);
+        assertEquals(100.0 * SentinelDefense.THORNS_MULTIPLIER, thorns.applied(), EPS);
+        assertEquals(SentinelDefense.THORNS_DAMAGE, thorns.reflected(), EPS);
+
+        SentinelDefense evasion = new SentinelDefense(false, false, false, DefenseState.EVASION, 0.0, NO_CAP);
+        assertEquals(0.0, evasion.resolve(100.0, SentinelDefense.EVASION_CHANCE - 0.01).applied(), EPS);
+        assertEquals(100.0, evasion.resolve(100.0, SentinelDefense.EVASION_CHANCE + 0.01).applied(), EPS);
+        assertEquals(100.0, evasion.resolve(100.0).applied(), EPS, "without a roll the hit always lands");
+    }
 }

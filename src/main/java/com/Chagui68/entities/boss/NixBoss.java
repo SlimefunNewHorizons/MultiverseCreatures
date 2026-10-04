@@ -316,8 +316,18 @@ public class NixBoss implements Listener {
     private double harvestDamage;
     private double gallowsDamage;
     private double condemnDamage;
-    /** Ticks between two signature moves (Blood Harvest, Gallows Leap, Condemnation). */
+    /** Ticks between two special attacks: a signature move or one of the arsenal's. */
     private int specialCooldownTicks;
+    /** Least ticks between two of his destructive attacks. */
+    private int destructiveCooldownTicks;
+    /** Ceiling on one hit he lands; his hits are true damage, like the Sentinel's. */
+    private double maxDamageDealt;
+    /** Share of a player's Resistance his true damage ignores. */
+    private double trueDamagePierce;
+    /** Multiplies the damage of every arsenal attack. */
+    private double arsenalPower;
+    /** How many recent specials a new pick avoids, so none repeats too soon. */
+    private static final int SPECIAL_MEMORY = 3;
 
     public NixBoss(MultiverseCreatures plugin) {
         this.plugin = plugin;
@@ -330,7 +340,7 @@ public class NixBoss implements Listener {
 
     public void reloadConfig() {
         var config = plugin.getConfig();
-        health = config.getDouble("entities.nix-executioner.health", 450.0);
+        health = config.getDouble("entities.nix-executioner.health", 2000.0);
         aggroRange = config.getDouble("entities.nix-executioner.aggro-range", 28.0);
         moveSpeed = config.getDouble("entities.nix-executioner.move-speed", 0.30);
         meleeRange = config.getDouble("entities.nix-executioner.melee-range", 3.5);
@@ -347,6 +357,10 @@ public class NixBoss implements Listener {
         gallowsDamage = config.getDouble("entities.nix-executioner.gallows-damage", 18.0);
         condemnDamage = config.getDouble("entities.nix-executioner.condemn-damage", 20.0);
         specialCooldownTicks = Math.max(20, config.getInt("entities.nix-executioner.special-cooldown-ticks", 160));
+        arsenalPower = Math.max(0, config.getDouble("entities.nix-executioner.arsenal-damage-multiplier", 1.0));
+        maxDamageDealt = config.getDouble("entities.nix-executioner.max-damage-dealt", TrueDamage.DEFAULT_CAP);
+        destructiveCooldownTicks = Math.max(100, config.getInt("entities.nix-executioner.destructive-cooldown-ticks", 600));
+        trueDamagePierce = config.getDouble("entities.nix-executioner.true-damage-pierce", TrueDamage.DEFAULT_PIERCE);
     }
 
     /** Takes over a stand a previous run left behind, wearing the parts it already has. */
@@ -483,6 +497,9 @@ public class NixBoss implements Listener {
         Player target = findTarget(stand);
         inst.targetId = (target != null) ? target.getUniqueId() : null;
 
+        // Arsenal attacks play before the location is read: the march walks him itself.
+        ArsenalKit.tick(inst.arsenal);
+
         Location loc = stand.getLocation();
 
         if (target != null) {
@@ -498,12 +515,13 @@ public class NixBoss implements Listener {
 
             double currentSpeed = inst.bloodlust ? (moveSpeed * 1.35) : moveSpeed;
 
-            // A signature move between swings; while one plays it owns the body, the heading and the feet.
-            if (inst.move == NixMoves.Move.NONE && inst.moveCooldown <= 0 && inst.cleaveAnim <= 0
+            // A special between swings (a signature move or an arsenal attack); while one plays it
+            // owns the body, the heading and the feet.
+            if (inst.move == NixMoves.Move.NONE && !casting(inst) && inst.moveCooldown <= 0 && inst.cleaveAnim <= 0
                     && inst.chainAnim <= 0 && dist <= aggroRange) {
-                startMove(inst, pickMove(dist));
+                startSpecial(inst, target, dist);
             }
-            boolean performing = inst.move != NixMoves.Move.NONE;
+            boolean performing = inst.move != NixMoves.Move.NONE || casting(inst);
             if (performing) inst.moving = false;
 
             // Smooth face toward target
@@ -552,7 +570,8 @@ public class NixBoss implements Listener {
         if (inst.chainAnim > 0) inst.chainAnim--;
         if (inst.meleeCooldown > 0) inst.meleeCooldown--;
         if (inst.chainCooldown > 0) inst.chainCooldown--;
-        if (inst.moveCooldown > 0 && inst.move == NixMoves.Move.NONE) inst.moveCooldown--;
+        if (inst.moveCooldown > 0 && inst.move == NixMoves.Move.NONE && !casting(inst)) inst.moveCooldown--;
+        if (inst.cataclysmCooldown > 0) inst.cataclysmCooldown--;
 
         // Bloodlust eye particle aura
         if (inst.bloodlust) {
@@ -565,7 +584,7 @@ public class NixBoss implements Listener {
 
         // Synchronize all 27 display entities locked to stand location (throttled when stationary)
         if (DisplaySuit.shouldSync(inst.moving || inst.cleaveAnim != 0 || inst.chainAnim != 0
-                || inst.move != NixMoves.Move.NONE, inst.tickCount)) {
+                || inst.move != NixMoves.Move.NONE || casting(inst), inst.tickCount)) {
             syncDisplays(inst);
         }
 
@@ -748,6 +767,11 @@ public class NixBoss implements Listener {
     private Quaternionf computeLowerQuat(NixPart part, NixInstance inst) {
         if (inst == null) return new Quaternionf();
         if (inst.move != NixMoves.Move.NONE) return NixMoves.lower(inst.move, part, inst.moveTick);
+        ArsenalKit.Running cast = ArsenalKit.channeling(inst.arsenal);
+        if (cast != null) {
+            if (!NixModel.hangsFromSecondJoint(part)) return new Quaternionf();
+            return com.Chagui68.utils.MscLimb.bendAngle(cast.gesture.bend(isArm(part.group), cast.timeline.now(), cast.channel));
+        }
         if (inst.cleaveAnim > 0) {
             float prog = 1f - (float) inst.cleaveAnim / cleaveAnimTicks;
             return NixModel.cleaveLowerRotation(part, prog);
@@ -767,6 +791,8 @@ public class NixBoss implements Listener {
      */
     private Quaternionf computeLimbQuat(LimbGroup group, NixInstance inst) {
         if (inst.move != NixMoves.Move.NONE) return NixMoves.limb(inst.move, group, inst.moveTick);
+        ArsenalKit.Running cast = ArsenalKit.channeling(inst.arsenal);
+        if (cast != null) return cast.gesture.limb(group.name(), cast.timeline.now(), cast.channel);
         Quaternionf q = new Quaternionf();
         float s = inst.animTicks;
         boolean walking = inst.moving;
@@ -837,12 +863,88 @@ public class NixBoss implements Listener {
 
     // ------------------------------------------------------------------ signature moves
 
-    /** Which signature move fits the distance to the target; null keeps to the cleave and the chains. */
-    private NixMoves.Move pickMove(double dist) {
-        int roll = random.nextInt(100);
-        if (dist <= 5.0) return roll < 65 ? NixMoves.Move.HARVEST : NixMoves.Move.CONDEMN;
-        if (dist <= 18.0) return roll < 55 ? NixMoves.Move.GALLOWS : NixMoves.Move.CONDEMN;
-        return NixMoves.Move.CONDEMN;
+    /** Whether a signature move reaches a target this far away. */
+    static boolean fits(NixMoves.Move move, double dist) {
+        return switch (move) {
+            case HARVEST -> dist <= 5.0;
+            case GALLOWS -> dist > 5.0 && dist <= 18.0;
+            case CONDEMN -> true;
+            case NONE -> false;
+        };
+    }
+
+    /**
+     * Starts a special: any signature move or arsenal attack that reaches the target, skipping the
+     * last {@link #SPECIAL_MEMORY} ones so the fight keeps changing.
+     */
+    private void startSpecial(NixInstance inst, Player target, double dist) {
+        List<Enum<?>> options = new ArrayList<>();
+        for (boolean avoidRecent : new boolean[]{true, false}) {
+            for (NixMoves.Move move : NixMoves.Move.values()) {
+                if (fits(move, dist) && !(avoidRecent && inst.recentSpecials.contains(move.name()))) options.add(move);
+            }
+            for (NixAbility ability : NixAbility.values()) {
+                if (ability.destructive && inst.cataclysmCooldown > 0) continue;
+                if (ability.fits(dist) && !(avoidRecent && inst.recentSpecials.contains(ability.name()))) options.add(ability);
+            }
+            if (!options.isEmpty()) break;
+        }
+        if (options.isEmpty()) return;
+        Enum<?> pick = options.get(random.nextInt(options.size()));
+        inst.recentSpecials.addLast(pick.name());
+        while (inst.recentSpecials.size() > SPECIAL_MEMORY) inst.recentSpecials.removeFirst();
+        if (pick instanceof NixMoves.Move move) {
+            startMove(inst, move);
+            return;
+        }
+        NixAbility ability = (NixAbility) pick;
+        if (ability.destructive) inst.cataclysmCooldown = destructiveCooldownTicks;
+        inst.arsenal.add(NixArsenal.start(ability, hostFor(inst), target, arsenalPower));
+        inst.moveCooldown = specialCooldownTicks + random.nextInt(40);
+        inst.meleeCooldown = Math.max(inst.meleeCooldown, 10);
+        inst.cleaveAnim = 0;
+        inst.chainAnim = 0;
+        inst.moving = false;
+    }
+
+    private boolean casting(NixInstance inst) {
+        return ArsenalKit.channeling(inst.arsenal) != null;
+    }
+
+    /** The boss as the arsenal sees it, made once per instance. */
+    private ArsenalKit.Host hostFor(NixInstance inst) {
+        if (inst.host == null) {
+            inst.host = new ArsenalKit.Host() {
+                @Override
+                public ArmorStand stand() {
+                    return inst.stand;
+                }
+
+                @Override
+                public List<Player> players() {
+                    return ArsenalKit.playersNear(inst.stand.getWorld(), inst.stand.getLocation().toVector(), aggroRange + 8);
+                }
+
+                @Override
+                public void deal(Player target, double amount, String source) {
+                    dealToPlayer(inst.stand, target, amount, source);
+                }
+
+                @Override
+                public Random random() {
+                    return random;
+                }
+
+                @Override
+                public void heal(double amount) {
+                    double max = MscEntityUtils.getVirtualMaxHealth(inst.stand);
+                    double now = Math.min(max, MscEntityUtils.getVirtualHealth(inst.stand) + amount);
+                    MscEntityUtils.setVirtualHealth(inst.stand, now);
+                    if (inst.bossBar != null) inst.bossBar.setProgress(MscEntityUtils.calculateVirtualProgress(now, max));
+                }
+            };
+        }
+        return inst.host;
     }
 
     private void startMove(NixInstance inst, NixMoves.Move move) {
@@ -1199,6 +1301,7 @@ public class NixBoss implements Listener {
     }
 
     private void cleanup(NixInstance inst) {
+        inst.arsenal.clear();
         World world = (inst.stand != null) ? inst.stand.getWorld() : null;
         DisplaySuit.remove(world, inst.partDisplays.values());
         inst.partDisplays.clear();
@@ -1312,7 +1415,7 @@ public class NixBoss implements Listener {
         outgoingSource = source;
         outgoingIntended = amount;
         try {
-            target.damage(amount, stand);
+            TrueDamage.apply(target, stand, amount, trueDamagePierce, maxDamageDealt);
         } finally {
             outgoingSource = previousSource;
             outgoingIntended = previousIntended;
@@ -1448,6 +1551,13 @@ public class NixBoss implements Listener {
         public Vector leapTo;
         public final List<Vector> marks = new ArrayList<>();
         public final java.util.Set<UUID> struck = new java.util.HashSet<>();
+        /** Arsenal attacks still playing: the newest may be channelling, older ones only linger. */
+        final List<ArsenalKit.Running> arsenal = new ArrayList<>();
+        /** Names of the last specials used, signature moves and arsenal attacks alike. */
+        final java.util.ArrayDeque<String> recentSpecials = new java.util.ArrayDeque<>();
+        ArsenalKit.Host host;
+        /** Ticks until his next destructive attack; the first waits until he has fought a while. */
+        int cataclysmCooldown = 400;
 
         public NixInstance(ArmorStand stand) {
             this.stand = stand;

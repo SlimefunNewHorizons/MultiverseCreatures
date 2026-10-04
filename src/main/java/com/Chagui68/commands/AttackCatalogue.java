@@ -19,7 +19,9 @@ final class AttackCatalogue {
             "GROUND ATTACKS & EARTH CONTROL",
             "AERIAL ASSAULTS & CELESTIAL RUSHES",
             "RANGED ARTILLERY & MAGIC PROJECTIONS",
-            "DEFENSIVE SHIELDS & MAGIC SEALS");
+            "DEFENSIVE SHIELDS & MAGIC SEALS",
+            "SUMMONING RITES & CHAMPIONS",
+            "DESTRUCTIVE CATACLYSMS");
 
     private static final List<Entry> ENTRIES = List.of(
             // Ground
@@ -44,6 +46,9 @@ final class AttackCatalogue {
             new Entry("sunderingcharge", "&7Spear-dragging charge that leaves an erupting fissure", 1),
             new Entry("spearcyclone", "&7Whirled spear unleashes a roaming cyclone", 1),
             new Entry("cataclysm", "&7Three rings of the arena erupt from the inside out", 1),
+            new Entry("tremorlance", "&7Three spear blows, three widening shockwaves to jump", 1),
+            new Entry("aegisrush", "&7Shield-first charge flinging everyone in its lane aside", 1),
+            new Entry("gravecleaver", "&7Overhead cleave splitting a fissure of obsidian shards", 1),
             // Aerial
             new Entry("starfall", "&7Calling celestial stars crashing down", 2),
             new Entry("aerialrush", "&7High-speed aerial homing strike", 2),
@@ -63,6 +68,8 @@ final class AttackCatalogue {
             new Entry("obsidianwings", "&7Wing beats sweeping obsidian shards outward", 2),
             new Entry("voidmeteor", "&7Obsidian meteor hurled down into a void crater", 2),
             new Entry("phantomlegion", "&7Spectral copies lunge through the target one by one", 2),
+            new Entry("spiralstorm", "&7Lances raining down a spiral wound around the target", 2),
+            new Entry("chainhook", "&7Hooked chains that drag whoever stays on the mark", 2),
             // Ranged / magic
             new Entry("lancesnipe", "&7High-velocity sniper lance projectile", 3),
             new Entry("meteorstorm", "&7Shower of flaming meteorites", 3),
@@ -80,13 +87,45 @@ final class AttackCatalogue {
             new Entry("plaguebrand", "&7Brands a player with a plague that spreads", 3),
             new Entry("runemines", "&7Scatters armed runes that burst when stepped on", 3),
             new Entry("obsidianprison", "&7Cages of obsidian spikes collapse on each player", 3),
+            new Entry("shardburst", "&7Fan of nine obsidian shards punched from the shield", 3),
+            new Entry("gravityorb", "&7Slow void sphere that drags players in, then implodes", 3),
+            new Entry("javelinvolley", "&7Three javelins thrown where the target is going", 3),
+            new Entry("sweepinglaser", "&7Knee-high red beam sweeping a 120-degree arc", 3),
             // Defensive
             new Entry("stoneskin", "&7Hardens boss defense, reducing all damage", 4),
             new Entry("reflectbarrier", "&7Prismatic shield reflecting projectiles", 4),
             new Entry("absorbshield", "&7Barrier converting incoming damage into healing", 4),
             new Entry("shieldseal", "&7Protective ancient ward preventing melee strikes", 4),
             new Entry("healingcircle", "&7Radiant circle regenerating boss vitality", 4),
-            new Entry("trianglecall", "&7Sacred geometric barrier summoning reinforcements", 4));
+            new Entry("trianglecall", "&7Sacred geometric barrier summoning reinforcements", 4),
+            new Entry("regeneration", "&7Orbiting obsidian shards mending the boss as it fights", 4),
+            new Entry("soulsiphon", "&7Soul tethers draining nearby players to heal the boss", 4),
+            new Entry("obsidiancocoon", "&7Invulnerable obsidian shell that heals, then bursts", 4),
+            new Entry("bulwark", "&7Braced behind ramparts: a third of the damage, but rooted", 4),
+            new Entry("thornaura", "&7Thorns that sting attackers and prick anyone close", 4),
+            new Entry("afterimage", "&7Ghost copies that make a third of all hits miss", 4),
+            // Summoning
+            new Entry("lancesquires", "&7Two obsidian squires that lunge with their lances", 5),
+            new Entry("obsidianmender", "&7Acolyte beaming life into the boss until it dies", 5),
+            new Entry("emberhounds", "&7Pack of three burning wolves that set you alight", 5),
+            new Entry("voidwisps", "&7Three void wisps that drift through walls and burst", 5),
+            new Entry("obsidianbrute", "&7Twice-sized brute slamming the ground every few seconds", 5),
+            new Entry("elementalconclave", "&7Flame Elemental, Frost Golem and Storm Caller at once", 5),
+            new Entry("shadowambush", "&7Shadow Rogues and Void Crawlers rising around the target", 5),
+            new Entry("necropolisrite", "&7A Soul Reaper flanked by two Bone Shields", 5),
+            new Entry("arcanecovenant", "&7Chaos Mage, Venom Witch and Ender Knight together", 5),
+            new Entry("championcall", "&7Once per phase: a random boss of the multiverse joins", 5),
+            // Destructive
+            new Entry("orbitalstrike", "&7Targeting grid, lock on, a red dome from orbit", 6),
+            new Entry("meteorimpact", "&7House-sized meteor falling for five seconds", 6),
+            new Entry("supernova", "&7A star swells and explodes; only its eye is safe", 6),
+            new Entry("judgmentpillars", "&7Columns of light firing across the arena", 6),
+            new Entry("earthsplitter", "&7A giant cross of fissures torn thirty blocks out", 6),
+            new Entry("voidcollapse", "&7A black hole drags everyone in, then collapses", 6),
+            new Entry("obsidiantsunami", "&7A wall of obsidian rolls over the arena; find the gap", 6),
+            new Entry("solarlance", "&7A fourteen-block spear of sunlight hurled at you", 6),
+            new Entry("worldbreaker", "&7Leaps into the sky and lands with three shockwaves", 6),
+            new Entry("apocalypserain", "&7The sky turns red and meteors rain for five seconds", 6));
 
     private AttackCatalogue() {}
 

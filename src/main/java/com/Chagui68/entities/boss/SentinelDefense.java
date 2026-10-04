@@ -47,6 +47,14 @@ public record SentinelDefense(
     static final double REFLECT_BARRIER_MULTIPLIER = 0.7;
     /** Share of the reduced hit the reflect barrier throws back at the attacker. */
     static final double REFLECT_SHARE = 0.3;
+    /** Damage multiplier while braced behind the bulwark. */
+    static final double BULWARK_MULTIPLIER = 0.35;
+    /** Damage multiplier under the thorn aura. */
+    static final double THORNS_MULTIPLIER = 0.8;
+    /** Flat damage the thorn aura deals back to whoever lands a hit. */
+    static final double THORNS_DAMAGE = 3.0;
+    /** Chance that a hit passes through an afterimage and misses entirely. */
+    static final double EVASION_CHANCE = 0.35;
 
     /**
      * Snapshots a boss instance's defensive state. A {@code null} instance — a stand that is not a
@@ -66,6 +74,14 @@ public record SentinelDefense(
      * hit past {@code max-damage-per-hit} and the potion/defence stack cannot raise it either.
      */
     public Result resolve(double incoming) {
+        return resolve(incoming, 1.0);
+    }
+
+    /**
+     * Resolves one incoming hit with {@code roll}, a number in [0, 1) that decides whether the
+     * afterimage dodges it.
+     */
+    public Result resolve(double incoming, double roll) {
         List<String> steps = new ArrayList<>();
 
         if (invulnerable) {
@@ -101,6 +117,16 @@ public record SentinelDefense(
             if (absorbed > 0) steps.add("absorb shield -" + absorbed);
             shieldBroken = absorbShieldHealth - absorbed <= 0;
             if (damage < 0) damage = 0;
+        } else if (activeDefense == DefenseState.BULWARK) {
+            damage *= BULWARK_MULTIPLIER;
+            steps.add("bulwark ×" + BULWARK_MULTIPLIER);
+        } else if (activeDefense == DefenseState.THORNS) {
+            damage *= THORNS_MULTIPLIER;
+            steps.add("thorn aura ×" + THORNS_MULTIPLIER);
+            reflected = THORNS_DAMAGE;
+        } else if (activeDefense == DefenseState.EVASION && roll < EVASION_CHANCE) {
+            steps.add("afterimage: evaded");
+            return new Result(0.0, 0.0, 0.0, false, List.copyOf(steps));
         }
 
         if (damage > cap) {

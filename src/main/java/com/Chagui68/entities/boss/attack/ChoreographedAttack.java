@@ -163,6 +163,31 @@ public abstract class ChoreographedAttack extends BossAttackBase {
         return stage.config("entities.armor-stand-boss.seal-damage", 15.0) * multiplier;
     }
 
+    /**
+     * Gives the boss {@code amount} health back, never past full, and keeps its bar in step.
+     *
+     * @return the health actually restored
+     */
+    protected static double mend(com.Chagui68.entities.BossInstance instance, double amount) {
+        if (instance == null || amount <= 0) return 0;
+        com.Chagui68.entities.boss.BossPuppet body = instance.stand;
+        if (body.isDead() || !body.isValid()) return 0;
+        double max = body.getMaxHealth();
+        double before = body.getHealth();
+        double gained = Math.min(amount, max - before);
+        if (gained <= 0) return 0;
+        body.setHealth(before + gained);
+        if (instance.bossBar != null) {
+            instance.bossBar.setProgress(com.Chagui68.utils.MscEntityUtils.calculateVirtualProgress(body.getHealth(), max));
+        }
+        return gained;
+    }
+
+    /** {@code share} of the boss's maximum health. */
+    protected static double ofMaxHealth(com.Chagui68.entities.BossInstance instance, double share) {
+        return instance == null ? 0 : instance.stand.getMaxHealth() * share;
+    }
+
     /** The point straight below the boss's spear tip, on the floor: where a slam lands. */
     protected static Vector spearGround(Stage stage) {
         return stage.onGround(stage.body().spearTip());

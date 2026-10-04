@@ -61,11 +61,46 @@ import com.Chagui68.entities.boss.attack.ranged.SpiritBeamAttack;
 import com.Chagui68.entities.boss.attack.ranged.VoidBeamAttack;
 import com.Chagui68.entities.boss.attack.ranged.VoidRiftAttack;
 import com.Chagui68.entities.boss.attack.defensive.AbsorbShieldAttack;
+import com.Chagui68.entities.boss.attack.defensive.AfterimageAttack;
+import com.Chagui68.entities.boss.attack.defensive.BulwarkAttack;
 import com.Chagui68.entities.boss.attack.defensive.HealingCircleAttack;
+import com.Chagui68.entities.boss.attack.defensive.ObsidianCocoonAttack;
 import com.Chagui68.entities.boss.attack.defensive.ReflectBarrierAttack;
+import com.Chagui68.entities.boss.attack.defensive.RegenerationAttack;
 import com.Chagui68.entities.boss.attack.defensive.ShieldSealAttack;
+import com.Chagui68.entities.boss.attack.defensive.SoulSiphonAttack;
 import com.Chagui68.entities.boss.attack.defensive.StoneSkinAttack;
+import com.Chagui68.entities.boss.attack.defensive.ThornAuraAttack;
 import com.Chagui68.entities.boss.attack.defensive.TriangleCallAttack;
+import com.Chagui68.entities.boss.attack.aerial.ChainHookAttack;
+import com.Chagui68.entities.boss.attack.aerial.SpiralStormAttack;
+import com.Chagui68.entities.boss.attack.destructive.ApocalypseRainAttack;
+import com.Chagui68.entities.boss.attack.destructive.EarthSplitterAttack;
+import com.Chagui68.entities.boss.attack.destructive.JudgmentPillarsAttack;
+import com.Chagui68.entities.boss.attack.destructive.MeteorImpactAttack;
+import com.Chagui68.entities.boss.attack.destructive.ObsidianTsunamiAttack;
+import com.Chagui68.entities.boss.attack.destructive.OrbitalStrikeAttack;
+import com.Chagui68.entities.boss.attack.destructive.SolarLanceAttack;
+import com.Chagui68.entities.boss.attack.destructive.SupernovaAttack;
+import com.Chagui68.entities.boss.attack.destructive.VoidCollapseAttack;
+import com.Chagui68.entities.boss.attack.destructive.WorldBreakerAttack;
+import com.Chagui68.entities.boss.attack.ground.AegisRushAttack;
+import com.Chagui68.entities.boss.attack.ground.GraveCleaverAttack;
+import com.Chagui68.entities.boss.attack.ground.TremorLanceAttack;
+import com.Chagui68.entities.boss.attack.ranged.GravityOrbAttack;
+import com.Chagui68.entities.boss.attack.ranged.JavelinVolleyAttack;
+import com.Chagui68.entities.boss.attack.ranged.ShardBurstAttack;
+import com.Chagui68.entities.boss.attack.ranged.SweepingLaserAttack;
+import com.Chagui68.entities.boss.attack.summon.ArcaneCovenantAttack;
+import com.Chagui68.entities.boss.attack.summon.ChampionCallAttack;
+import com.Chagui68.entities.boss.attack.summon.ElementalConclaveAttack;
+import com.Chagui68.entities.boss.attack.summon.EmberHoundsAttack;
+import com.Chagui68.entities.boss.attack.summon.LanceSquiresAttack;
+import com.Chagui68.entities.boss.attack.summon.NecropolisRiteAttack;
+import com.Chagui68.entities.boss.attack.summon.ObsidianBruteAttack;
+import com.Chagui68.entities.boss.attack.summon.ObsidianMenderAttack;
+import com.Chagui68.entities.boss.attack.summon.ShadowAmbushAttack;
+import com.Chagui68.entities.boss.attack.summon.VoidWispsAttack;
 import com.Chagui68.MultiverseCreatures;
 import com.Chagui68.utils.MscBossBar;
 import com.Chagui68.utils.MscEntityUtils;
@@ -153,8 +188,6 @@ public class ArmorStandBoss implements Listener, BossHost {
     /** Default radius of that arrival pentagram, in blocks. */
     private static final double SPAWN_SEAL_RADIUS = 12.0;
     private static final double FLY_HEIGHT = 15.0;
-    private static final double DIST_CLOSE = 5.0;
-    private static final double DIST_MEDIUM = 15.0;
     /** How far down the boss scans for a floor before declaring it has none. */
     private static final double GROUND_SCAN_RANGE = 80.0;
     /** Default ticks airborne without a floor before teleporting to a grounded spot (~2 s). */
@@ -178,23 +211,14 @@ public class ArmorStandBoss implements Listener, BossHost {
      * small record per player is cheaper than tracking logouts, and the command reports its age.
      */
     private final Map<UUID, PenetratingHit> lastPenetratingHits = new ConcurrentHashMap<>();
-    private int mediumRangeAttackChance;
-    private int farRangeAttackChance;
-    private int attackWeightHealingCircle;
-    private int attackWeightFlyUp;
-    private int attackWeightShieldSeal;
-    private int attackWeightGround;
-    private int defenseActivationChance;
-    private int defenseWeightStoneSkin;
-    private int defenseWeightReflectBarrier;
-    private int defenseCooldownBaseTicks;
-    private int defenseCooldownVarianceTicks;
-    private int shieldPlantIntervalBaseTicks;
-    private int shieldPlantIntervalVarianceTicks;
-    private int hoverBarrageCooldownBaseTicks;
-    private int hoverBarrageCooldownVarianceTicks;
-    private int groundAttackCooldownBaseTicks;
-    private int groundAttackCooldownVarianceTicks;
+    /** Ticks between the end of one attack and the start of the next, the same for every attack. */
+    private int attackIntervalTicks;
+    /** Most summoned minions alive at once; no rite is cast while the cap is reached. */
+    private int maxSummons;
+    /** Least ticks between the starts of two destructive attacks. */
+    private int destructiveGapTicks;
+    /** How likely each kind of attack is on an attack tick. */
+    private SentinelAttackPool.Weights attackWeights = SentinelAttackPool.Weights.DEFAULT;
     private double phaseTransitionSlamDamage;
     private List<Integer> shieldRetrieveDelays;
     private int groundRecoveryGraceTicks;
@@ -205,6 +229,9 @@ public class ArmorStandBoss implements Listener, BossHost {
     private int defenseStoneSkinTicks;
     private int defenseReflectBarrierTicks;
     private int defenseAbsorbShieldTicks;
+    private int defenseBulwarkTicks;
+    private int defenseThornsTicks;
+    private int defenseEvasionTicks;
     private int noPlayerDespawnTicks;
     /** Scale of the boss's own stand: model size and hitbox at once. */
     private double hitboxScale = MODEL_HITBOX_SCALE;
@@ -288,6 +315,44 @@ public class ArmorStandBoss implements Listener, BossHost {
         registerAttack(new ShieldSealAttack(this));
         registerAttack(new HealingCircleAttack(this));
         registerAttack(new TriangleCallAttack(this));
+        registerAttack(new RegenerationAttack(this));
+        registerAttack(new SoulSiphonAttack(this));
+        registerAttack(new ObsidianCocoonAttack(this));
+        registerAttack(new BulwarkAttack(this));
+        registerAttack(new ThornAuraAttack(this));
+        registerAttack(new AfterimageAttack(this));
+        // Ground, aerial and ranged, third wave
+        registerAttack(new TremorLanceAttack(this));
+        registerAttack(new AegisRushAttack(this));
+        registerAttack(new GraveCleaverAttack(this));
+        registerAttack(new SpiralStormAttack(this));
+        registerAttack(new ChainHookAttack(this));
+        registerAttack(new ShardBurstAttack(this));
+        registerAttack(new GravityOrbAttack(this));
+        registerAttack(new JavelinVolleyAttack(this));
+        registerAttack(new SweepingLaserAttack(this));
+        // Summoning
+        registerAttack(new LanceSquiresAttack(this));
+        registerAttack(new ObsidianMenderAttack(this));
+        registerAttack(new EmberHoundsAttack(this));
+        registerAttack(new VoidWispsAttack(this));
+        registerAttack(new ObsidianBruteAttack(this));
+        registerAttack(new ElementalConclaveAttack(this));
+        registerAttack(new ShadowAmbushAttack(this));
+        registerAttack(new NecropolisRiteAttack(this));
+        registerAttack(new ArcaneCovenantAttack(this));
+        registerAttack(new ChampionCallAttack(this));
+        // Destructive
+        registerAttack(new OrbitalStrikeAttack(this));
+        registerAttack(new MeteorImpactAttack(this));
+        registerAttack(new SupernovaAttack(this));
+        registerAttack(new JudgmentPillarsAttack(this));
+        registerAttack(new EarthSplitterAttack(this));
+        registerAttack(new VoidCollapseAttack(this));
+        registerAttack(new ObsidianTsunamiAttack(this));
+        registerAttack(new SolarLanceAttack(this));
+        registerAttack(new WorldBreakerAttack(this));
+        registerAttack(new ApocalypseRainAttack(this));
     }
 
     public void reloadConfig() {
@@ -295,27 +360,28 @@ public class ArmorStandBoss implements Listener, BossHost {
         this.hoverBarrageDamage = plugin.getConfig().getDouble("entities.armor-stand-boss.hover-barrage-damage", 12.0);
         this.aggroRange = plugin.getConfig().getDouble("entities.armor-stand-boss.aggro-range", 50.0);
         this.maxDamagePerHit = plugin.getConfig().getDouble("entities.armor-stand-boss.max-damage-per-hit", 50.0);
-        this.mediumRangeAttackChance = plugin.getConfig().getInt("entities.armor-stand-boss.medium-range-attack-chance", 15);
-        this.farRangeAttackChance = plugin.getConfig().getInt("entities.armor-stand-boss.far-range-attack-chance", 85);
-        this.attackWeightHealingCircle = plugin.getConfig().getInt("entities.armor-stand-boss.attack-weight-healing-circle", 25);
-        this.attackWeightFlyUp = plugin.getConfig().getInt("entities.armor-stand-boss.attack-weight-fly-up", 15);
-        this.attackWeightShieldSeal = plugin.getConfig().getInt("entities.armor-stand-boss.attack-weight-shield-seal", 35);
-        this.attackWeightGround = plugin.getConfig().getInt("entities.armor-stand-boss.attack-weight-ground", 55);
-        this.defenseActivationChance = plugin.getConfig().getInt("entities.armor-stand-boss.defense-activation-chance", 30);
-        this.defenseWeightStoneSkin = plugin.getConfig().getInt("entities.armor-stand-boss.defense-weight-stone-skin", 35);
-        this.defenseWeightReflectBarrier = plugin.getConfig().getInt("entities.armor-stand-boss.defense-weight-reflect-barrier", 65);
-        this.defenseCooldownBaseTicks = plugin.getConfig().getInt("entities.armor-stand-boss.defense-cooldown-base-ticks", 300);
-        this.defenseCooldownVarianceTicks = plugin.getConfig().getInt("entities.armor-stand-boss.defense-cooldown-variance-ticks", 300);
-        this.shieldPlantIntervalBaseTicks = plugin.getConfig().getInt("entities.armor-stand-boss.shield-plant-interval-base-ticks", 300);
-        this.shieldPlantIntervalVarianceTicks = plugin.getConfig().getInt("entities.armor-stand-boss.shield-plant-interval-variance-ticks", 100);
+        // Clamped: an interval of 0 would start an attack on every free tick.
+        this.attackIntervalTicks = Math.max(10, plugin.getConfig().getInt("entities.armor-stand-boss.attack-interval-ticks", 50));
+        SentinelAttackPool.Weights d = SentinelAttackPool.Weights.DEFAULT;
+        String w = "entities.armor-stand-boss.attack-type-weights.";
+        this.attackWeights = new SentinelAttackPool.Weights(
+                Math.max(0, plugin.getConfig().getInt(w + "melee", d.melee())),
+                Math.max(0, plugin.getConfig().getInt(w + "ranged", d.ranged())),
+                Math.max(0, plugin.getConfig().getInt(w + "flight", d.flight())),
+                Math.max(0, plugin.getConfig().getInt(w + "hover-barrage", d.hoverBarrage())),
+                Math.max(0, plugin.getConfig().getInt(w + "shield-seal", d.shieldSeal())),
+                Math.max(0, plugin.getConfig().getInt(w + "aegis-judgment", d.aegisJudgment())),
+                Math.max(0, plugin.getConfig().getInt(w + "defense", d.defense())),
+                Math.max(0, plugin.getConfig().getInt(w + "summon", d.summon())),
+                Math.max(0, plugin.getConfig().getInt(w + "aerial", d.aerial())),
+                Math.max(0, plugin.getConfig().getInt(w + "summoning", d.summoning())),
+                Math.max(0, plugin.getConfig().getInt(w + "destructive", d.destructive())));
+        this.maxSummons = Math.max(0, plugin.getConfig().getInt("entities.armor-stand-boss.max-summons", 8));
+        this.destructiveGapTicks = Math.max(0, plugin.getConfig().getInt("entities.armor-stand-boss.destructive-gap-ticks", 400));
         this.penetratingDamageEnabled = plugin.getConfig().getBoolean("entities.armor-stand-boss.penetrating-damage", true);
         this.maxDamageDealtPerHit = plugin.getConfig().getDouble("entities.armor-stand-boss.max-damage-dealt", 15.0);
         this.penetratingResistancePierce = plugin.getConfig().getDouble(
                 "entities.armor-stand-boss.penetrating-resistance-pierce", RESISTANCE_PIERCE);
-        this.hoverBarrageCooldownBaseTicks = plugin.getConfig().getInt("entities.armor-stand-boss.hover-barrage-cooldown-base-ticks", 240);
-        this.hoverBarrageCooldownVarianceTicks = plugin.getConfig().getInt("entities.armor-stand-boss.hover-barrage-cooldown-variance-ticks", 120);
-        this.groundAttackCooldownBaseTicks = plugin.getConfig().getInt("entities.armor-stand-boss.ground-attack-cooldown-base-ticks", 40);
-        this.groundAttackCooldownVarianceTicks = plugin.getConfig().getInt("entities.armor-stand-boss.ground-attack-cooldown-variance-ticks", 40);
         // Clamped: a grace of 0 or a cooldown of 0 would run the terrain scan every tick.
         this.groundRecoveryGraceTicks = Math.max(1, plugin.getConfig().getInt(
                 "entities.armor-stand-boss.ground-recovery-grace-ticks", FLOOR_LOST_GRACE_TICKS));
@@ -334,6 +400,12 @@ public class ArmorStandBoss implements Listener, BossHost {
                 "entities.armor-stand-boss.defense-duration-reflect-barrier-ticks", DEFENSE_REFLECT_BARRIER_TICKS));
         this.defenseAbsorbShieldTicks = Math.max(1, plugin.getConfig().getInt(
                 "entities.armor-stand-boss.defense-duration-absorb-shield-ticks", DEFENSE_ABSORB_SHIELD_TICKS));
+        this.defenseBulwarkTicks = Math.max(1, plugin.getConfig().getInt(
+                "entities.armor-stand-boss.defense-duration-bulwark-ticks", 120));
+        this.defenseThornsTicks = Math.max(1, plugin.getConfig().getInt(
+                "entities.armor-stand-boss.defense-duration-thorn-aura-ticks", 200));
+        this.defenseEvasionTicks = Math.max(1, plugin.getConfig().getInt(
+                "entities.armor-stand-boss.defense-duration-afterimage-ticks", 160));
         // 0 means "despawn as soon as nobody is in range".
         this.noPlayerDespawnTicks = Math.max(0, plugin.getConfig().getInt(
                 "entities.armor-stand-boss.no-player-despawn-ticks", NO_PLAYER_DESPAWN_TICKS));
@@ -515,13 +587,13 @@ public class ArmorStandBoss implements Listener, BossHost {
             instance.stand.getWorld().playSound(instance.stand.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 0.5f);
 
             if (oldPhase == 0 && newPhase == 1) {
-                phaseTransitionRage(instance);
+                playPhaseShift(instance, 1, () -> phaseTransitionRage(instance));
             } else if (oldPhase == 1 && newPhase == 2) {
-                phaseTransitionBarrier(instance);
+                playPhaseShift(instance, 2, () -> phaseTransitionBarrier(instance));
             } else if (oldPhase == 2 && newPhase == 3) {
-                phaseTransitionStorm(instance);
+                playPhaseShift(instance, 3, () -> phaseTransitionStorm(instance));
             } else if (oldPhase == 3 && newPhase == 4) {
-                phaseTransitionDespair(instance);
+                playPhaseShift(instance, 4, () -> phaseTransitionDespair(instance));
             }
         }
 
@@ -545,6 +617,17 @@ public class ArmorStandBoss implements Listener, BossHost {
                 case ABSORB_SHIELD -> {
                     if (instance.defenseTimer >= defenseAbsorbShieldTicks
                             || instance.absorbShieldHealth <= 0) expired = true;
+                }
+                case BULWARK -> {
+                    if (instance.defenseTimer >= defenseBulwarkTicks) expired = true;
+                }
+                case THORNS -> {
+                    if (instance.defenseTimer >= defenseThornsTicks) expired = true;
+                }
+                case EVASION -> {
+                    if (instance.defenseTimer >= defenseEvasionTicks) expired = true;
+                }
+                case NONE -> {
                 }
             }
             if (expired) {
@@ -616,127 +699,78 @@ public class ArmorStandBoss implements Listener, BossHost {
                 }
 
                 instance.clock++;
+                tickPassives(instance);
                 boolean busy = instance.isBusy();
-                if (instance.healingCircleActive || instance.shieldSealActive) {
-                    // The seal's own choreography counts shieldSealTimer; behind the shields the
-                    // Sentinel still judges and calls for help, but never mid-swing.
-                    if (instance.shieldSealActive && !busy) {
-                        tickAegisJudgment(instance, 2);
-                        if (!instance.isBusy() && !instance.triangleCallActive && !instance.hoverBarrageActive
-                                && instance.shieldSealTimer > 40 && instance.clock % 100 == 0) {
-                            attackRegistry.get("trianglecall").execute(instance);
-                        }
+                // One clock for every attack: it runs while no attack owns the body, and when it
+                // reaches the interval the attack tick rolls what comes next: on the ground, in the
+                // air or behind the shield seal alike.
+                if (!busy) instance.attackClock++;
+
+                if (instance.isFlying) {
+                    instance.flyingTimer++;
+
+                    if (!busy && !instance.hoverBarrageActive && !instance.triangleCallActive
+                            && instance.flyingTimer > 40 && attackDue(instance)) {
+                        attackTick(instance);
                     }
-                } else {
-                    if (!busy) tickAegisJudgment(instance, 1);
                     busy = instance.isBusy();
 
-                    if (instance.isFlying) {
-                        instance.flyingTimer++;
-
-                        // The gap counts from the end of the last attack, not from its start, so a
-                        // long choreography never eats the breathing room after it.
-                        if (!busy) instance.aerialCooldown++;
-                        if (!busy && !instance.hoverBarrageActive && !instance.triangleCallActive
-                                && instance.flyingTimer > 40 && instance.aerialCooldown >= AERIAL_GAP_TICKS) {
-                            instance.aerialCooldown = 0;
-                            executeRandomAerialAttack(instance);
+                    // Was 10, but no aerial pool holds ten attacks, so a flight could never end
+                    // early and always ran its full 40 seconds.
+                    boolean allAerialDone = instance.aerialAttacksDone.size() >= SentinelAttackPool.AERIAL_ATTACKS_PER_FLIGHT;
+                    int minFlyTime = 200 + random.nextInt(200);
+                    if (!busy && !instance.hoverBarrageActive && !instance.triangleCallActive
+                            && ((allAerialDone && instance.flyingTimer >= minFlyTime) || instance.flyingTimer >= 800)) {
+                        if (random.nextBoolean()) {
+                            land(instance);
+                        } else {
+                            stand.getWorld().playSound(stand.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.3f);
+                            airSlam(instance, true);
                         }
-
-                        // Was 10, but no aerial pool holds ten attacks, so a flight could never end
-                        // early and always ran its full 40 seconds.
-                        boolean allAerialDone = instance.aerialAttacksDone.size() >= SentinelAttackPool.AERIAL_ATTACKS_PER_FLIGHT;
-                        int minFlyTime = 200 + random.nextInt(200);
-                        if (!busy && !instance.hoverBarrageActive && !instance.triangleCallActive
-                                && ((allAerialDone && instance.flyingTimer >= minFlyTime) || instance.flyingTimer >= 800)) {
-                            if (random.nextBoolean()) {
-                                land(instance);
-                            } else {
-                                stand.getWorld().playSound(stand.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.3f);
-                                airSlam(instance, true);
+                    }
+                } else if (instance.healingCircleActive) {
+                    // Kneeling in the circle: the channel owns the body until it ends.
+                    instance.floorLostTicks = 0;
+                } else if (instance.shieldSealActive) {
+                    // Behind the shields it throws from range, judges and calls for help, never mid-swing.
+                    if (!busy && instance.shieldSealTimer > 40 && attackDue(instance)) {
+                        attackTick(instance);
+                    }
+                } else if (!isOnGround(stand)) {
+                    if (instance.flyTask == null && !instance.hoverBarrageActive && !instance.airborneAttack) {
+                        Location loc = stand.getLocation();
+                        double floorY = BossArena.findFloorY(loc, GROUND_SCAN_RANGE);
+                        if (Double.isNaN(floorY)) {
+                            // No solid block below within range. The convenience getGroundY here
+                            // returned the boss's own Y, so the teleport was a no-op every tick:
+                            // the stand hovered and the ground-attack branch below never ran.
+                            instance.floorLostTicks++;
+                            if (instance.groundSearchCooldown > 0) {
+                                instance.groundSearchCooldown--;
                             }
-                        }
-                    } else if (!isOnGround(stand)) {
-                        if (instance.flyTask == null && !instance.hoverBarrageActive) {
-                            Location loc = stand.getLocation();
-                            double floorY = BossArena.findFloorY(loc, GROUND_SCAN_RANGE);
-                            if (Double.isNaN(floorY)) {
-                                // No solid block below within range. The convenience getGroundY here
-                                // returned the boss's own Y, so the teleport was a no-op every tick:
-                                // the stand hovered and the ground-attack branch below never ran.
-                                instance.floorLostTicks++;
-                                if (instance.groundSearchCooldown > 0) {
-                                    instance.groundSearchCooldown--;
-                                }
-                                if (instance.floorLostTicks >= groundRecoveryGraceTicks
-                                        && instance.groundSearchCooldown <= 0) {
-                                    groundBoss(instance);
-                                }
-                            } else {
-                                instance.floorLostTicks = 0;
-                                if (loc.getY() - floorY > 0.3) {
-                                    loc.setY(Math.max(floorY, loc.getY() - 0.8));
-                                    stand.teleport(loc);
-                                    stand.getWorld().spawnParticle(Particle.CLOUD, loc, 2, 0.5, 0.1, 0.5, 0.02);
-                                } else {
-                                    loc.setY(floorY);
-                                    stand.teleport(loc);
-                                }
+                            if (instance.floorLostTicks >= groundRecoveryGraceTicks
+                                    && instance.groundSearchCooldown <= 0) {
+                                groundBoss(instance);
                             }
                         } else {
                             instance.floorLostTicks = 0;
-                        }
-                    } else if (busy) {
-                        instance.floorLostTicks = 0;
-                    } else if (instance.shieldState == ShieldState.NORMAL) {
-                        instance.floorLostTicks = 0;
-                        instance.hoverBarrageCooldown++;
-                        instance.groundAttackCooldown++;
-                        // The defence cooldown only gates the next defence. It used to sit in this
-                        // else-if chain, so for 15-30 s after every defence the Sentinel threw no
-                        // ground attack at all — below half health that was most of the fight.
-                        if (instance.defenseCooldown > 0) {
-                            instance.defenseCooldown--;
-                        }
-                        if (instance.hoverBarrageCooldown >= hoverBarrageCooldownBaseTicks + jitter(hoverBarrageCooldownVarianceTicks)) {
-                            instance.hoverBarrageCooldown = 0;
-
-                            double maxHealth = stand.getMaxHealth();
-                            double healthPct = maxHealth > 0.0 ? stand.getHealth() / maxHealth : 1.0;
-                            int choice = random.nextInt(100);
-
-                            if (healthPct < 0.4 && choice < attackWeightHealingCircle) {
-                                attackRegistry.get("healingcircle").execute(instance);
-                            } else if (choice < attackWeightFlyUp) {
-                                stand.getWorld().playSound(stand.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
-                                flyUp(instance);
-                            } else if (choice < attackWeightShieldSeal) {
-                                attackRegistry.get("shieldseal").execute(instance);
-                            } else if (choice < attackWeightGround) {
-                                executeRandomGroundAttack(instance);
+                            if (loc.getY() - floorY > 0.3) {
+                                loc.setY(Math.max(floorY, loc.getY() - 0.8));
+                                stand.teleport(loc);
+                                stand.getWorld().spawnParticle(Particle.CLOUD, loc, 2, 0.5, 0.1, 0.5, 0.02);
                             } else {
-                                startHoverBarrage(instance);
-                            }
-                        } else if (instance.groundAttackCooldown >= groundAttackCooldownBaseTicks + jitter(groundAttackCooldownVarianceTicks)) {
-                            instance.groundAttackCooldown = 0;
-                            double maxHealth = stand.getMaxHealth();
-                            double healthPct = maxHealth > 0.0 ? stand.getHealth() / maxHealth : 1.0;
-                            if (instance.activeDefense == DefenseState.NONE && instance.defenseCooldown <= 0
-                                    && healthPct < 0.5 && random.nextInt(100) < defenseActivationChance) {
-                                int defChoice = random.nextInt(100);
-                                if (defChoice < defenseWeightStoneSkin) {
-                                    attackRegistry.get("stoneskin").execute(instance);
-                                } else if (defChoice < defenseWeightReflectBarrier) {
-                                    attackRegistry.get("reflectbarrier").execute(instance);
-                                } else {
-                                    attackRegistry.get("absorbshield").execute(instance);
-                                }
-                                instance.defenseCooldown = defenseCooldownBaseTicks + jitter(defenseCooldownVarianceTicks);
-                            } else {
-                                executeRandomGroundAttack(instance);
+                                loc.setY(floorY);
+                                stand.teleport(loc);
                             }
                         }
+                    } else {
+                        instance.floorLostTicks = 0;
                     }
+                } else if (busy) {
+                    instance.floorLostTicks = 0;
+                } else if (instance.shieldState == ShieldState.NORMAL) {
+                    instance.floorLostTicks = 0;
+                    if (attackDue(instance)) attackTick(instance);
                 }
 
                 Player target = detectTarget(stand);
@@ -849,8 +883,7 @@ public class ArmorStandBoss implements Listener, BossHost {
         instance.isFlying = false;
         instance.flyingTimer = 0;
         instance.airStuckTicks = 0;
-        instance.groundAttackCooldown = 0;
-        instance.hoverBarrageCooldown = 0;
+        instance.attackClock = attackIntervalTicks;
 
         world.spawnParticle(Particle.CLOUD, current, 30, 1.5, 1.5, 1.5, 0.1);
         world.playSound(current, Sound.ENTITY_ENDERMAN_TELEPORT, 1.2f, 0.6f);
@@ -872,6 +905,14 @@ public class ArmorStandBoss implements Listener, BossHost {
         instance.pose = Pose.REST;
     }
 
+    /**
+     * Plays the change of phase as a scene: the Sentinel buckles, gathers power and rises, and the
+     * phase's blast ({@code climax}) goes off at the top of it.
+     */
+    private void playPhaseShift(BossInstance instance, int phase, Runnable climax) {
+        new SentinelPhaseShift(this, phase, climax).execute(instance);
+    }
+
     private void phaseTransitionRage(BossInstance instance) {
         BossPuppet stand = instance.stand;
         if (stand.isDead() || !stand.isValid()) return;
@@ -883,10 +924,6 @@ public class ArmorStandBoss implements Listener, BossHost {
         world.spawnParticle(Particle.FLAME, loc.clone().add(0, 5, 0), 60, 4, 4, 4, 0.08);
         world.spawnParticle(Particle.SMOKE, loc.clone().add(0, 5, 0), 40, 3, 5, 3, 0.1);
 
-        stand.setRightArmPose(new EulerAngle(Math.toRadians(-180), Math.toRadians(90), Math.toRadians(0)));
-        stand.setLeftArmPose(new EulerAngle(Math.toRadians(-180), Math.toRadians(-90), Math.toRadians(0)));
-        stand.setBodyPose(new EulerAngle(Math.toRadians(-15), 0, 0));
-        stand.setHeadPose(new EulerAngle(Math.toRadians(-30), 0, 0));
 
         for (Player p : getValidPlayers(world)) {
             double distSq = p.getLocation().distanceSquared(loc);
@@ -901,13 +938,6 @@ public class ArmorStandBoss implements Listener, BossHost {
         if (plugin.getMagicSealListener() != null) {
             plugin.getMagicSealListener().spawnLargePentagramSeal(loc.clone().add(0, 5, 0), 60, 8.0, SealPlane.XZ);
         }
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                resetBossPose(instance);
-            }
-        }.runTaskLater(plugin, 40L);
     }
 
     private void phaseTransitionBarrier(BossInstance instance) {
@@ -936,21 +966,10 @@ public class ArmorStandBoss implements Listener, BossHost {
                     new Particle.DustOptions(Color.fromRGB(0x88CCFF), 2.0f));
         }
 
-        stand.setRightArmPose(new EulerAngle(Math.toRadians(-110), Math.toRadians(45), Math.toRadians(10)));
-        stand.setLeftArmPose(new EulerAngle(Math.toRadians(-110), Math.toRadians(-45), Math.toRadians(-10)));
-        stand.setBodyPose(new EulerAngle(Math.toRadians(15), 0, 0));
-        stand.setHeadPose(new EulerAngle(Math.toRadians(-15), 0, 0));
 
         if (plugin.getMagicSealListener() != null) {
             plugin.getMagicSealListener().spawnInvulnerabilityAura(stand.getLocation().clone().add(0, 7, 0), 100);
         }
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                resetBossPose(instance);
-            }
-        }.runTaskLater(plugin, 40L);
     }
 
     private void phaseTransitionStorm(BossInstance instance) {
@@ -973,10 +992,7 @@ public class ArmorStandBoss implements Listener, BossHost {
             world.strikeLightningEffect(strike);
         }
 
-        stand.setRightArmPose(new EulerAngle(Math.toRadians(-180), Math.toRadians(45), Math.toRadians(20)));
-        stand.setLeftArmPose(new EulerAngle(Math.toRadians(-180), Math.toRadians(-45), Math.toRadians(-20)));
         stand.setBodyPose(new EulerAngle(0, 0, Math.toRadians(10)));
-        stand.setHeadPose(new EulerAngle(Math.toRadians(-30), 0, 0));
 
         double dmg = sealDamage;
         for (Player p : getValidPlayers(world)) {
@@ -992,13 +1008,6 @@ public class ArmorStandBoss implements Listener, BossHost {
         if (plugin.getMagicSealListener() != null) {
             plugin.getMagicSealListener().spawnStormSeal(loc.clone().add(0, 5, 0), 80);
         }
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                resetBossPose(instance);
-            }
-        }.runTaskLater(plugin, 30L);
     }
 
     private void phaseTransitionDespair(BossInstance instance) {
@@ -1018,10 +1027,6 @@ public class ArmorStandBoss implements Listener, BossHost {
         world.spawnParticle(Particle.SOUL, loc.clone().add(0, 5, 0), 100, 6, 6, 6, 0.1);
         world.spawnParticle(Particle.PORTAL, loc.clone().add(0, 5, 0), 80, 5, 5, 5, 0.05);
 
-        stand.setRightArmPose(new EulerAngle(Math.toRadians(-180), Math.toRadians(45), Math.toRadians(30)));
-        stand.setLeftArmPose(new EulerAngle(Math.toRadians(-180), Math.toRadians(-45), Math.toRadians(-30)));
-        stand.setBodyPose(new EulerAngle(Math.toRadians(-20), 0, 0));
-        stand.setHeadPose(new EulerAngle(Math.toRadians(-45), 0, 0));
 
         double dmg = sealDamage * 1.5;
         for (Player p : getValidPlayers(world)) {
@@ -1040,13 +1045,6 @@ public class ArmorStandBoss implements Listener, BossHost {
             plugin.getMagicSealListener().spawnLargePentagramSeal(loc.clone().add(0, 5, 0), 100, 10.0, SealPlane.XZ);
             plugin.getMagicSealListener().spawnVortexSeal(loc.clone().add(0, 2, 0), 80);
         }
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                resetBossPose(instance);
-            }
-        }.runTaskLater(plugin, 50L);
     }
 
     public void startHoverBarrage(BossInstance instance) {
@@ -1275,70 +1273,103 @@ public class ArmorStandBoss implements Listener, BossHost {
 
     private enum DistCategory {CLOSE, MEDIUM, FAR}
 
-    private void executeRandomAerialAttack(BossInstance instance) {
+    /** The passives that act on their own: Undying Will's regeneration and Tempest's lightning. */
+    private void tickPassives(BossInstance instance) {
+        SentinelPassives passives = SentinelPassives.forPhase(instance.currentPhase);
         BossPuppet stand = instance.stand;
-        if (stand.isDead() || !stand.isValid()) return;
-
-        double nearestDist = getNearestPlayerDistance(stand.getLocation());
-        List<String> pool;
-        if (nearestDist < 15) {
-            pool = SentinelAttackPool.AERIAL_CLOSE;
-        } else if (nearestDist < 35) {
-            pool = SentinelAttackPool.AERIAL_MEDIUM;
-        } else {
-            pool = SentinelAttackPool.AERIAL_FAR;
-        }
-
-        // Both histories count: nothing repeats within one flight, nor right after the last landing.
-        Set<String> used = new HashSet<>(instance.aerialAttacksDone);
-        used.addAll(instance.recentAttacks);
-        String choice = SentinelAttackPool.pick(pool, used, random);
-        instance.aerialAttacksDone.add(choice);
-        throwAttack(instance, choice);
-    }
-
-    private void executeRandomGroundAttack(BossInstance instance) {
-        BossPuppet stand = instance.stand;
-        if (stand.isDead() || !stand.isValid()) return;
-
-        double nearestDist = getNearestPlayerDistance(stand.getLocation());
-
-        List<String> pool;
-        if (nearestDist < DIST_CLOSE) {
-            pool = SentinelAttackPool.GROUND_CLOSE;
-        } else if (nearestDist < DIST_MEDIUM) {
-            if (random.nextInt(100) < mediumRangeAttackChance) {
-                executeRangedAttack(instance);
-                return;
+        if (passives.regenPerSecond() > 0 && instance.clock % 20 == 0) {
+            double max = stand.getMaxHealth();
+            double now = stand.getHealth();
+            if (now > 0 && now < max) {
+                stand.setHealth(Math.min(max, now + max * passives.regenPerSecond()));
+                stand.getWorld().spawnParticle(Particle.HEART, stand.getLocation().add(0, 9, 0), 1, 1.5, 0.5, 1.5, 0);
             }
-            pool = SentinelAttackPool.GROUND_MEDIUM;
-        } else {
-            if (random.nextInt(100) < farRangeAttackChance) {
-                executeRangedAttack(instance);
-                return;
-            }
-            pool = SentinelAttackPool.GROUND_FAR;
         }
-
-        throwAttack(instance, SentinelAttackPool.pick(pool, instance.recentAttacks, random));
+        if (passives.lightningEvery() > 0 && instance.clock % passives.lightningEvery() == 0) {
+            callTempestBolt(instance, passives);
+        }
     }
 
-    private void executeRangedAttack(BossInstance instance) {
+    /** Tempest: a bolt on a random player, its spot burning on the floor for a second first. */
+    private void callTempestBolt(BossInstance instance, SentinelPassives passives) {
+        BossPuppet stand = instance.stand;
+        List<Player> players = getValidPlayersNear(stand.getLocation(), 50 * 50);
+        if (players.isEmpty()) return;
+        Location mark = players.get(random.nextInt(players.size())).getLocation().clone();
+        World world = mark.getWorld();
+        com.Chagui68.entities.boss.fx.Fx fx = com.Chagui68.entities.boss.fx.LiveStage.fxIn(world);
+        Vector floor = mark.toVector().add(new Vector(0, 0.15, 0));
+        double damage = sealDamage * 0.6 * passives.damageDealt();
+        new BukkitRunnable() {
+            int age = 0;
+
+            @Override
+            public void run() {
+                if (stand.isDead() || !stand.isValid()) {
+                    cancel();
+                    return;
+                }
+                if (age < 24) {
+                    double heat = age / 24.0;
+                    if (age % 2 == 0) {
+                        fx.ring(floor, 2.5, 0.6, age * 0.2, fx.dust(com.Chagui68.entities.boss.fx.Palette.mix(
+                                com.Chagui68.entities.boss.fx.Palette.STORM, com.Chagui68.entities.boss.fx.Palette.WARNING_HOT, heat), 1.4f));
+                    }
+                    age++;
+                    return;
+                }
+                world.strikeLightningEffect(mark);
+                for (Player p : world.getPlayers()) {
+                    if (!BossArena.isValidTarget(p) || p.getLocation().distanceSquared(mark) > 2.5 * 2.5) continue;
+                    MscEntityUtils.damageBy(stand.entidad(), p, damage);
+                }
+                cancel();
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    /** Whether the shared attack clock has come round. */
+    private boolean attackDue(BossInstance instance) {
+        return instance.attackClock >= attackIntervalTicks * SentinelPassives.forPhase(instance.currentPhase).attackInterval();
+    }
+
+    /**
+     * The attack tick: rolls the kind of attack, then an attack of that kind that is not one of the
+     * last {@link SentinelAttackPool#HISTORY}, and throws it. The clock restarts when it ends.
+     */
+    private void attackTick(BossInstance instance) {
+        instance.attackClock = 0;
         BossPuppet stand = instance.stand;
         if (stand.isDead() || !stand.isValid()) return;
-        throwAttack(instance, SentinelAttackPool.pick(SentinelAttackPool.RANGED, instance.recentAttacks, random));
-    }
-
-    /** Runs a registered attack by name and remembers it, so the next picks rotate past it. */
-    private void throwAttack(BossInstance instance, String name) {
+        double max = stand.getMaxHealth();
+        SentinelAttackPool.Situation situation = new SentinelAttackPool.Situation(
+                getNearestPlayerDistance(stand.getLocation()),
+                max > 0.0 ? stand.getHealth() / max : 1.0,
+                instance.isFlying,
+                instance.shieldSealActive,
+                instance.shieldState == ShieldState.NORMAL,
+                instance.activeDefense == DefenseState.NONE,
+                !instance.healingCircleActive && !instance.regenerating,
+                !instance.triangleCallActive,
+                instance.liveSummons() < maxSummons,
+                instance.championPhase != instance.currentPhase,
+                instance.clock >= instance.destructiveReadyAt);
+        SentinelAttackPool.Weights weights = attackWeights.withDestructive(
+                SentinelPassives.forPhase(instance.currentPhase).destructiveFactor());
+        String name = SentinelAttackPool.next(situation, weights, instance.recentAttacks,
+                instance.aerialAttacksDone, random);
         if (name == null) return;
+        if (SentinelAttackPool.DESTRUCTIVES.contains(name)) {
+            instance.destructiveReadyAt = instance.clock + destructiveGapTicks;
+        }
         SentinelAttackPool.remember(instance.recentAttacks, name);
+        if (instance.isFlying && isAerialAttackName(name)) instance.aerialAttacksDone.add(name);
+        if (name.equals(SentinelAttackPool.FLY_UP)) {
+            stand.getWorld().playSound(stand.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
+            flyUp(instance);
+            return;
+        }
         executeAttack(name, instance, true);
-    }
-
-    /** {@code base + [0, variance)}; a variance of 0 or less in the config means no jitter instead of a crash. */
-    private int jitter(int variance) {
-        return variance > 0 ? random.nextInt(variance) : 0;
     }
 
     public void airSlam(BossInstance instance, boolean telegraph) {
@@ -1446,30 +1477,6 @@ public class ArmorStandBoss implements Listener, BossHost {
 
 
     /** Ticks between aerial attacks, counted while the Sentinel is free. */
-    private static final int AERIAL_GAP_TICKS = 50;
-
-    /**
-     * Counts down to the next Aegis Judgment (the shield thrown into the sky) on its own clock,
-     * outside the attack pools; {@code speed} is how many ticks pass per AI tick.
-     */
-    private void tickAegisJudgment(BossInstance instance, int speed) {
-        if (instance.isFlying || instance.hoverBarrageActive || instance.shieldState != ShieldState.NORMAL
-                || !isOnGround(instance.stand)) return;
-        if (instance.shieldCooldown <= 0) {
-            instance.shieldCooldown = getShieldPlantInterval();
-            return;
-        }
-        instance.shieldCooldown -= speed;
-        if (instance.shieldCooldown <= 0) {
-            instance.shieldCooldown = getShieldPlantInterval();
-            attackRegistry.get("groundslam").execute(instance);
-        }
-    }
-
-    public int getShieldPlantInterval() {
-        return shieldPlantIntervalBaseTicks + jitter(shieldPlantIntervalVarianceTicks);
-    }
-
     public int getShieldRetrieveDelay(int phase) {
         int index = Math.min(phase, shieldRetrieveDelays.size() - 1);
         return shieldRetrieveDelays.get(Math.max(0, index));
@@ -1646,6 +1653,7 @@ public class ArmorStandBoss implements Listener, BossHost {
         if (attack == null) return false;
 
         instance.isFlying = isAerialAttackName(key);
+        instance.preview = true;
         instance.groundY = getGroundY(instance.stand.getLocation(), 80);
         attack.execute(instance);
         return true;
@@ -1736,10 +1744,10 @@ public class ArmorStandBoss implements Listener, BossHost {
             }
             case "reset", "resetpose" -> resetBossPose(instance);
             // Phase-change attacks
-            case "phaserage" -> phaseTransitionRage(instance);
-            case "phasebarrier" -> phaseTransitionBarrier(instance);
-            case "phasestorm" -> phaseTransitionStorm(instance);
-            case "phasedespair" -> phaseTransitionDespair(instance);
+            case "phaserage" -> playPhaseShift(instance, 1, () -> phaseTransitionRage(instance));
+            case "phasebarrier" -> playPhaseShift(instance, 2, () -> phaseTransitionBarrier(instance));
+            case "phasestorm" -> playPhaseShift(instance, 3, () -> phaseTransitionStorm(instance));
+            case "phasedespair" -> playPhaseShift(instance, 4, () -> phaseTransitionDespair(instance));
             // Defensive moves
             case "stoneskin" -> {
                 if (instance.activeDefense != DefenseState.NONE) return false;
@@ -1767,14 +1775,15 @@ public class ArmorStandBoss implements Listener, BossHost {
             "starfall", "aerialrush", "sonicboom", "lightningstorm", "gravitywell",
             "crossslash", "novaburst", "darkorb", "windcutter", "heavenlyjudgment",
             "rainoflances", "airslam", "hoverbarrage", "eclipsefall", "bladering", "obsidianwings",
-            "voidmeteor", "phantomlegion"
+            "voidmeteor", "phantomlegion", "spiralstorm", "chainhook"
     );
 
     private static final java.util.Set<String> GROUND_ATTACK_NAMES = java.util.Set.of(
             "groundslam", "groundshatter", "shieldbash", "lancestorm", "earthpillar",
             "chaingrapple", "warstomp", "armorspikes", "vortexpull", "mirrorimage", "doombeam",
             "lanceflurry", "whirlwindslash", "executionsweep", "obsidianspire", "earthmaw",
-            "shadowstep", "runeward", "sunderingcharge", "spearcyclone", "cataclysm"
+            "shadowstep", "runeward", "sunderingcharge", "spearcyclone", "cataclysm", "tremorlance",
+            "aegisrush", "gravecleaver"
     );
 
     private boolean isAerialAttackName(String name) {
@@ -1966,8 +1975,9 @@ public class ArmorStandBoss implements Listener, BossHost {
             double incoming = event.getFinalDamage();
             // The maths is in SentinelDefense so it can be tested away from the server; this handler
             // only plays the effects the resolved hit calls for.
-            SentinelDefense.Result hit = SentinelDefense.from(instance, maxDamagePerHit).resolve(incoming);
-            double damage = hit.applied();
+            SentinelDefense.Result hit = SentinelDefense.from(instance, maxDamagePerHit).resolve(incoming, random.nextDouble());
+            // Obsidian Hide: the phase passive takes its share after the defences and the cap.
+            double damage = hit.applied() * SentinelPassives.forPhase(instance == null ? 0 : instance.currentPhase).damageTaken();
 
             if (instance != null) {
                 if (instance.invulnerable) {
@@ -1978,9 +1988,14 @@ public class ArmorStandBoss implements Listener, BossHost {
                         stand.getWorld().playSound(stand.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.3f);
                         stand.getWorld().spawnParticle(Particle.END_ROD, stand.getLocation().add(0, 6, 0), 8, 3.0, 3.0, 3.0, 0.02);
                     }
-                    if (instance.activeDefense == DefenseState.REFLECT_BARRIER) {
+                    if (hit.reflected() > 0) {
+                        // The reflect barrier throws back part of the hit; the thorn aura a flat sting.
                         MscEntityUtils.damageBy(stand, player, hit.reflected());
                         player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 8, 0.3, 0.5, 0.3, 0.1);
+                    }
+                    if (instance.activeDefense == DefenseState.EVASION && hit.applied() <= 0) {
+                        stand.getWorld().spawnParticle(Particle.LARGE_SMOKE, player.getLocation().add(0, 1, 0), 10, 0.4, 0.6, 0.4, 0.02);
+                        stand.getWorld().playSound(player.getLocation(), Sound.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0f, 1.4f);
                     } else if (instance.activeDefense == DefenseState.ABSORB_SHIELD) {
                         instance.absorbShieldHealth -= hit.absorbed();
                         stand.getWorld().spawnParticle(Particle.END_ROD, stand.getLocation().add(0, 5, 0), 5, 1, 1, 1, 0.02);

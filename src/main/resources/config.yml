@@ -4,7 +4,7 @@
 # Version of this file. A server that updates the plugin keeps its own config.yml and the plugin
 # adds whatever keys are missing on start (values you edited are never touched), stamping the new
 # version here. See MscConfigMigration.CONFIG_VERSION — keep the two in step.
-config-version: 4
+config-version: 6
 #
 # All paths match the code:
 #   general.*                          -> MultiverseCreatures, MobHandler, MscWorldPolicy
@@ -183,34 +183,38 @@ entities:
     defense-duration-stone-skin-ticks: 200       # ~10 s
     defense-duration-reflect-barrier-ticks: 160  # ~8 s
     defense-duration-absorb-shield-ticks: 300    # ~15 s, or until the shield is broken
+    defense-duration-bulwark-ticks: 120          # ~6 s braced (x0.35 damage), rooted in place
+    defense-duration-thorn-aura-ticks: 200       # ~10 s (x0.8 damage, every hit stings back)
+    defense-duration-afterimage-ticks: 160       # ~8 s (35% of hits miss)
+
+    # Healing defences, as a share of max health restored over the whole defence.
+    healing-circle-heal-percent: 0.05            # over its 10 s kneel
+    regeneration-heal-percent: 0.05              # over 8 s, while it keeps fighting
+    obsidian-cocoon-heal-percent: 0.04           # over 3 s sealed (and invulnerable) in obsidian
 
     # How long the boss keeps fighting after the last player leaves its 100-block radius (~10 s).
     # 0 despawns it as soon as nobody is in range.
     no-player-despawn-ticks: 200
 
-    # Attack weight / chance
-    medium-range-attack-chance: 15
-    far-range-attack-chance: 85
-    attack-weight-healing-circle: 25
-    attack-weight-fly-up: 15
-    attack-weight-shield-seal: 35
-    attack-weight-ground: 55
-
-    # Defense system
-    defense-activation-chance: 30
-    defense-weight-stone-skin: 35
-    defense-weight-reflect-barrier: 65
-    defense-cooldown-base-ticks: 300
-    defense-cooldown-variance-ticks: 300
-    shield-plant-interval-base-ticks: 300
-    shield-plant-interval-variance-ticks: 100
+    # Attacks. Every attack shares one clock: attack-interval-ticks after the last one ends, the
+    # attack tick rolls the KIND of attack with these weights, then an attack of that kind. An
+    # attack cannot come back until three others have been thrown.
+    attack-interval-ticks: 50                    # 2.5 s between attacks
+    attack-type-weights:
+      melee: 30            # ground attacks, picked by distance
+      ranged: 20           # projectiles and beams
+      flight: 10           # takes off for a flight of aerial attacks
+      hover-barrage: 8
+      shield-seal: 8
+      aegis-judgment: 8    # the shield thrown into the sky
+      defense: 12          # below 90% health; the healing ones below 70%
+      summon: 25           # the call for help, only from behind the shield seal
+      aerial: 80           # in the air, against ranged
+      summoning: 10        # summoning rites (minions, and once per phase a champion boss)
+      destructive: 6       # long-charged cataclysms; doubled in the last phase
+    max-summons: 8                   # no rite is cast while this many minions are alive
+    destructive-gap-ticks: 400       # at least 20 s between two destructive attacks
     shield-retrieve-delays: [80, 90, 100, 110, 120]
-
-    # Main ability cooldowns
-    hover-barrage-cooldown-base-ticks: 240
-    hover-barrage-cooldown-variance-ticks: 120
-    ground-attack-cooldown-base-ticks: 40
-    ground-attack-cooldown-variance-ticks: 40
 
     # Ground recovery. A grounded boss only attacks while it has solid ground under it, so if it
     # ends up over a void, water or a hole it teleports to the nearest column with ground.
@@ -334,10 +338,10 @@ entities:
   # -------------------------------------------------------------------------
   dio-brando:
     enabled: true
-    health: 900.0
+    health: 1500.0
     aggro-range: 32.0
     move-speed: 0.26
-    max-damage-per-hit: 100.0     # cap on the damage DIO can receive from a single hit
+    max-damage-per-hit: 75.0      # cap on the damage DIO can receive from a single hit
     attack-cooldown-ticks: 45     # pause between attacks (halved below 50% health)
     punch-damage: 12.0            # The World's single punch, his basic attack
     barrage-damage: 2.5           # each hit of the MUDA MUDA barrage (every 3 ticks)
@@ -350,6 +354,14 @@ entities:
     time-stop-ticks: 100
     time-stop-radius: 40.0
     time-stop-cooldown-ticks: 700
+    # The Final Hour (destructive): a clock face under the arena, one safe hour, The World
+    # pummels every other one. At most once per final-hour-cooldown-ticks.
+    final-hour-cooldown-ticks: 900
+    # True damage, the same kind the Obsidian Sentinel deals: armour and Protection are ignored,
+    # each hit is capped at max-damage-dealt, and Resistance keeps only part of its effect
+    # (true-damage-pierce is the share of it that is ignored).
+    max-damage-dealt: 15.0
+    true-damage-pierce: 0.2
     death-messages:
       - "&6%player% &ewas flattened by DIO's Road Roller"
       - "&6%player% &ecould not move in DIO's stopped time"
@@ -363,7 +375,7 @@ entities:
   # -------------------------------------------------------------------------
   nix-executioner:
     enabled: true
-    health: 450.0
+    health: 2000.0
     # Size of the invisible stand the suit is hit through (1.9 covers the whole model).
     hitbox-scale: 1.9
     aggro-range: 28.0
@@ -376,13 +388,25 @@ entities:
     melee-cooldown-ticks: 20
     chain-cooldown-ticks: 80
     cleave-anim-ticks: 14
-    # Signature moves, one every special-cooldown-ticks (+0-2 s): Blood Harvest (a whirl of blood
-    # blades, hits once per revolution), Gallows Leap (a leap and two-handed slam, half damage on the
-    # shockwave) and Condemnation (a guillotine over each player that falls 1.5 s later).
+    # Specials, one every special-cooldown-ticks (+0-2 s), never one of the last three again.
+    # Signature moves: Blood Harvest (a whirl of blood blades, hits once per revolution), Gallows
+    # Leap (a leap and two-handed slam, half damage on the shockwave) and Condemnation (a guillotine
+    # over each player that falls 1.5 s later). Arsenal: Headsman's Toss, Blood Pool (heals him),
+    # Iron Maiden, Gallows Noose, Executioner's March, Pillory, Crimson Rain, Severing Cross,
+    # Last Rites (hits harder below half health) and Chain Whirl.
     special-cooldown-ticks: 160
     harvest-damage: 9.0
     gallows-damage: 18.0
     condemn-damage: 20.0
+    arsenal-damage-multiplier: 1.0  # scales the damage of the ten arsenal attacks
+    # Destructive attacks (Grand Guillotine, Blood Moon, Execution Day), at most one per
+    # destructive-cooldown-ticks.
+    destructive-cooldown-ticks: 600
+    # True damage, the same kind the Obsidian Sentinel deals: armour and Protection are ignored,
+    # each hit is capped at max-damage-dealt, and Resistance keeps only part of its effect
+    # (true-damage-pierce is the share of it that is ignored).
+    max-damage-dealt: 15.0
+    true-damage-pierce: 0.2
     death-messages:
       - "&4%player% was executed by NIX - The Executioner"
       - "&4%player%'s sentence was carried out by NIX - The Executioner"
@@ -398,7 +422,7 @@ entities:
   # -------------------------------------------------------------------------
   jackstar-architect:
     enabled: true
-    health: 600.0
+    health: 1000.0
     # Size of the invisible stand the suit is hit through (1.2 covers the whole model).
     hitbox-scale: 1.2
     aggro-range: 30.0
@@ -409,13 +433,35 @@ entities:
     sigkill-damage: 35.0
     dodge-chance: 0.22
     packet-loss-chance: 0.25
-    # Signature moves, one every special-cooldown-ticks (+0-2 s; 30% sooner from phase 4):
-    # fork() (a cube that splits on every landing, three generations), Binary Rain (bits falling in
-    # telegraphed cells) and Stack Overflow (four dashing cuts, then every cut detonates in reverse).
+    max-damage-per-hit: 60.0      # cap on the damage JackStar can receive from a single hit
+    # Every attack but the three-slash is a special, and only one special starts per
+    # special-attack-gap-ticks (112 = 5.6 s), never the same kind twice in a row.
+    special-attack-gap-ticks: 112
+    # Phase 5 (kernel panic) runs every attack cooldown at this share: 0.9 = 10% shorter.
+    final-phase-cooldown-multiplier: 0.9
+    # At most one chat line per message-cooldown-ticks (600 = 30 s); phase changes always show.
+    message-cooldown-ticks: 600
+    # Signature moves, one every special-cooldown-ticks (+0-2 s): fork() (a cube that splits on
+    # every landing, three generations), Binary Rain (bits falling in telegraphed cells) and Stack
+    # Overflow (four dashing cuts, then every cut detonates in reverse).
     special-cooldown-ticks: 200
     fork-bomb-damage: 10.0
     binary-rain-damage: 8.0
     stack-overflow-damage: 14.0
+    # Twenty arsenal attacks, four per phase; each phase also keeps its predecessor's at a lower
+    # chance. 1: Ping Flood, Null Pointer, Syntax Error, Packet Sniffer. 2: Memory Leak, Infinite
+    # Loop, Ctrl+Z, Firewall Ring. 3: Thread Spikes, DDoS, Encryption Lock, Port Scan.
+    # 4: Segmentation Fault, Overclock, Recursive Clone, Blue Screen. 5: rm -rf /, Root Access,
+    # Zero Day, System Crash.
+    arsenal-damage-multiplier: 1.0  # scales the damage of the twenty arsenal attacks
+    # Destructive attacks from phase 2 (Kernel Nuke, Disk Format, sudo laser), at most one per
+    # destructive-cooldown-ticks.
+    destructive-cooldown-ticks: 500
+    # True damage, the same kind the Obsidian Sentinel deals: armour and Protection are ignored,
+    # each hit is capped at max-damage-dealt, and Resistance keeps only part of its effect
+    # (true-damage-pierce is the share of it that is ignored).
+    max-damage-dealt: 15.0
+    true-damage-pierce: 0.2
     death-messages:
       - "&b%player% &7was dismantled by &3JackStar — The System Architect"
       - "&b%player% &7received a &cSIGKILL (kill -9) &7from &3JackStar"

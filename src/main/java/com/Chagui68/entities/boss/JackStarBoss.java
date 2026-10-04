@@ -228,8 +228,27 @@ public class JackStarBoss implements Listener {
     private double forkBombDamage;
     private double binaryRainDamage;
     private double stackOverflowDamage;
-    /** Ticks between two signature moves (fork(), Binary Rain, Stack Overflow); shorter from phase 4. */
+    /** Ticks between two signature moves (fork(), Binary Rain, Stack Overflow). */
     private int specialCooldownTicks;
+    /** Ceiling on the damage a single hit takes off him, so no burst source can delete a phase. */
+    private double maxDamagePerHit;
+    /** Least ticks between two special attacks of any kind; only the three-slash ignores it. */
+    private int specialGapTicks;
+    /** Share of every attack cooldown left in the last phase (0.9 = 10% shorter). */
+    private double finalPhaseCooldown;
+    /** Least ticks between two of his chat lines; phase changes and reboots always get through. */
+    private int messageCooldownTicks;
+    /** Least ticks between two of his destructive attacks. */
+    private int destructiveCooldownTicks;
+    /** Ceiling on one hit he lands; his hits are true damage, like the Sentinel's. */
+    private double maxDamageDealt;
+    /** Share of a player's Resistance his true damage ignores. */
+    private double trueDamagePierce;
+    /** Multiplies the damage of every arsenal attack. */
+    private double arsenalPower;
+
+    /** How much faster Overclock makes him walk. */
+    private static final double OVERCLOCK_SPEED = 1.4;
 
     public JackStarBoss(MultiverseCreatures plugin) {
         this.plugin = plugin;
@@ -242,7 +261,7 @@ public class JackStarBoss implements Listener {
 
     public void reloadConfig() {
         var config = plugin.getConfig();
-        health = config.getDouble("entities.jackstar-architect.health", 700.0);
+        health = config.getDouble("entities.jackstar-architect.health", 1000.0);
         aggroRange = config.getDouble("entities.jackstar-architect.aggro-range", 32.0);
         moveSpeed = config.getDouble("entities.jackstar-architect.move-speed", 0.32);
         meleeRange = config.getDouble("entities.jackstar-architect.melee-range", 3.8);
@@ -257,6 +276,15 @@ public class JackStarBoss implements Listener {
         binaryRainDamage = config.getDouble("entities.jackstar-architect.binary-rain-damage", 8.0);
         stackOverflowDamage = config.getDouble("entities.jackstar-architect.stack-overflow-damage", 14.0);
         specialCooldownTicks = Math.max(20, config.getInt("entities.jackstar-architect.special-cooldown-ticks", 200));
+        maxDamagePerHit = config.getDouble("entities.jackstar-architect.max-damage-per-hit", 60.0);
+        specialGapTicks = Math.max(20, config.getInt("entities.jackstar-architect.special-attack-gap-ticks", 112));
+        destructiveCooldownTicks = Math.max(100, config.getInt("entities.jackstar-architect.destructive-cooldown-ticks", 500));
+        finalPhaseCooldown = Math.max(0.1, Math.min(1.0,
+                config.getDouble("entities.jackstar-architect.final-phase-cooldown-multiplier", 0.9)));
+        messageCooldownTicks = Math.max(0, config.getInt("entities.jackstar-architect.message-cooldown-ticks", 600));
+        arsenalPower = Math.max(0, config.getDouble("entities.jackstar-architect.arsenal-damage-multiplier", 1.0));
+        maxDamageDealt = config.getDouble("entities.jackstar-architect.max-damage-dealt", TrueDamage.DEFAULT_CAP);
+        trueDamagePierce = config.getDouble("entities.jackstar-architect.true-damage-pierce", TrueDamage.DEFAULT_PIERCE);
     }
 
     /** Takes over a stand a previous run left behind, wearing the parts it already has. */
@@ -390,6 +418,10 @@ public class JackStarBoss implements Listener {
         Player target = findTarget(stand);
         inst.targetId = (target != null) ? target.getUniqueId() : null;
 
+        // Arsenal attacks play before the location is read: one may turn him or move him (Zero Day).
+        ArsenalKit.tick(inst.arsenal);
+        if (inst.overclockTicks > 0) inst.overclockTicks--;
+
         Location loc = stand.getLocation();
 
         // Scale interpolation; the hitbox grows and shrinks with the model it stands for.
@@ -421,8 +453,9 @@ public class JackStarBoss implements Listener {
 
         double targetDist = target == null ? Double.MAX_VALUE
                 : Math.hypot(target.getLocation().getX() - loc.getX(), target.getLocation().getZ() - loc.getZ());
-        // A signature move owns the body while it plays; the regular routine below waits for it.
-        boolean performing = inst.move != JackMoves.Move.NONE || (target != null && performMove(inst, target, targetDist));
+        // A signature move or a channelled arsenal attack owns the body; the routine below waits.
+        boolean performing = inst.move != JackMoves.Move.NONE || ArsenalKit.channeling(inst.arsenal) != null;
+        if (performing) inst.moving = false;
         if (target != null && !performing) {
             Vector toTarget = target.getLocation().toVector().subtract(loc.toVector());
             toTarget.setY(0);
@@ -430,6 +463,7 @@ public class JackStarBoss implements Listener {
             inst.moving = dist > 2.2;
 
             double currentSpeed = inst.isKernelPanic ? (moveSpeed * 1.45) : (inst.currentScale < 0.8f ? moveSpeed * 1.5 : moveSpeed);
+            if (inst.overclockTicks > 0) currentSpeed *= OVERCLOCK_SPEED;
 
             // Face target smoothly
             if (dist > 0.05) {
@@ -445,57 +479,34 @@ public class JackStarBoss implements Listener {
 
             // --- Combat AI Routines Across 5 Phases ---
 
-            // 1. Melee Slash Routine (Zoro 3-slash sweep)
+            // 1. Melee Slash Routine (Zoro 3-slash sweep): his basic attack, outside the special lock.
             if (dist <= (meleeRange * inst.currentScale) && inst.meleeCooldown <= 0 && inst.slashAnimTicks <= 0 && inst.slamAnimTicks <= 0) {
                 inst.slashAnimTicks = 18;
-                inst.meleeCooldown = (inst.currentPhase == 5) ? 18 : 28;
+                inst.meleeCooldown = cooldown(inst, 28) / (inst.overclockTicks > 0 ? 2 : 1);
                 executeThreeSlashImpact(stand, target, inst.currentScale);
             }
 
-            // 2. Sans Vector Slam (Phase 2, 3, 4, 5)
-            if (inst.currentPhase >= 2 && dist <= 18.0 && inst.vectorSlamCooldown <= 0 && inst.slamAnimTicks <= 0) {
-                inst.slamAnimTicks = 20;
-                inst.vectorSlamCooldown = (inst.currentPhase == 5) ? 120 : 180;
-                executeVectorSlam(stand, target);
+            // 2. Every other attack is a special: one at most per specialGapTicks, picked among the
+            // ones ready. Each used to fire on its own timer, so several landed in the same second.
+            if (inst.specialLock <= 0 && inst.slashAnimTicks <= 0 && inst.slamAnimTicks <= 0) {
+                chooseSpecial(inst, target, dist);
             }
 
-            // 3. Multiverse Minion Summoning (Phase 2 & 5)
-            if ((inst.currentPhase == 2 || inst.currentPhase == 5) && inst.minionCooldown <= 0) {
-                inst.minionCooldown = (inst.currentPhase == 5) ? 350 : 500; // 25s
-                summonMultiverseMinions(inst);
+            // 3. Warden Protocol ambience: a darkness pulse (Phase 3 & 5)
+            if ((inst.currentPhase == 3 || inst.currentPhase == 5) && inst.tickCount % 60 == 0) {
+                pulseWardenDarkness(inst);
             }
 
-            // 4. Warden Protocol: Darkness pulse + Sonic Boom (Phase 3 & 5)
-            if (inst.currentPhase == 3 || inst.currentPhase == 5) {
-                if (inst.tickCount % 60 == 0) {
-                    pulseWardenDarkness(inst);
-                }
-                if (inst.sonicBoomCooldown <= 0 && dist <= 22.0) {
-                    inst.sonicBoomCooldown = (inst.currentPhase == 5) ? 180 : 260;
-                    executeSonicBoom(inst, target);
-                }
-            }
-
-            // 5. Scale Morphing Routine (Phase 4)
+            // 4. Scale Morphing Routine (Phase 4)
             if (inst.currentPhase == 4) {
                 inst.scaleShiftTimer++;
                 if (inst.scaleShiftTimer >= 180) { // Every 9 seconds
                     inst.scaleShiftTimer = 0;
                     shiftScalePhase4(inst);
                 }
-                // Giant stomp
-                if (inst.currentScale > 1.8f && dist <= 7.0 && inst.tickCount % 80 == 0) {
-                    executeGiantStomp(inst);
-                }
             }
 
-            // 6. SIGKILL Ground Rune Attack (Phase 3, 4, 5)
-            if (inst.currentPhase >= 3 && inst.sigkillCooldown <= 0 && dist <= 20.0) {
-                inst.sigkillCooldown = (inst.currentPhase == 5) ? 140 : 200;
-                castSigkillRune(stand, target.getLocation().clone());
-            }
-
-            // 7. Defensive Firewall & Elastic Dash
+            // 5. Defensive Firewall & Elastic Dash: not attacks, they keep their own timers.
             if (inst.firewallCooldown <= 0 && dist > 8.0 && random.nextDouble() < 0.15) {
                 inst.firewallCooldown = 220;
                 deployFirewall(inst);
@@ -503,21 +514,6 @@ public class JackStarBoss implements Listener {
             if (dist > 14.0 && inst.elasticDashCooldown <= 0) {
                 inst.elasticDashCooldown = 140;
                 executeElasticDash(inst, target);
-            }
-
-            // 8. Annoying Builder Defense Routine
-            if (inst.buildCooldown <= 0) {
-                if (dist <= 4.0 && random.nextDouble() < 0.40) {
-                    inst.buildCooldown = (inst.currentPhase == 5) ? 120 : 180;
-                    buildFirejailCage(inst, target);
-                } else if (dist > 5.5 && random.nextDouble() < 0.35) {
-                    inst.buildCooldown = (inst.currentPhase == 5) ? 100 : 160;
-                    if (random.nextBoolean()) {
-                        buildFirewallBarrier(inst, target);
-                    } else {
-                        buildStickyCobwebs(inst, target);
-                    }
-                }
             }
         }
 
@@ -548,6 +544,9 @@ public class JackStarBoss implements Listener {
         if (inst.sonicBoomCooldown > 0) inst.sonicBoomCooldown--;
         if (inst.minionCooldown > 0) inst.minionCooldown--;
         if (inst.buildCooldown > 0) inst.buildCooldown--;
+        if (inst.stompCooldown > 0) inst.stompCooldown--;
+        if (inst.cataclysmCooldown > 0) inst.cataclysmCooldown--;
+        if (inst.specialLock > 0) inst.specialLock--;
         if (inst.moveCooldown > 0 && inst.move == JackMoves.Move.NONE) inst.moveCooldown--;
 
         inst.animTicks += JackModel.WALK_RATE;
@@ -562,6 +561,158 @@ public class JackStarBoss implements Listener {
         BossArena.settle(loc);
         stand.teleport(loc);
         syncDisplays(inst);
+    }
+
+    /** A special attack JackStar could start right now, and how likely he is to pick it. */
+    private record Special(String key, int weight, Runnable start) {
+    }
+
+    /**
+     * Starts one special attack among those ready, never the kind he used last, and locks every
+     * other special for {@link #specialGapTicks}.
+     */
+    private void chooseSpecial(JackInstance inst, Player target, double dist) {
+        int phase = inst.currentPhase;
+        List<Special> ready = new ArrayList<>();
+        if (inst.moveCooldown <= 0) {
+            ready.add(new Special("signature", 2, () -> startSignatureMove(inst, dist)));
+        }
+        JackAbility ability = JackAbility.pick(phase, dist, inst.recentAbilities, random);
+        if (ability != null) {
+            ready.add(new Special("arsenal", 4, () -> startAbility(inst, ability, target)));
+        }
+        if (phase >= 2 && dist <= 30.0 && inst.cataclysmCooldown <= 0) {
+            List<JackAbility> cataclysms = new ArrayList<>(JackAbility.cataclysms());
+            if (cataclysms.size() > 1) cataclysms.remove(inst.lastCataclysm);
+            JackAbility cataclysm = cataclysms.get(random.nextInt(cataclysms.size()));
+            ready.add(new Special("cataclysm", 1, () -> {
+                inst.cataclysmCooldown = cooldown(inst, destructiveCooldownTicks);
+                inst.lastCataclysm = cataclysm;
+                startAbility(inst, cataclysm, target);
+            }));
+        }
+        if (phase >= 2 && dist <= 18.0 && inst.vectorSlamCooldown <= 0) {
+            ready.add(new Special("vector-slam", 1, () -> {
+                inst.slamAnimTicks = 20;
+                inst.vectorSlamCooldown = cooldown(inst, 180);
+                executeVectorSlam(inst, target);
+            }));
+        }
+        if ((phase == 2 || phase == 5) && inst.minionCooldown <= 0) {
+            ready.add(new Special("minions", 1, () -> {
+                inst.minionCooldown = cooldown(inst, 500);
+                summonMultiverseMinions(inst);
+            }));
+        }
+        if ((phase == 3 || phase == 5) && dist <= 22.0 && inst.sonicBoomCooldown <= 0) {
+            ready.add(new Special("sonic-boom", 1, () -> {
+                inst.sonicBoomCooldown = cooldown(inst, 260);
+                executeSonicBoom(inst, target);
+            }));
+        }
+        if (phase == 4 && inst.currentScale > 1.8f && dist <= 7.0 && inst.stompCooldown <= 0) {
+            ready.add(new Special("giant-stomp", 2, () -> {
+                inst.stompCooldown = cooldown(inst, 80);
+                executeGiantStomp(inst);
+            }));
+        }
+        if (phase >= 3 && dist <= 20.0 && inst.sigkillCooldown <= 0) {
+            ready.add(new Special("sigkill", 1, () -> {
+                inst.sigkillCooldown = cooldown(inst, 200);
+                castSigkillRune(inst, target.getLocation().clone());
+            }));
+        }
+        if (inst.buildCooldown <= 0 && (dist <= 4.0 || dist > 5.5)) {
+            ready.add(new Special("build", 1, () -> {
+                if (dist <= 4.0) {
+                    inst.buildCooldown = cooldown(inst, 180);
+                    buildFirejailCage(inst, target);
+                } else {
+                    inst.buildCooldown = cooldown(inst, 160);
+                    if (random.nextBoolean()) {
+                        buildFirewallBarrier(inst, target);
+                    } else {
+                        buildStickyCobwebs(inst, target);
+                    }
+                }
+            }));
+        }
+        if (ready.size() > 1) ready.removeIf(s -> s.key().equals(inst.lastSpecial));
+        if (ready.isEmpty()) return;
+
+        int total = 0;
+        for (Special s : ready) total += s.weight();
+        int roll = random.nextInt(total);
+        for (Special s : ready) {
+            roll -= s.weight();
+            if (roll >= 0) continue;
+            s.start().run();
+            inst.lastSpecial = s.key();
+            inst.specialLock = specialGapTicks;
+            return;
+        }
+    }
+
+    /** A cooldown for the current phase: the last one runs {@link #finalPhaseCooldown} of it. */
+    private int cooldown(JackInstance inst, int base) {
+        return inst.currentPhase == 5 ? Math.max(1, (int) Math.round(base * finalPhaseCooldown)) : base;
+    }
+
+    /** Casts an arsenal attack and types its command into the console. */
+    private void startAbility(JackInstance inst, JackAbility ability, Player target) {
+        inst.arsenal.add(JackArsenal.start(ability, hostFor(inst), target, arsenalPower));
+        inst.recentAbilities.addLast(ability);
+        while (inst.recentAbilities.size() > JackAbility.MEMORY) inst.recentAbilities.removeFirst();
+        inst.moving = false;
+        chat(inst, ChatColor.DARK_AQUA + "> " + ChatColor.WHITE + String.format(ability.command, target.getName()));
+    }
+
+    /** The boss as the arsenal sees it, made once per instance. */
+    private ArsenalKit.Host hostFor(JackInstance inst) {
+        if (inst.host == null) {
+            inst.host = new ArsenalKit.Host() {
+                @Override
+                public ArmorStand stand() {
+                    return inst.stand;
+                }
+
+                @Override
+                public float scale() {
+                    return inst.currentScale;
+                }
+
+                @Override
+                public List<Player> players() {
+                    return ArsenalKit.playersNear(inst.stand.getWorld(), inst.stand.getLocation().toVector(), aggroRange + 8);
+                }
+
+                @Override
+                public void deal(Player target, double amount, String source) {
+                    dealToPlayer(inst.stand, target, amount, source);
+                }
+
+                @Override
+                public Random random() {
+                    return random;
+                }
+
+                @Override
+                public void empower(int ticks) {
+                    inst.overclockTicks = Math.max(inst.overclockTicks, ticks);
+                }
+            };
+        }
+        return inst.host;
+    }
+
+    /** Sends a line to the arena chat unless another went out in the last {@link #messageCooldownTicks}. */
+    private void chat(JackInstance inst, String message) {
+        if (inst.claimChat(messageCooldownTicks)) broadcastToArena(inst, message);
+    }
+
+    /** Sends a line to one player, under the same shared limit as {@link #chat}. */
+    private void tell(JackInstance inst, Player player, String message) {
+        if (inst.claimChat(messageCooldownTicks)) player.sendMessage(message);
     }
 
     /** Keeps the stand's hitbox as big as the model, which phase 4 grows to 220% and shrinks to 60%. */
@@ -628,12 +779,12 @@ public class JackStarBoss implements Listener {
         if (inst.targetScale > 1.2f) {
             // Shift to micro form
             inst.targetScale = 0.6f;
-            broadcastToArena(inst, ChatColor.DARK_AQUA + "[SYS] " + ChatColor.AQUA + "Compressing memory space: Quantum Micro-Mode (Speed +50%)");
+            chat(inst, ChatColor.DARK_AQUA + "[SYS] " + ChatColor.AQUA + "Compressing memory space: Quantum Micro-Mode (Speed +50%)");
             inst.stand.getWorld().playSound(inst.stand.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.5f, 1.8f);
         } else {
             // Shift to giant form
             inst.targetScale = 2.2f;
-            broadcastToArena(inst, ChatColor.DARK_AQUA + "[SYS] " + ChatColor.RED + "Buffer overflow: Massive 220% allocation (Titan Mode)");
+            chat(inst, ChatColor.DARK_AQUA + "[SYS] " + ChatColor.RED + "Buffer overflow: Massive 220% allocation (Titan Mode)");
             inst.stand.getWorld().playSound(inst.stand.getLocation(), Sound.ENTITY_WARDEN_ROAR, 1.8f, 0.5f);
         }
     }
@@ -743,7 +894,7 @@ public class JackStarBoss implements Listener {
             if (e instanceof Player p && p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR) {
                 dealToPlayer(stand, p, 18.0, "Giant Stomp");
                 p.setVelocity(new Vector(0, 0.85, 0));
-                p.sendMessage(ChatColor.RED + "[SEISMIC] JackStar's colossal stomp threw you into the air!");
+                tell(inst, p, ChatColor.RED + "[SEISMIC] JackStar's colossal stomp threw you into the air!");
             }
         }
     }
@@ -795,7 +946,8 @@ public class JackStarBoss implements Listener {
         }
     }
 
-    private void executeVectorSlam(ArmorStand stand, Player target) {
+    private void executeVectorSlam(JackInstance inst, Player target) {
+        ArmorStand stand = inst.stand;
         World world = stand.getWorld();
         Location targetLoc = target.getLocation();
 
@@ -804,7 +956,7 @@ public class JackStarBoss implements Listener {
         world.spawnParticle(Particle.SOUL_FIRE_FLAME, targetLoc.clone().add(0, 1.0, 0), 30, 0.5, 1.0, 0.5, 0.05);
 
         target.setVelocity(new Vector(0, 1.4, 0));
-        target.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "⛓ [VECTOR OVERRIDE] "
+        tell(inst, target, ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "⛓ [VECTOR OVERRIDE] "
                 + ChatColor.GRAY + "JackStar has taken control of your gravity.");
 
         new BukkitRunnable() {
@@ -821,7 +973,8 @@ public class JackStarBoss implements Listener {
         }.runTaskLater(plugin, 18L);
     }
 
-    private void castSigkillRune(ArmorStand stand, Location ground) {
+    private void castSigkillRune(JackInstance inst, Location ground) {
+        ArmorStand stand = inst.stand;
         World world = stand.getWorld();
         snapToGround(ground);
 
@@ -852,7 +1005,7 @@ public class JackStarBoss implements Listener {
                     for (Entity e : world.getNearbyEntities(ground, 4.2, 3.0, 4.2)) {
                         if (e instanceof Player p && p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR) {
                             dealToPlayer(stand, p, sigkillDamage, "Sigkill -9");
-                            p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "[SIGKILL -9] "
+                            tell(inst, p, ChatColor.RED + "" + ChatColor.BOLD + "[SIGKILL -9] "
                                     + ChatColor.DARK_RED + "Process terminated with a forced annihilation signal.");
                         }
                     }
@@ -911,7 +1064,8 @@ public class JackStarBoss implements Listener {
         }
     }
 
-    private void triggerMuiDodge(ArmorStand stand, Player attacker) {
+    private void triggerMuiDodge(JackInstance inst, Player attacker) {
+        ArmorStand stand = inst.stand;
         World world = stand.getWorld();
         Location loc = stand.getLocation();
 
@@ -925,7 +1079,7 @@ public class JackStarBoss implements Listener {
         world.playSound(behind, Sound.BLOCK_BEACON_POWER_SELECT, 0.9f, 2.0f);
 
         stand.teleport(behind);
-        attacker.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "⚡ INSTINCTIVE DODGE! " + ChatColor.GRAY + "(Ultra Instinct)");
+        tell(inst, attacker, ChatColor.AQUA + "" + ChatColor.BOLD + "⚡ INSTINCTIVE DODGE! " + ChatColor.GRAY + "(Ultra Instinct)");
     }
 
     /** Where a player is looking, flattened onto the ground; straight up or down falls back to their yaw. */
@@ -995,7 +1149,7 @@ public class JackStarBoss implements Listener {
         }
         world.playSound(mid, Sound.BLOCK_STONE_PLACE, 1.5f, 0.8f);
         world.spawnParticle(Particle.SOUL_FIRE_FLAME, mid.clone().add(0, 1, 0), 10, 0.5, 0.5, 0.5, 0.05);
-        broadcastToArena(inst, ChatColor.DARK_AQUA + "[SYS] JackStar: " + ChatColor.AQUA + "\"Deploying a temporary firewall...\"");
+        chat(inst, ChatColor.DARK_AQUA + "[SYS] JackStar: " + ChatColor.AQUA + "\"Deploying a temporary firewall...\"");
     }
 
     public void buildFirejailCage(JackInstance inst, Player target) {
@@ -1011,7 +1165,7 @@ public class JackStarBoss implements Listener {
                 }
             }
         }
-        target.sendMessage(ChatColor.DARK_AQUA + "[FIREJAIL] " + ChatColor.AQUA + "JackStar has isolated you inside a process sandbox!");
+        tell(inst, target, ChatColor.DARK_AQUA + "[FIREJAIL] " + ChatColor.AQUA + "JackStar has isolated you inside a process sandbox!");
         world.playSound(pLoc, Sound.BLOCK_IRON_DOOR_CLOSE, 1.6f, 0.7f);
     }
 
@@ -1020,11 +1174,14 @@ public class JackStarBoss implements Listener {
         placeTemporaryBlock(inst, bLoc.getBlock(), Material.COBWEB, 80);
         placeTemporaryBlock(inst, bLoc.clone().add(0, 1, 0).getBlock(), Material.COBWEB, 80);
         target.getWorld().playSound(bLoc, Sound.BLOCK_WOOL_PLACE, 1.2f, 1.4f);
-        target.sendMessage(ChatColor.DARK_PURPLE + "[SNARE] " + ChatColor.GRAY + "Buffer jammed with a web of data.");
+        tell(inst, target, ChatColor.DARK_PURPLE + "[SNARE] " + ChatColor.GRAY + "Buffer jammed with a web of data.");
     }
 
     private void triggerWatchdog(JackInstance inst) {
         inst.livesRemaining--;
+        // A reboot drops whatever he was casting: the attacks of the dead node must not land.
+        inst.arsenal.clear();
+        inst.overclockTicks = 0;
         int rebootNum = 3 - inst.livesRemaining; // 1, 2, or 3
         inst.inFailoverRecovery = true;
         inst.failoverTicks = 55;
@@ -1035,7 +1192,7 @@ public class JackStarBoss implements Listener {
 
         world.playSound(loc, Sound.BLOCK_BEACON_DEACTIVATE, 1.8f, 0.6f);
         world.playSound(loc, Sound.ENTITY_WITHER_SPAWN, 1.0f, 0.5f);
-        world.spawnParticle(Particle.FLASH, loc.clone().add(0, 1.5, 0), 3);
+        world.spawnParticle(Particle.FLASH, loc.clone().add(0, 1.5, 0), 3, Color.fromRGB(0x00CCCC));
         world.spawnParticle(Particle.DUST, loc.clone().add(0, 1.5, 0), 80, 1.0, 1.5, 1.0, 0,
                 new Particle.DustOptions(Color.fromRGB(0x00CCCC), 2.2f));
 
@@ -1231,7 +1388,7 @@ public class JackStarBoss implements Listener {
         }
         if (inst.creativeTicks % 100 == 0) {
             stand.getWorld().strikeLightningEffect(observed.getLocation());
-            broadcastToArena(inst, ChatColor.DARK_AQUA + "[SYS] " + ChatColor.GRAY
+            chat(inst, ChatColor.DARK_AQUA + "[SYS] " + ChatColor.GRAY
                     + "Subprocess running: " + observed.getName() + ". JackStar keeps running.");
         }
     }
@@ -1271,7 +1428,7 @@ public class JackStarBoss implements Listener {
         inst.creativeDisplays.clear();
         inst.observedBossId = null;
         inst.stand.getWorld().playSound(inst.stand.getLocation(), Sound.ENTITY_WARDEN_ROAR, 1.6f, 0.9f);
-        broadcastToArena(inst, ChatColor.RED + "[SYS] " + ChatColor.GRAY
+        chat(inst, ChatColor.RED + "[SYS] " + ChatColor.GRAY
                 + "Subprocess closed. JackStar runs alone again.");
     }
 
@@ -1283,7 +1440,7 @@ public class JackStarBoss implements Listener {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (snack.isValid()) snack.remove();
         }, 50L);
-        broadcastToArena(inst, ChatColor.GOLD + "[SCOOBY PACKET] " + ChatColor.GRAY
+        chat(inst, ChatColor.GOLD + "[SCOOBY PACKET] " + ChatColor.GRAY
                 + "JackStar threw a debug cookie. Do not feed unknown processes.");
     }
 
@@ -1335,6 +1492,11 @@ public class JackStarBoss implements Listener {
     private Quaternionf computeLowerQuat(JackPart part, JackInstance inst) {
         if (inst == null) return new Quaternionf();
         if (inst.move != JackMoves.Move.NONE) return JackMoves.lower(inst.move, part, inst.moveTick);
+        ArsenalKit.Running cast = ArsenalKit.channeling(inst.arsenal);
+        if (cast != null) {
+            if (!JackModel.hangsFromSecondJoint(part)) return new Quaternionf();
+            return com.Chagui68.utils.MscLimb.bendAngle(cast.gesture.bend(isArm(part.group), cast.timeline.now(), cast.channel));
+        }
         if (inst.slashAnimTicks > 0) {
             float prog = 1f - (float) inst.slashAnimTicks / 18f;
             return JackModel.slashLowerRotation(part, prog);
@@ -1351,6 +1513,8 @@ public class JackStarBoss implements Listener {
 
     private Quaternionf computeLimbQuat(LimbGroup group, JackInstance inst) {
         if (inst.move != JackMoves.Move.NONE) return JackMoves.limb(inst.move, group, inst.moveTick);
+        ArsenalKit.Running cast = ArsenalKit.channeling(inst.arsenal);
+        if (cast != null) return cast.gesture.limb(group.name(), cast.timeline.now(), cast.channel);
         Quaternionf q = new Quaternionf();
         float s = inst.animTicks;
         boolean walking = inst.moving;
@@ -1396,10 +1560,10 @@ public class JackStarBoss implements Listener {
 
     // ------------------------------------------------------------------ signature moves
 
-    private static final Color CODE = Color.fromRGB(0x39FF6A);
-    private static final Color CODE_DIM = Color.fromRGB(0x0F7A2C);
-    private static final Color GLITCH_CYAN = Color.fromRGB(0x00F0FF);
-    private static final Color GLITCH_MAGENTA = Color.fromRGB(0xFF2BD6);
+    static final Color CODE = Color.fromRGB(0x39FF6A);
+    static final Color CODE_DIM = Color.fromRGB(0x0F7A2C);
+    static final Color GLITCH_CYAN = Color.fromRGB(0x00F0FF);
+    static final Color GLITCH_MAGENTA = Color.fromRGB(0xFF2BD6);
 
     /** One hop of a fork() process: it lands at {@code to} after {@code flight} ticks and splits. */
     record Hop(Vector from, Vector to, int start, int flight, int generation) {}
@@ -1410,33 +1574,23 @@ public class JackStarBoss implements Listener {
     private static final int RAIN_WARN = 12;
     private static final int RAIN_FALL = 6;
 
-    /**
-     * Starts or continues a signature move.
-     *
-     * @return whether a move owns JackStar this tick, so the regular combat routine stays out
-     */
-    private boolean performMove(JackInstance inst, Player target, double dist) {
-        if (inst.move == JackMoves.Move.NONE) {
-            if (inst.moveCooldown > 0 || inst.slashAnimTicks > 0 || inst.slamAnimTicks > 0 || dist > aggroRange) {
-                return false;
-            }
-            JackMoves.Move pick = pickMove(inst, dist);
-            if (pick == null) return false;
-            inst.move = pick;
-            inst.moveTick = 0;
-            inst.hops.clear();
-            inst.bits.clear();
-            inst.frames.clear();
-            inst.struck.clear();
-            broadcastToArena(inst, switch (pick) {
-                case FORK_BOMB -> ChatColor.AQUA + "> " + ChatColor.WHITE + "while(true) fork();";
-                case BINARY_RAIN -> ChatColor.GREEN + "> " + ChatColor.WHITE + "cat /dev/urandom > /arena";
-                case STACK_OVERFLOW -> ChatColor.RED + "> " + ChatColor.WHITE + "recurse(jack, ∞);";
-                default -> "";
-            });
-        }
+    /** Starts one of the three signature moves; the move then owns JackStar until it ends. */
+    private void startSignatureMove(JackInstance inst, double dist) {
+        JackMoves.Move pick = pickMove(inst, dist);
+        if (pick == null) return;
+        inst.move = pick;
+        inst.moveTick = 0;
+        inst.hops.clear();
+        inst.bits.clear();
+        inst.frames.clear();
+        inst.struck.clear();
         inst.moving = false;
-        return true;
+        chat(inst, switch (pick) {
+            case FORK_BOMB -> ChatColor.AQUA + "> " + ChatColor.WHITE + "while(true) fork();";
+            case BINARY_RAIN -> ChatColor.GREEN + "> " + ChatColor.WHITE + "cat /dev/urandom > /arena";
+            case STACK_OVERFLOW -> ChatColor.RED + "> " + ChatColor.WHITE + "recurse(jack, ∞);";
+            default -> "";
+        });
     }
 
     private JackMoves.Move pickMove(JackInstance inst, double dist) {
@@ -1468,8 +1622,7 @@ public class JackStarBoss implements Listener {
             inst.bits.clear();
             inst.frames.clear();
             inst.struck.clear();
-            int base = inst.currentPhase >= 4 ? 140 : 200;
-            inst.moveCooldown = Math.max(20, specialCooldownTicks * base / 200) + random.nextInt(40);
+            inst.moveCooldown = Math.max(20, cooldown(inst, specialCooldownTicks)) + random.nextInt(40);
             inst.meleeCooldown = Math.max(inst.meleeCooldown, 10);
         }
     }
@@ -1659,7 +1812,7 @@ public class JackStarBoss implements Listener {
         }
         if (t == dashEnd) {
             fx.sound(feet, Sfx.BEACON_DEACTIVATE, 2f, 1.6f);
-            broadcastToArena(inst, ChatColor.RED + "Exception in thread \"arena\" " + ChatColor.WHITE + "java.lang.StackOverflowError");
+            chat(inst, ChatColor.RED + "Exception in thread \"arena\" " + ChatColor.WHITE + "java.lang.StackOverflowError");
         }
         // The unwind: newest frame first, one every two ticks.
         int popped = (t - JackMoves.STACK_UNWIND) / 2;
@@ -1881,6 +2034,7 @@ public class JackStarBoss implements Listener {
         if (inst.bossBar != null) {
             inst.bossBar.removeAll();
         }
+        inst.arsenal.clear();
         World world = inst.stand.getWorld();
         DisplaySuit.remove(world, inst.partDisplays.values());
         inst.partDisplays.clear();
@@ -1968,7 +2122,7 @@ public class JackStarBoss implements Listener {
                 stand.getWorld().playSound(loc, Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 2.0f);
                 stand.getWorld().spawnParticle(Particle.PORTAL, loc, 12, 0.3, 0.3, 0.3, 0.05);
                 if (player != null) {
-                    player.sendMessage(ChatColor.DARK_AQUA + "[PACKET LOSS] " + ChatColor.GRAY + "Your projectile was dropped in the network buffer.");
+                    tell(inst, player, ChatColor.DARK_AQUA + "[PACKET LOSS] " + ChatColor.GRAY + "Your projectile was dropped in the network buffer.");
                 }
                 return;
             }
@@ -1984,27 +2138,33 @@ public class JackStarBoss implements Listener {
         if (player != null) {
             event.setCancelled(true);
 
-            double incoming = Math.max(1.0, event.getFinalDamage());
+            double raw = Math.max(1.0, event.getFinalDamage());
+            // The cap comes first, so no single hit takes more than maxDamagePerHit off him in all.
+            double incoming = capIncomingDamage(raw, maxDamagePerHit);
+            String capNote = incoming < raw ? "cap " + maxDamagePerHit : "";
             List<Player> party = partyOf(stand);
             JackResilience.Resolution hit = JackResilience.resolve(incoming, random.nextDouble(),
                     JackResilience.effectiveChance(dodgeChance, inst.currentScale), party.size());
             if (hit.dodged()) {
-                triggerMuiDodge(stand, player);
-                recordIncoming(player, incoming, 0.0, "ultra instinct dodge");
+                triggerMuiDodge(inst, player);
+                recordIncoming(player, raw, 0.0, "ultra instinct dodge");
                 return;
             }
 
             double damage = hit.toBoss();
             shareWithParty(stand, party, hit.split());
-            recordIncoming(player, incoming, damage,
-                    damage < incoming ? "load balancer: " + (incoming - damage) + " shared" : "");
+            String shareNote = damage < incoming ? "load balancer: " + (incoming - damage) + " shared" : "";
+            recordIncoming(player, raw, damage,
+                    capNote.isEmpty() || shareNote.isEmpty() ? capNote + shareNote : capNote + ", " + shareNote);
 
             reduceHealth(stand, damage);
             hitEffect(stand);
 
-            // Reactive builder defense
-            if (inst.buildCooldown <= 0 && random.nextDouble() < 0.35) {
-                inst.buildCooldown = (inst.currentPhase == 5) ? 90 : 150;
+            // Reactive builder defense: a special like any other, so it waits for the special lock.
+            if (inst.specialLock <= 0 && inst.buildCooldown <= 0 && random.nextDouble() < 0.35) {
+                inst.buildCooldown = cooldown(inst, 150);
+                inst.specialLock = specialGapTicks;
+                inst.lastSpecial = "build";
                 if (event.getDamager() instanceof Projectile || random.nextBoolean()) {
                     buildFirewallBarrier(inst, player);
                 } else {
@@ -2029,11 +2189,19 @@ public class JackStarBoss implements Listener {
         outgoingSource = source;
         outgoingIntended = amount;
         try {
-            target.damage(amount, stand);
+            TrueDamage.apply(target, stand, amount, trueDamagePierce, maxDamageDealt);
         } finally {
             outgoingSource = previousSource;
             outgoingIntended = previousIntended;
         }
+    }
+
+    /**
+     * Clamps one incoming hit to the configured ceiling. A {@code cap <= 0} disables the limit.
+     * Exposed for tests: the damage path itself needs a live server.
+     */
+    static double capIncomingDamage(double damage, double cap) {
+        return cap > 0 ? Math.min(damage, cap) : damage;
     }
 
     /** Records an incoming hit's split for {@code /msc debug}. */
@@ -2177,9 +2345,31 @@ public class JackStarBoss implements Listener {
         public int creativeInvocations;
         public int creativeTicks;
         public final List<UUID> creativeDisplays = new ArrayList<>();
+        public int stompCooldown;
+        /** Ticks until his next destructive attack; the first waits until he has fought a while. */
+        public int cataclysmCooldown = 300;
+        JackAbility lastCataclysm;
+        /** Ticks until the next special attack of any kind may start; the first waits a few seconds. */
+        public int specialLock = 100;
+        /** The kind of special attack used last, never chosen twice in a row. */
+        public String lastSpecial;
+        /** Arsenal attacks still playing: the newest may be channelling, older ones only linger. */
+        final List<ArsenalKit.Running> arsenal = new ArrayList<>();
+        final java.util.ArrayDeque<JackAbility> recentAbilities = new java.util.ArrayDeque<>();
+        ArsenalKit.Host host;
+        public int overclockTicks;
+        /** {@link #tickCount} when his last chat line went out. */
+        private int lastChatTick = Integer.MIN_VALUE / 2;
 
         public JackInstance(ArmorStand stand) {
             this.stand = stand;
+        }
+
+        /** Whether a chat line may go out now; if so, the next has to wait {@code gap} ticks. */
+        boolean claimChat(int gap) {
+            if (tickCount - lastChatTick < gap) return false;
+            lastChatTick = tickCount;
+            return true;
         }
     }
 }

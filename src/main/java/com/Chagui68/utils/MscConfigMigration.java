@@ -33,7 +33,20 @@ public final class MscConfigMigration {
      * Version of the shipped {@code config.yml}. Bump it when a release adds, moves or renames keys
      * so the log stops claiming the file is current once it is not.
      */
-    public static final int CONFIG_VERSION = 4;
+    public static final int CONFIG_VERSION = 6;
+
+    /**
+     * Numbers an earlier version shipped, by path. A file still holding one exactly never had it
+     * edited, so it takes the new default (version 5 retuned the bosses' health and damage caps,
+     * version 6 JackStar's pause between specials);
+     * a value an operator changed is kept.
+     */
+    static final Map<String, Double> RETIRED_NUMBERS = Map.of(
+            "entities.nix-executioner.health", 450.0,
+            "entities.jackstar-architect.health", 600.0,
+            "entities.dio-brando.health", 900.0,
+            "entities.dio-brando.max-damage-per-hit", 100.0,
+            "entities.jackstar-architect.special-attack-gap-ticks", 160.0);
 
     /**
      * Lists that version 3 shipped in Spanish, by path. A file that still holds one of them word for
@@ -142,7 +155,8 @@ public final class MscConfigMigration {
     }
 
     /**
-     * Swaps every list still equal to a {@link #RETIRED_DEFAULTS} value for the shipped one.
+     * Swaps every list still equal to a {@link #RETIRED_DEFAULTS} value, and every number still
+     * equal to a {@link #RETIRED_NUMBERS} value, for the shipped one.
      *
      * @return the paths that were replaced
      */
@@ -153,6 +167,15 @@ public final class MscConfigMigration {
             if (config.getStringList(path).equals(retired.getValue()) && defaults.isList(path)) {
                 config.set(path, defaults.getStringList(path));
                 replaced.add(path);
+            }
+        }
+        for (Map.Entry<String, Double> retired : RETIRED_NUMBERS.entrySet()) {
+            String path = retired.getKey();
+            if (config.isDouble(path) || config.isInt(path)) {
+                if (Math.abs(config.getDouble(path) - retired.getValue()) < 1e-9 && defaults.contains(path)) {
+                    config.set(path, defaults.get(path));
+                    replaced.add(path);
+                }
             }
         }
         return replaced;

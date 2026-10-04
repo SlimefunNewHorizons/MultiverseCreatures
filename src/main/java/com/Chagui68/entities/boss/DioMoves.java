@@ -30,7 +30,12 @@ public final class DioMoves {
         /** Space Ripper Stingy Eyes: two jets of pressurised fluid fired from his eyes. */
         EYE_BEAMS(56),
         /** The World's single heavy punch: his basic attack at close range. */
-        PUNCH(16);
+        PUNCH(16),
+        /**
+         * Destructive: a clock face sixteen blocks wide spreads under the arena and its hand sweeps
+         * round to one safe hour; then time stops and The World pummels every other hour.
+         */
+        FINAL_HOUR(156);
 
         public final int ticks;
 

@@ -36,7 +36,7 @@ class AttackRegistryCoherenceTest {
     private static final Path ATTACK_SOURCES = ProjectPaths.source(
             "com", "Chagui68", "entities", "boss", "attack");
 
-    private static final List<String> CATEGORY_FOLDERS = List.of("ground", "aerial", "ranged", "defensive");
+    private static final List<String> CATEGORY_FOLDERS = List.of("ground", "aerial", "ranged", "defensive", "summon", "destructive");
 
     /** {@code getName()} literals look like this and nothing else does inside an attack class. */
     private static final Pattern ATTACK_NAME = Pattern.compile("return\\s+\"([a-z]+)\"\\s*;");

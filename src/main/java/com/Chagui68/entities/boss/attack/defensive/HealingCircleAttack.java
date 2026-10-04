@@ -2,7 +2,6 @@ package com.Chagui68.entities.boss.attack.defensive;
 
 import com.Chagui68.entities.BossInstance;
 import com.Chagui68.entities.boss.BossHost;
-import com.Chagui68.entities.boss.BossPuppet;
 import com.Chagui68.entities.boss.attack.ChoreographedAttack;
 import com.Chagui68.entities.boss.fx.Ease;
 import com.Chagui68.entities.boss.fx.Fx;
@@ -12,7 +11,6 @@ import com.Chagui68.entities.boss.fx.Sfx;
 import com.Chagui68.entities.boss.fx.Shapes;
 import com.Chagui68.entities.boss.fx.Stage;
 import com.Chagui68.entities.boss.fx.Timeline;
-import com.Chagui68.utils.MscEntityUtils;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.util.Vector;
@@ -27,8 +25,8 @@ public class HealingCircleAttack extends ChoreographedAttack {
     private static final int KNEEL = 30;
     private static final int CHANNEL = 200;
     private static final double RADIUS = 6;
-    private static final double MAX_HEAL = 0.03;
-    private static final double HEAL_PER_TICK = 0.0015;
+    /** Share of max health the whole channel restores, unless config.yml says otherwise. */
+    private static final double DEFAULT_HEAL = 0.05;
     private static final Color LIFE = Color.fromRGB(0x5CFF7A);
     private static final Color LIFE_DEEP = Color.fromRGB(0x1E8C3A);
 
@@ -51,6 +49,7 @@ public class HealingCircleAttack extends ChoreographedAttack {
             instance.healingCircleHealed = 0;
         }
         Vector ground = stage.onGround(stage.feet());
+        double total = stage.config("entities.armor-stand-boss.healing-circle-heal-percent", DEFAULT_HEAL);
         Timeline t = new Timeline();
 
         tweenTo(t, stage, 0, KNEEL, Poses.KNEEL.withLeftArm(-60, 0, -30).withHead(-10, 0, 0), Ease.IN_OUT);
@@ -73,7 +72,7 @@ public class HealingCircleAttack extends ChoreographedAttack {
             fx.cloud(Particle.HAPPY_VILLAGER, chest, 2, 2, 0);
             if (tick % 12 == 0) fx.cloud(Particle.HEART, chest.clone().add(new Vector(0, 3, 0)), 2, 2, 0);
             if (tick % 40 == 0) fx.sound(ground, Sfx.BEACON_POWER, 1.5f, 1.6f);
-            heal(instance);
+            heal(instance, total);
         });
         t.at(KNEEL, () -> {
             fx.flash(ground.clone().add(new Vector(0, 1, 0)), LIFE);
@@ -88,20 +87,18 @@ public class HealingCircleAttack extends ChoreographedAttack {
         return t;
     }
 
-    /** Heals 0.15% of max health a tick, never past 3% in total nor past full health. */
-    private static void heal(BossInstance instance) {
+    /**
+     * Heals an even share of {@code total} (a fraction of max health) every tick of the channel, so
+     * the whole ten seconds mend it. It used to heal 0.15% a tick against a 3% ceiling: the ceiling
+     * was reached after 20 ticks, and the remaining nine seconds of kneeling healed nothing.
+     */
+    private static void heal(BossInstance instance, double total) {
         if (instance == null) return;
-        BossPuppet body = instance.stand;
-        double max = body.getMaxHealth();
-        double room = Math.min(max * MAX_HEAL - instance.healingCircleHealed, max - body.getHealth());
-        double amount = Math.min(max * HEAL_PER_TICK, room);
-        if (amount <= 0) return;
-        body.setHealth(body.getHealth() + amount);
-        instance.healingCircleHealed += amount;
+        double max = instance.stand.getMaxHealth();
+        double room = max * total - instance.healingCircleHealed;
+        double amount = Math.min(max * total / CHANNEL, room);
+        instance.healingCircleHealed += mend(instance, amount);
         instance.healingCircleTimer++;
-        if (instance.bossBar != null) {
-            instance.bossBar.setProgress(MscEntityUtils.calculateVirtualProgress(body.getHealth(), max));
-        }
     }
 
     @Override
