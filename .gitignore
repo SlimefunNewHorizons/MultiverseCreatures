@@ -2,6 +2,7 @@
 *.class
 .idea
 .vscode
+.claude
 
 # Maven / Java build output
 target/
