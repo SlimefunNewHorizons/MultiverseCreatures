@@ -40,9 +40,23 @@ public final class TrueDamage {
      * @return the damage dealt
      */
     public static double apply(Player target, LivingEntity source, double amount, double pierce, double cap) {
+        return apply(target, source, amount, pierce, cap, true);
+    }
+
+    /**
+     * Hits {@code target} with true damage from {@code source}.
+     *
+     * @param scaled whether the hit grows with the player's investment ({@link BossDamageScaling});
+     *               false for damage that is not the boss's own attack, like a share of a hit the
+     *               players dealt
+     * @return the damage dealt
+     */
+    public static double apply(Player target, LivingEntity source, double amount, double pierce, double cap, boolean scaled) {
         if (AttackPreview.isActor(source) || target.isDead()) return 0;
         PotionEffect resistance = target.getPotionEffect(PotionEffectType.RESISTANCE);
-        double dealt = dealt(amount, resistance == null ? -1 : resistance.getAmplifier(), pierce, cap);
+        // The hit and its cap grow with what the player has invested (BossDamageScaling).
+        double scale = scaled ? BossDamageScaling.factor(target, true) : 1.0;
+        double dealt = dealt(amount * scale, resistance == null ? -1 : resistance.getAmplifier(), pierce, cap * scale);
         if (dealt <= 0) return 0;
         // Back-to-back boss hits must not be swallowed by the vanilla invulnerability window.
         target.setNoDamageTicks(0);

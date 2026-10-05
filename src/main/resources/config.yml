@@ -6,6 +6,35 @@
 # version here. See MscConfigMigration.CONFIG_VERSION — keep the two in step.
 config-version: 6
 #
+# SlimeTinker Infinity against every boss except Mahoraga (which adapts on its own):
+#   pierce-infinity-armor: boss hits pierce the full Infinity set (absorption is cleared first)
+#   infinity-weapon-damage-multiplier: share of an Infinity Singularity weapon's damage a boss takes
+# Network load of the boss effects. Every particle is one packet per player who sees it, so these
+# two keep a fight with many players from flooding their connections:
+#   particle-budget-per-tick: most particle calls sent per tick; above it every effect thins evenly
+#   particle-view-distance: blocks around a particle within which players receive it
+performance:
+  particle-budget-per-tick: 150
+  particle-view-distance: 48
+boss-balance:
+  pierce-infinity-armor: true
+  infinity-weapon-damage-multiplier: 0.5
+  # Boss damage adapts to what each player has invested, so endgame players are hit as hard, relative
+  # to their health, as fresh ones. Applies to every boss but Mahoraga (which adapts on its own).
+  # factor = health x rank x effects (x gear for Garou and Kinger, whose hits armour still reduces),
+  # clamped to [1, max-factor]; it multiplies both the hit and its max-damage-dealt cap.
+  adaptive-damage:
+    enabled: true
+    health-weight: 1.0            # (max health / 20) ^ weight: 40 HP -> x2
+    per-rank-tier: 0.003          # DrakesRankup tier 100 -> +30%
+    per-rebirth: 0.03             # DrakesRankup rebirths, +3% each
+    per-resistance-level: 0.15    # Resistance I -> +15%, II -> +30%
+    absorption-weight: 1.0        # absorption hearts count as extra health
+    per-armor-point: 0.01         # gear terms only for hits armour reduces
+    per-toughness-point: 0.015
+    per-protection-level: 0.01    # summed over the four armour pieces
+    max-factor: 5.0
+#
 # All paths match the code:
 #   general.*                          -> MultiverseCreatures, MobHandler, MscWorldPolicy
 #   recipes.*                          -> MultiverseCreatures#onEnable

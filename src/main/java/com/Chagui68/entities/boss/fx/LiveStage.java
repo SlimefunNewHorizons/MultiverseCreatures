@@ -195,8 +195,15 @@ public final class LiveStage implements Stage {
                 new Vector3f(scale, scale, scale), new Quaternionf()));
     }
 
+    /** Debris pieces in flight across every fight; each one moves every tick, so they are capped. */
+    private static int liveDebris;
+    /** Most debris pieces in flight at once; past it a crater simply throws fewer chunks. */
+    private static final int MAX_DEBRIS = 40;
+
     @Override
     public void debris(Vector at, Vector velocity, Material material, int ticks) {
+        if (liveDebris >= MAX_DEBRIS) return;
+        liveDebris++;
         Material block = material.isBlock() && material.isSolid() ? material : Material.BLACKSTONE;
         float size = 0.45f + random.nextFloat() * 0.5f;
         Quaternionf spin = new Quaternionf().rotationXYZ(random.nextFloat() * 6, random.nextFloat() * 6, random.nextFloat() * 6);
@@ -208,8 +215,9 @@ public final class LiveStage implements Stage {
 
             @Override
             public void run() {
-                if (age++ >= ticks) {
+                if (age++ >= ticks || !world.isChunkLoaded(position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
                     prop.remove();
+                    liveDebris = Math.max(0, liveDebris - 1);
                     cancel();
                     return;
                 }
@@ -220,8 +228,8 @@ public final class LiveStage implements Stage {
                 if (position.getY() < floor) {
                     position.setY(floor);
                     speed.multiply(0.3).setY(Math.abs(speed.getY()) * 0.3);
-                    world.spawnParticle(Particle.BLOCK, position.toLocation(world), 4, 0.2, 0.1, 0.2, 0,
-                            block.createBlockData(), true);
+                    ParticleBudget.spawn(world, Particle.BLOCK, position.getX(), position.getY(), position.getZ(),
+                            4, 0.2, 0.1, 0.2, 0, block.createBlockData());
                 }
                 prop.moveTo(position, 2);
                 if (age % 4 == 0) {
@@ -278,21 +286,21 @@ public final class LiveStage implements Stage {
 
     // ------------------------------------------------------------------ the world's side
 
-    /** Draws into a world, forcing every particle so a fight fourteen blocks tall stays visible from afar. */
+    /** Draws into a world, within the plugin's particle budget and reach (see {@link ParticleBudget}). */
     private record WorldSink(World world) implements FxSink {
 
         @Override
         public void particle(Particle type, Vector at, int count, double spreadX, double spreadY, double spreadZ,
                              double speed, Object data) {
             Object resolved = data instanceof Material material ? material.createBlockData() : data;
-            world.spawnParticle(type, at.getX(), at.getY(), at.getZ(), count, spreadX, spreadY, spreadZ, speed,
-                    resolved, true);
+            ParticleBudget.spawn(world, type, at.getX(), at.getY(), at.getZ(), count, spreadX, spreadY, spreadZ, speed,
+                    resolved);
         }
 
         @Override
         public void trail(Vector from, Vector to, Color color, int ticks) {
-            world.spawnParticle(Particle.TRAIL, from.getX(), from.getY(), from.getZ(), 1, 0, 0, 0, 0,
-                    new Particle.Trail(to.toLocation(world), color, ticks), true);
+            ParticleBudget.spawn(world, Particle.TRAIL, from.getX(), from.getY(), from.getZ(), 1, 0, 0, 0, 0,
+                    new Particle.Trail(to.toLocation(world), color, ticks));
         }
 
         @Override

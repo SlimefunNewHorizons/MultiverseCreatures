@@ -779,18 +779,30 @@ public class ArmorStandBoss implements Listener, BossHost {
                 if (target != null && !instance.isBusy()) {
                     Location current = stand.getLocation();
                     Location targetLoc = target.getLocation();
-                    current.setDirection(targetLoc.toVector().subtract(current.toVector()));
-                    stand.teleport(current);
+                    // Turn only when the heading is off by more than two degrees: a teleport is a
+                    // packet to every player, and sending one every tick to stand still was waste.
+                    double dx = targetLoc.getX() - current.getX();
+                    double dz = targetLoc.getZ() - current.getZ();
+                    float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+                    float turn = Math.abs(((yaw - current.getYaw()) % 360 + 540) % 360 - 180);
+                    if (turn > 2f) {
+                        current.setYaw(yaw);
+                        current.setPitch(0);
+                        stand.teleport(current);
+                    }
 
-                    double dxz = Math.sqrt(current.distanceSquared(targetLoc));
+                    double dxz = Math.sqrt(dx * dx + dz * dz);
                     if (dxz > 0.5) {
                         double bossEyeY = current.getY() + 10;
                         double targetEyeY = targetLoc.getY() + 1.6;
                         double dy = bossEyeY - targetEyeY;
-                        double headPitch = Math.atan2(dy, dxz);
-                        stand.setHeadPose(new EulerAngle(
-                                Math.max(-0.78, Math.min(0.78, headPitch)), 0, 0
-                        ));
+                        // Rounded to two degrees, so a player moving around does not resend the
+                        // head's pose every single tick.
+                        double headPitch = Math.toRadians(Math.round(Math.toDegrees(Math.atan2(dy, dxz)) / 2.0) * 2.0);
+                        double pitch = Math.max(-0.78, Math.min(0.78, headPitch));
+                        if (Math.abs(stand.getHeadPose().getX() - pitch) > 1e-3) {
+                            stand.setHeadPose(new EulerAngle(pitch, 0, 0));
+                        }
                     }
                 }
 
@@ -1837,13 +1849,15 @@ public class ArmorStandBoss implements Listener, BossHost {
         // The engine already folded armour, Protection and Resistance into the event's damage, so
         // those three are credited back: a penetrating hit must not be shrunk by the very defences
         // it is supposed to pierce. Shields, absorption and everything else stay as they came.
-        PenetratingHit hit = PenetratingHit.of(event.getDamage(),
+        // The hit and its cap grow with what the player has invested (BossDamageScaling).
+        double scale = BossDamageScaling.factor(player, true);
+        PenetratingHit hit = PenetratingHit.of(event.getDamage() * scale,
                 modifierValue(event, EntityDamageEvent.DamageModifier.ARMOR),
                 modifierValue(event, EntityDamageEvent.DamageModifier.MAGIC),
                 modifierValue(event, EntityDamageEvent.DamageModifier.RESISTANCE),
                 resistanceAmplifier(player),
                 penetratingResistancePierce,
-                maxDamageDealtPerHit,
+                maxDamageDealtPerHit * scale,
                 System.currentTimeMillis());
         if (hit.raw() <= 0) return;
         event.setCancelled(true);

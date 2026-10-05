@@ -152,6 +152,8 @@ public class MultiverseCreatures extends JavaPlugin {
         // old file and every new knob stays invisible. This adds what is missing before anything
         // reads the config.
         com.Chagui68.utils.MscConfigMigration.run(this);
+        com.Chagui68.entities.boss.BossDamageScaling.load(getConfig());
+        com.Chagui68.entities.boss.fx.ParticleBudget.load(getConfig());
         com.Chagui68.stand.HeadModels.init(this);
 
         if (getConfig().getBoolean("recipes.enabled", true)) {
@@ -210,6 +212,7 @@ public class MultiverseCreatures extends JavaPlugin {
         MobHandler mobHandler = new MobHandler(this);
         getServer().getPluginManager().registerEvents(mobHandler, this);
         getServer().getPluginManager().registerEvents(bossDamageLog, this);
+        getServer().getPluginManager().registerEvents(new com.Chagui68.entities.boss.BossInfinityRules(this), this);
         // El tope de poblacion se calcula aqui, fuera de CreatureSpawnEvent: contar
         // entidades dentro del evento rompe el iterador del mundo. Cada 5 s basta.
         recountTask = getServer().getScheduler().runTaskTimer(this, mobHandler::refrescarRecuento, 100L, 100L);

@@ -1109,7 +1109,7 @@ public class JackStarBoss implements Listener {
     private void shareWithParty(ArmorStand stand, List<Player> party, JackResilience.Split split) {
         if (party.size() <= 1) return;
         for (Player p : party) {
-            dealToPlayer(stand, p, split.perPartyMember(), "Load Balancer");
+            dealToPlayer(stand, p, split.perPartyMember(), "Load Balancer", false);
             p.spawnParticle(Particle.CRIT, p.getLocation().add(0, 1.0, 0), 5, 0.2, 0.2, 0.2, 0.05);
             p.sendActionBar(ChatColor.GOLD + "[LOAD BALANCER] " + ChatColor.YELLOW + "Workload shared (-" + String.format("%.1f", split.perPartyMember()) + " HP)");
         }
@@ -2182,6 +2182,14 @@ public class JackStarBoss implements Listener {
 
     /** Damages a player with this boss and remembers the attack so the listener can name it. */
     private void dealToPlayer(ArmorStand stand, Player target, double amount, String source) {
+        dealToPlayer(stand, target, amount, source, true);
+    }
+
+    /**
+     * @param scaled false for the Load Balancer: a share of the damage the players dealt him is not
+     *               one of his attacks, so it must not grow with each player's investment
+     */
+    private void dealToPlayer(ArmorStand stand, Player target, double amount, String source, boolean scaled) {
         // Saved and restored rather than cleared: a hit can trigger a nested one (the reflect
         // barrier hits back), and the outer call must find its own attack name again afterwards.
         String previousSource = outgoingSource;
@@ -2189,7 +2197,7 @@ public class JackStarBoss implements Listener {
         outgoingSource = source;
         outgoingIntended = amount;
         try {
-            TrueDamage.apply(target, stand, amount, trueDamagePierce, maxDamageDealt);
+            TrueDamage.apply(target, stand, amount, trueDamagePierce, maxDamageDealt, scaled);
         } finally {
             outgoingSource = previousSource;
             outgoingIntended = previousIntended;

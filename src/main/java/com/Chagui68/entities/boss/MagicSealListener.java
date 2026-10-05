@@ -228,17 +228,20 @@ public class MagicSealListener {
                 }
                 if (stroke.part() == WingGeometry.Part.FEATHER && ticks % 4 == 0) {
                     WingPoint tip = points.get(points.size() - 1);
-                    world.spawnParticle(accent, tip.x(), tip.y(), tip.z(), 1, 0.1, 0.1, 0.1, 0.01, null, true);
+                    com.Chagui68.entities.boss.fx.ParticleBudget.spawn(world, accent, tip.x(), tip.y(), tip.z(), 1, 0.1, 0.1, 0.1, 0.01, null);
                 }
             }
             return true;
         });
     }
 
-    /** Wing dust is forced: the Sentinel is fourteen blocks tall and its wings are seen from afar. */
+    /**
+     * Wing dust goes through the particle budget: the wings are drawn every other tick for the whole
+     * fight, and forced to every player within 512 blocks they were a steady flood of packets.
+     */
     private static void wingDust(World world, WingPoint at, Color color, float size) {
-        world.spawnParticle(Particle.DUST, at.x(), at.y(), at.z(), 1, 0, 0, 0, 0,
-                new Particle.DustOptions(color, size), true);
+        com.Chagui68.entities.boss.fx.ParticleBudget.spawn(world, Particle.DUST, at.x(), at.y(), at.z(), 1, 0, 0, 0, 0,
+                new Particle.DustOptions(color, size));
     }
 
     private static Color mix(Color a, Color b, double t) {
@@ -589,7 +592,8 @@ public class MagicSealListener {
     }
 
     private static void dust(World world, double x, double y, double z, Color color, float size) {
-        world.spawnParticle(Particle.DUST, x, y, z, 1, 0, 0, 0, 0, new Particle.DustOptions(color, size));
+        com.Chagui68.entities.boss.fx.ParticleBudget.spawn(world, Particle.DUST, x, y, z, 1, 0, 0, 0, 0,
+                new Particle.DustOptions(color, size));
     }
 
     private static void spark(World world, double[] at, Particle particle) {
@@ -597,6 +601,6 @@ public class MagicSealListener {
     }
 
     private static void spark(World world, double x, double y, double z, Particle particle) {
-        world.spawnParticle(particle, x, y, z, 1, 0, 0, 0, 0);
+        com.Chagui68.entities.boss.fx.ParticleBudget.spawn(world, particle, x, y, z, 1, 0, 0, 0, 0, null);
     }
 }
