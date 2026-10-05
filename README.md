@@ -1,5 +1,5 @@
 > ⚠️ **CONSOLIDADO EN DRAKES-SUITES (SUITE MULTIVERSE POR CHAGUI68):**  
-> Todo el desarrollo activo y soporte para Paper/Purpur 1.21.11+ se realiza oficialmente en el monorepo [`Drakes-Suites`](https://github.com/DrakesCraft-Labs/Drakes-Suites) dentro del módulo oficial `drakes-multiverse`, preservando la autoría y diseño soberano de **Chagui68**.
+> Todo el desarrollo activo y soporte para Paper/Purpur 1.21.11+ se realiza oficialmente en el monorepo [`Drakes-Suites`](https://github.com/SlimefunNewHorizons/Drakes-Suites) dentro del módulo oficial `drakes-multiverse`, preservando la autoría y diseño soberano de **Chagui68**.
 
 <div align="center">
 
@@ -12,7 +12,7 @@
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21%2B-7C4DFF?logo=minecraft&logoColor=white)](https://modrinth.com/plugin/multiversecreatures)
 [![Purpur](https://img.shields.io/badge/Purpur-1.21.11-FFA000?logo=purpur)](https://purpurmc.org/)
 [![Paper](https://img.shields.io/badge/Paper-26.1%20%7C%2026.2-2C6BED)](https://papermc.io/)
-[![Compatibilidad](https://img.shields.io/github/actions/workflow/status/DrakesCraft-Labs/MultiverseCreatures/compatibility.yml?branch=main&label=1.21.11%20%C2%B7%2026.1%20%C2%B7%2026.2)](https://github.com/DrakesCraft-Labs/MultiverseCreatures/actions/workflows/compatibility.yml)
+[![Compatibilidad](https://img.shields.io/github/actions/workflow/status/SlimefunNewHorizons/MultiverseCreatures/compatibility.yml?branch=main&label=1.21.11%20%C2%B7%2026.1%20%C2%B7%2026.2)](https://github.com/SlimefunNewHorizons/MultiverseCreatures/actions/workflows/compatibility.yml)
 [![Java](https://img.shields.io/badge/Java-21%2B-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue)](./LICENSE)
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/gJCViBEN?label=Modrinth%20Downloads&logo=modrinth&color=2DD2A4)](https://modrinth.com/plugin/multiversecreatures)
@@ -231,6 +231,6 @@ Maven build — they live only on GitHub for reference and are never bundled int
 
 ## 📄 License & Sovereign Authorship
 
-Copyright © 2026 [**Chagui68**](https://github.com/Chagui68) · [**DrakesCraft Labs**](https://github.com/DrakesCraft-Labs).
+Copyright © 2026 [**Chagui68**](https://github.com/Chagui68) · [**DrakesCraft Labs**](https://github.com/SlimefunNewHorizons).
 
 This project is an **original sovereign creation** engineered by **Chagui68** for the DrakesCraft network. All intellectual authorship belongs to Chagui68. Commercial resale, repackaging in paid setups, or removing creator attribution is strictly prohibited.
