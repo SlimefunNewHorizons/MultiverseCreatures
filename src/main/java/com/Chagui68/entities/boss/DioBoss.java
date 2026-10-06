@@ -1361,9 +1361,11 @@ public class DioBoss implements Listener {
                 event.setCancelled(true);
                 return;
             }
-            if (dio && attacker != null) {
+            // The DIO tag can remain on a non-stand entity after an interrupted encounter.
+            // Only DIO's ArmorStand owns virtual health and may be passed to hurt().
+            if (dio && attacker != null && victim instanceof ArmorStand dioStand) {
                 event.setCancelled(true);
-                hurt((ArmorStand) victim, attacker, Math.max(1.0, event.getFinalDamage()));
+                hurt(dioStand, attacker, Math.max(1.0, event.getFinalDamage()));
                 return;
             }
         }
