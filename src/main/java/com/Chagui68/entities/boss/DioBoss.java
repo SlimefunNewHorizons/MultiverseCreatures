@@ -1366,9 +1366,10 @@ public class DioBoss implements Listener {
                 event.setCancelled(true);
                 return;
             }
-            if (dio && attacker != null) {
+            // Only DIO's own armour stand takes hits; anything else carrying his tag just stays untouchable.
+            if (dio && attacker != null && victim instanceof ArmorStand dioStand) {
                 event.setCancelled(true);
-                hurt((ArmorStand) victim, attacker, Math.max(1.0, event.getFinalDamage()));
+                hurt(dioStand, attacker, Math.max(1.0, event.getFinalDamage()));
                 return;
             }
         }
