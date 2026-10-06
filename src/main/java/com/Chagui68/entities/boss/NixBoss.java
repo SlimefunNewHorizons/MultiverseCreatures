@@ -493,6 +493,12 @@ public class NixBoss implements Listener {
             return;
         }
         if (!stand.getWorld().isChunkLoaded(stand.getLocation().getChunk())) return;
+        if (BossDespawn.abandoned(stand)) {
+            cleanup(inst);
+            activeInstances.remove(stand.getUniqueId());
+            stand.remove();
+            return;
+        }
 
         Player target = findTarget(stand);
         inst.targetId = (target != null) ? target.getUniqueId() : null;

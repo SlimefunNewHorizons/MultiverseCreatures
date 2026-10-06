@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>MultiverseCreatures</artifactId>
-    <version>3.6-RELEASE</version>
+    <version>3.8-RELEASE</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -37,7 +37,9 @@
         <dependency>
             <groupId>org.joml</groupId>
             <artifactId>joml</artifactId>
-            <version>1.10.9</version>
+            <!-- The JOML Minecraft 1.21.11 ships: compiled against a newer one, a call can link to an
+                 overload the server does not have and fail with NoSuchMethodError at run time. -->
+            <version>1.10.8</version>
             <scope>provided</scope>
         </dependency>
 

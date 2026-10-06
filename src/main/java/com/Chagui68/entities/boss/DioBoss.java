@@ -316,6 +316,11 @@ public class DioBoss implements Listener {
             return;
         }
         if (!stand.getWorld().isChunkLoaded(stand.getLocation().getBlockX() >> 4, stand.getLocation().getBlockZ() >> 4)) return;
+        if (BossDespawn.abandoned(stand)) {
+            cleanup(inst);
+            stand.remove();
+            return;
+        }
         inst.tick++;
         if (inst.world == null || !inst.world.isValid()) inst.world = spawnTheWorld(stand);
 

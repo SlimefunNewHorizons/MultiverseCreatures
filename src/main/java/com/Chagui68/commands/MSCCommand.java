@@ -435,6 +435,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
         // handlers below read their values, so this reload applies everything the jar ships.
         Set<String> added = MscConfigMigration.run(plugin);
         com.Chagui68.entities.boss.BossDamageScaling.load(plugin.getConfig());
+        com.Chagui68.entities.boss.BossDespawn.load(plugin.getConfig());
         com.Chagui68.entities.boss.fx.ParticleBudget.load(plugin.getConfig());
         mobHandler.reloadConfig();
         com.Chagui68.wiki.WikiRecipes.reset();
@@ -446,6 +447,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
         if (plugin.getNixBoss() != null) plugin.getNixBoss().reloadConfig();
         if (plugin.getJackStarBoss() != null) plugin.getJackStarBoss().reloadConfig();
         if (plugin.getDioBoss() != null) plugin.getDioBoss().reloadConfig();
+        if (plugin.getWitherStormBoss() != null) plugin.getWitherStormBoss().reloadConfig();
         if (added.isEmpty()) {
             sender.sendMessage(GREEN + "Configuration reloaded. All changes have been applied.");
         } else {
@@ -531,6 +533,9 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
                     }
                 }
 
+                // A player is never one of ours, whatever tag another plugin left on it, and removing
+                // one throws.
+                if (entity instanceof Player) continue;
                 var tags = entity.getScoreboardTags();
                 String entityName = MscText.plainText(entity.customName());
                 if (!MscKillFilter.isMscCreature(tags, entityName)) continue;
@@ -541,9 +546,20 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             }
         }
 
+        // One entity that refuses to go must not stop the sweep half way and leave the rest behind.
+        int failed = 0;
         for (Entity e : toRemove) {
-            e.remove();
-            killed++;
+            if (!e.isValid()) continue;
+            try {
+                e.remove();
+                killed++;
+            } catch (RuntimeException ex) {
+                failed++;
+                MscLog.warn("/msc kill could not remove " + e.getType() + " " + e.getUniqueId(), ex);
+            }
+        }
+        if (failed > 0) {
+            sender.sendMessage(RED + "" + failed + " entities could not be removed; the console has the details.");
         }
 
         sender.sendMessage(GREEN + "Removed " + YELLOW + killed + GREEN + " MSC creatures (" + targetType + ")"

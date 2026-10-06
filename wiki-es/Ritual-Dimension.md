@@ -206,7 +206,7 @@ P . . . P
 3. **Suelta (Q) la ofrenda** del dios sobre el núcleo (a menos de **3 bloques**). Se consume **una** unidad; el resto del stack queda en el suelo. Una ofrenda de otro panteón se rechaza sin consumirse.
 4. Tras `drakes-bosses.arrival-delay-ticks` (40 por defecto) cae un rayo y el dios aparece sobre el núcleo. Si DrakesBosses no puede spawnearlo (p. ej. Jax desactivado), la ofrenda se devuelve.
 
-> Un altar por mundo a la vez, y no despierta si ya hay un jefe peleando en la dimensión. Mientras el dios vive se aplican los bloqueos de construcción y comandos. Un dios sin jugadores a menos de 64 bloques durante `drakes-bosses.no-player-despawn-seconds` (300 por defecto; 0 = nunca) se retira para no bloquear la dimensión.
+> Un altar por mundo a la vez, y no despierta si ya hay un jefe peleando en la dimensión. Mientras el dios vive se aplican los bloqueos de construcción y comandos. Un dios sin jugadores cerca se retira como cualquier otro jefe (`boss-balance.despawn`: 50 bloques, 5 s) para no bloquear la dimensión.
 
 ---
 

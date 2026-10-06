@@ -37,6 +37,12 @@ src/main/java/com/Chagui68/
 │   │       ├── ChoreographedAttack.java     Base de cada ataque del Centinela: aviso → preparación → golpe → recuperación
 │   │   ├── fx/                          El kit de coreografía, probable sin servidor (Timeline, Stage, Pose, Fx, Shapes, Telegraph, Area, Missile, Prop)
 │   │   ├── NixMoves.java / JackMoves.java  Tablas de poses de los movimientos de firma de NIX y JackStar
+│   │   ├── witherstorm/                 La Tormenta Wither (Cracker's Wither Storm Mod) hecha de display entities
+│   │   │   ├── WitherStormModel.java        Árbol de partes y animación del mod, puro y testeable (resources/witherstorm/*.txt)
+│   │   │   ├── WitherStormForm.java         Las cinco formas y los números de su pelea
+│   │   │   ├── WitherStormBody.java         Un display por caja, montados como pasajeros del ancla
+│   │   │   ├── WitherStorm.java             Una tormenta viva: rayos tractores, mordiscos, calaveras, evolución, muerte
+│   │   │   └── WitherStormBoss.java         Ciclo de vida, hitboxes Interaction e invocación con la estructura del Wither
 │   │       ├── aerial/                      13 ataques aéreos (starfall, airslam, ...)
 │   │       ├── ground/                      11 ataques de suelo (shieldbash, groundslam, ...)
 │   │       └── ranged/                      12 ataques a distancia (meteorstorm, spiritbeam, ...)

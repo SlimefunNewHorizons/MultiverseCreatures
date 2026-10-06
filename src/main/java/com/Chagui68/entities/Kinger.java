@@ -1,6 +1,7 @@
 package com.Chagui68.entities;
 
 import com.Chagui68.entities.boss.BossArena;
+import com.Chagui68.entities.boss.BossDespawn;
 import com.Chagui68.utils.DisplaySuit;
 import com.Chagui68.utils.MscBossBar;
 import com.Chagui68.utils.MscEntityUtils;
@@ -366,6 +367,12 @@ public class Kinger implements Listener {
             return;
         }
         if (!stand.getWorld().isChunkLoaded(stand.getLocation().getChunk())) return;
+        if (BossDespawn.abandoned(stand)) {
+            cleanup(inst);
+            activeKingers.remove(stand.getUniqueId());
+            stand.remove();
+            return;
+        }
 
         Player target = findTarget(stand);
         inst.targetId = (target != null) ? target.getUniqueId() : null;

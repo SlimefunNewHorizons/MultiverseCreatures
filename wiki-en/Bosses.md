@@ -2,6 +2,8 @@
 
 MultiverseCreatures includes **one final boss** and multiple formidable **minibosses and custom-modeled bosses**. All bosses are spawned via `/msc spawn <type>` (OP-only) and have configurable health/damage/cooldowns in `config.yml`.
 
+> **Abandoned bosses:** any boss (Sentinel, Nix, Jack, DIO, Kinger, Mahoraga, Garou, the Wither Storm and the Pantheon gods) with no player within `boss-balance.despawn.radius` (50 blocks; `large-radius` 100 for the Sentinel and the Wither Storm's colossal forms) for `delay-ticks` (100, 5 s) vanishes with everything it summoned, so an abandoned fight stops costing the server. Spectators do not count. `enabled: false` turns it off.
+
 ---
 
 ## 🛡️ THE OBSIDIAN SENTINEL — Final Boss
@@ -38,7 +40,7 @@ The ladder is data, not code: `armor-stand-boss.phase-thresholds` holds the heal
 - **Defences** (below 90% HP, on ground, one state at a time): **Stone Skin** (×0.5 dmg taken), **Reflect Barrier** (×0.7 dmg + 30% reflect), **Absorb Shield** (100-HP absorber that visually shifts blue → red), **Bulwark** (×0.35 dmg, but rooted behind ramparts), **Thorn Aura** (×0.8 dmg, every hit stings the attacker for 3, anyone within 6 blocks is pricked each second) and **Afterimage** (35% of hits miss). Their durations come from `defense-duration-*-ticks`: stone skin 200, reflect barrier 160, absorb shield 300, bulwark 120, thorn aura 200, afterimage 160.
 - **Healing defences** (below 70% HP, one at a time): **Healing Circle**, **Regeneration** (heals `regeneration-heal-percent` (5%) over 8 s while it keeps fighting), **Soul Siphon** (tethers up to three players within 16 blocks and drains them, healing four times what it takes; running 20 blocks away snaps a tether) and **Obsidian Cocoon** (invulnerable for 3 s inside obsidian pillars while it heals `obsidian-cocoon-heal-percent` (4%), then a shockwave).
 - **Ground recovery** — a grounded boss only attacks while `isOnGround` is true. If it ends up with no solid block under it (void, water, a hole, a cliff edge), it hovers silently forever. After `ground-recovery-grace-ticks` (40) without ground it teleports to the nearest column with a floor and headroom, preferring the area around its current target and falling back to the world spawn, then resumes attacking with its cooldowns reset.
-- **Despawn** — with nobody inside a 100-block radius the boss keeps fighting for `no-player-despawn-ticks` (200, ~10 s) before it despawns and cleans up its tasks, seals, music and boss bar. Set it to `0` to remove the boss as soon as the arena empties.
+- **Despawn** — with nobody inside a 100-block radius (`boss-balance.despawn.large-radius`) for `delay-ticks` (100, 5 s) it despawns and cleans up its tasks, seals, music and boss bar. With `delay-ticks: 0` it leaves as soon as the arena empties.
 - **Penetrating damage** — with `penetrating-damage: true` the boss's own hits bypass armour and Protection enchantments (they are re-applied as `OUT_OF_WORLD` damage, capped at `max-damage-dealt` (15) per hit). Resistance is only *partially* pierced: `penetrating-resistance-pierce: 0.2` makes the boss ignore 20% of the potion's mitigation, so a player with Resistance I (20% reduction) still blocks 16% of the hit. `0.0` leaves Resistance fully effective, `1.0` ignores it entirely. Use `/msc debug [player]` after a hit to see the whole breakdown (event damage, the reductions credited back, the pierce applied and the final value); the same command also reports what Nix and Jack Star deal to and take from that player.
 
 ### Special mechanics
@@ -342,3 +344,97 @@ He greets anyone who walks up to him ("Oh? You're approaching me?"). His knives,
 
 Every hit DIO and The World land is **true damage**, like the Sentinel's (`max-damage-dealt` 15, `true-damage-pierce` 0.2). His destructive attack, **The Final Hour**, comes at most once per `final-hour-cooldown-ticks` (900): a golden clock face sixteen blocks wide spreads under him, its hand sweeps round and stops on one hour that glows green, then "ZA WARUDO" — The World pummels every other hour in turn. Run to the lit hour.
 
+---
+
+## 🌪️ WITHER STORM — Cracker's Wither Storm Mod
+
+The Wither Storm of nonamecrackers2's mod, drawn with nothing but display entities: every box of the mod's model is a `BlockDisplay` (obsidian, black concrete, crying obsidian, the command block in its ribs...) and the original Wither's three heads are `ItemDisplay`s holding wither skeleton skulls. The geometry, the head positions, how the jaws open and how the tentacles sway all come from the mod's own model code, so every piece moves where the mod puts it.
+
+### Summoning
+
+Build **the Wither's structure** (a T of 4 soul sand or soul soil and 3 wither skeleton skulls) with the foot of the T resting on the **core block**: `wither-storm.summon.core-block` (`CRYING_OBSIDIAN` by default). No command block is needed. When the third skull goes on, the Wither that would have been born is swallowed with the core and the storm forms in its place: a vortex of dark matter, a lightning bolt and eleven invulnerable seconds (`forming-ticks`, 220) while it grows and its bar fills, then the blast of its birth (`explosion-power`, 7, like a Wither's). Built on any other block the structure still makes a plain Wither.
+
+Also: `/msc spawn witherstorm` (OP), and `witherstorm2`…`witherstorm5` to start in a later form.
+
+### The five forms
+
+It grows by **eating**: what its tractor beams tear up and swallow adds points (`consume-points`: block 1, mob 6, bitten player 10, item 1) and at `forms.<form>.evolve-at` it evolves — every head roars, the old body shrinks, the new one grows, and its max health rises (damage already dealt stays).
+
+| Form | Mod model | Size (scale 1) | Health | Mass takes | Beam | Flight | Evolves at |
+|---|---|---|---|---|---|---|---|
+| **The Hunchback** | Phase 1: the Wither with its command block and the first lump | 3 × 3.5 | ×1 | 100% | 20 | 5 | 200 |
+| **The Growing Hunchback** | Phase 2: the mass swallowed the middle head and grew a jaw | 3.3 × 3.7 | ×1.5 | 90% | 26 | 6 | 600 |
+| **The Swollen Hunchback** | Phase 3: the first three tentacles | 11.5 × 11.7 | ×2 | 80% | 32 | 8 | 1500 |
+| **The Destroyer** | Phase 4: three heads on a flying mass | 61 × 62 | ×3.5 | 60% | 64 | 28 | 6000 |
+| **The Devourer** | Phase 5: the colossal mass and nine tentacles | 110 × 114 | ×5 | 50% | 96 | 40 | — |
+
+Base health is `wither-storm.health` (800) times `forms.<form>.health-multiplier`. Each form's size is set with `forms.<form>.scale` (1.0 is the mod's own size; the Devourer is over a hundred blocks wide).
+
+### How it feeds
+
+- **The hunchbacks (forms 1–3) are a black hole:** every 3 s they tear 3, 9 or 18 lumps of ground (by form) loose round them and pull them tumbling into their mass, like the mod's cluster source. That is how they grow into the Destroyer.
+- **From the Destroyer on they eat through their beams:** where a beam meets the ground it tears blocks out and they fly into the mouth.
+- It honours `mobGriefing` and protection plugins (every block goes through `EntityChangeBlockEvent`), only takes exposed blocks and never takes blocks with an inventory, bedrock, portals or command blocks. With `grief-blocks: false` the ground stays put but the storm still grows.
+- It only eats while it has victims near: left alone, it does not eat the world.
+
+### Tractor beam
+
+As in the mod: **the first form has no beam**, in the next two hunchbacks only the middle head has one, and from the Destroyer on all three.
+
+1. A beam only lights up once its head points at a victim it **can see** (no blocks in between).
+2. It glows **thin and harmless** for `beam.charge-ticks` (30): that is the warning.
+3. It **pulls** for `beam.hold-ticks` (120) at the mod's speed, `beam.pull-speed` (0.2 blocks a tick), slower within the last block.
+4. It **rests** for `beam.rest-ticks` (100), and after a bite.
+
+While its beam is on a head turns **slower than a player sprints**: run sideways across the cone and you break free. The hunchbacks only drag the victim they locked onto; the Destroyer and the Devourer drag anything inside the cone. The beam is a translucent cone of purple glass, as in the mod.
+
+### Attacks
+
+It attacks **every living thing** round it, players first (`attack-mobs`).
+
+| Attack | What happens | Key (default) |
+|---|---|---|
+| **Bite** | Whatever reaches a mouth: a player is bitten (true damage + Wither II) and spat out, and that head rests; a mob or an item is devoured. Pets and named mobs are spat out. | `bite-damage` (14) |
+| **Roar + flaming skull** | Every 20–50 s (`roar-interval-*`, like the mod) a head roars (Slowness round it) and spits a **flaming skull** that explodes in fire. | power per form (2.5 → 5) |
+| **Wither skulls** | The hunchbacks shoot plain Wither skulls (10% charged). | — |
+| **Tentacles** | The tentacle tips strike and fling whoever they sweep through. | `tentacle-damage` (10) |
+| **Wither sickness** | Near the storm, hunger (20 s), then weakness (40 s), then wither and fatigue (80 s). Hostile mobs near it become **Sickened** and fight for it. | `sickness.*` |
+
+### Special attacks
+
+One every `specials.cooldown-ticks` (500, +0–10 s), never the same twice in a row, announced on the action bar:
+
+| Attack | From | What happens | Key |
+|---|---|---|---|
+| **Cataclysmic Roar** | Hunchback | Every head roars at once, the sky goes dark (Darkness and Nausea) and a **shockwave** rolls along the ground. **Jump it**: anyone in the air is spared. | `roar-damage` (10) |
+| **Skull Barrage** | Growing Hunchback | Every head spits a fan of flaming skulls for two seconds. | — |
+| **Debris Rain** | Swollen Hunchback | The ground it ate comes back down: red circles mark where the rocks will land. | `debris-damage` (8) |
+| **Abyssal Eruption** | Swollen Hunchback | The ground under its victims trembles and, a moment later, **tentacles** of its mass burst out and fling them. | `eruption-damage` (12) |
+| **Singularity** | Destroyer | It holds still and drags the whole field into its core for 4 s, then the core bursts. | `singularity-damage` (16) |
+
+Lightning also strikes and thunder rolls round the colossal forms.
+
+### Summons
+
+One call every `summons.cooldown-ticks` (700, +0–10 s), at most `summons.max` (8) alive at once. They all die with it.
+
+| Summon | From | What it is |
+|---|---|---|
+| **Sickened Horde** | Hunchback | `horde-size` (4, +2 on the colossal forms) sickened zombies, skeletons, spiders, vindicators, husks and strays crawling out of purple rifts round a victim. |
+| **Withered Symbiont** | Swollen Hunchback | The mod's minion: a giant wither skeleton (scale 1.5) in purple armour with a netherite sword and `symbiont-health` (220) health, spitting wither skulls. One at a time. |
+| **Phantom Swarm** | Destroyer | Three sickened phantoms diving at a victim. |
+
+Every direct hit it lands is **true damage** (`max-damage-dealt` 20, `true-damage-pierce` 0.2). Like every boss, its damage **adapts** to what each player has invested (`boss-balance.adaptive-damage`): its direct hits inside the true damage, its explosions, skulls and summons as plain damage. It pierces the Infinity set, and the Infinity sword deals it half, as with the other bosses.
+
+### How the fight goes
+
+- **Hitboxes:** the mass and each head are `Interaction` entities that follow the model. Swords deal the weapon's damage, scaled by the attack cooldown, plus Sharpness and **Smite** (the storm is undead like any Wither). Projectiles that enter a box count too.
+- **Injuring the heads:** every projectile that reaches a head counts; after a few (1–2 on the hunchbacks, 3–8 on the colossal forms) the head is **injured** for `injury-ticks` (200): its beam goes dark, it spits a blue skull and takes ×1.5 damage. Whoever injured it **escapes**: the storm leaves them alone for `escape-ticks` (800, the mod's 40 s). With **every** head injured at once the storm is **exposed** for `exposed-ticks` (160) and takes ×`exposed-damage-multiplier` (2).
+- **Playing dead:** the Destroyer and the Devourer, at `play-dead-threshold` (15%), fall to the ground with their jaws hanging for `play-dead-ticks` (200), taking ×1.5... then rise with every head roaring, a blast that hurts (`revive-damage` 12) and throws everyone back, and 10% of their health back. Only once.
+- **Death:** it breaks apart in rays of light as its blocks burst one by one; it drops Nether Stars (1 to 5 by form) and experience, and cures everyone's sickness.
+
+### Performance
+
+The body rides the anchor (an invisible marker armour stand, `MSC_WitherStorm`), which keeps its form, health and what it has eaten: after a restart the storm is rebuilt where it was, and no piece of the body is persistent. Moving it costs one packet; animated pieces are sent again every 3 ticks and only when they moved more than 3 cm or 1°, and the body turns in steps the client smooths over half a second. The Destroyer uses the mod's low-detail mass (180 displays); `high-detail: true` draws the full one (548). With no player within 50 blocks (100 for the Destroyer and the Devourer) for 5 s it leaves with its summons (`boss-balance.despawn`).
+
+Every form, pose and animation can be looked at in the model viewer `tools/stand-viewer/index.html`, which opens straight in a browser (double-click) after `mvn test`; `tools/stand-viewer/textures.ps1` adds your Minecraft's textures to it.

@@ -191,12 +191,24 @@ class ConfigFilesGuardTest {
                     "defense-duration-reflect-barrier-ticks", "defense-duration-absorb-shield-ticks")) {
                 assertTrue(((Number) value(config, base + key)).intValue() >= 1, key + " must be at least 1 tick");
             }
-            assertTrue(((Number) value(config, base + "no-player-despawn-ticks")).intValue() >= 0,
-                    "0 means 'despawn as soon as nobody is in range' and must stay allowed");
             for (String key : List.of("ground-recovery-grace-ticks", "ground-recovery-search-radius",
                     "ground-recovery-cooldown-ticks")) {
                 assertTrue(((Number) value(config, base + key)).doubleValue() > 0, key + " must be positive");
             }
+        }
+
+        @Test
+        @DisplayName("Every boss leaves after a short time with nobody near")
+        void despawnKnobs() {
+            Map<String, Object> config = loadConfig();
+            String base = "boss-balance.despawn.";
+            assertInstanceOf(Boolean.class, value(config, base + "enabled"));
+            double radius = ((Number) value(config, base + "radius")).doubleValue();
+            assertTrue(radius >= 1, "radius must be at least one block");
+            assertTrue(((Number) value(config, base + "large-radius")).doubleValue() >= radius,
+                    "the colossal bosses' radius must not be smaller than the normal one");
+            assertTrue(((Number) value(config, base + "delay-ticks")).intValue() >= 0,
+                    "0 means 'despawn as soon as nobody is in range' and must stay allowed");
         }
 
         @Test

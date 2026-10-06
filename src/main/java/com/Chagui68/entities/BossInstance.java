@@ -32,7 +32,6 @@ public class BossInstance {
     public final com.Chagui68.entities.boss.BossPuppet stand;
     public BossBar bossBar;
     public int currentPhase = 0;
-    public int noPlayerTicks = 0;
     public ShieldState shieldState = ShieldState.NORMAL;
     public Entity shieldHolder;
     public int shieldTimer = 0;

@@ -84,10 +84,40 @@ public final class StandViewerExport {
             }
             json.append("}}");
         }
+        // The Wither Storm's five forms, drawn with block displays.
+        json.append(',').append(com.Chagui68.entities.boss.witherstorm.WitherStormViewerExport.entries());
         json.append("]}");
         Files.createDirectories(out.getParent());
         Files.writeString(out, json, StandardCharsets.UTF_8);
+        writeScript(out.resolveSibling("models.js"), json.toString());
         return out;
+    }
+
+    /**
+     * The same data as a script, for the viewer opened straight from disk: a browser refuses to
+     * fetch files or to put local images on a canvas for a {@code file://} page, but it runs a
+     * script tag. The painted skins go in it as data URLs for the same reason.
+     */
+    private static void writeScript(Path out, String models) throws IOException {
+        StringBuilder js = new StringBuilder("window.STAND_VIEWER_DATA = ").append(models).append(";\n");
+        Path skins = Path.of("tools", "stand-skins", "out");
+        Path manifest = skins.resolve("manifest.json");
+        if (Files.isRegularFile(manifest)) {
+            js.append("window.STAND_VIEWER_MANIFEST = ").append(Files.readString(manifest, StandardCharsets.UTF_8).strip()).append(";\n");
+            js.append("window.STAND_VIEWER_PAINTED = {");
+            boolean first = true;
+            try (var files = Files.walk(skins)) {
+                for (Path png : (Iterable<Path>) files.filter(p -> p.toString().endsWith(".png")).sorted()::iterator) {
+                    if (!first) js.append(',');
+                    first = false;
+                    String key = skins.relativize(png).toString().replace('\\', '/');
+                    js.append('"').append(key).append("\":\"data:image/png;base64,")
+                            .append(Base64.getEncoder().encodeToString(Files.readAllBytes(png))).append('"');
+                }
+            }
+            js.append("};\n");
+        }
+        Files.writeString(out, js, StandardCharsets.UTF_8);
     }
 
     private static Map<String, Map<Part, Quaternionf>> poses(StandType type) {

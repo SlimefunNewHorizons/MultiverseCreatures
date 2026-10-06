@@ -2,6 +2,8 @@
 
 MultiverseCreatures incluye **un jefe final** y múltiples y formidables **minijefes y jefes con modelos personalizados**. Todos los jefes se invocan con `/msc spawn <tipo>` (solo OP) y tienen salud/daño/cooldowns configurables en `config.yml`.
 
+> **Jefes abandonados:** cualquier jefe (Centinela, Nix, Jack, DIO, Kinger, Mahoraga, Garou, la Tormenta Wither y los dioses del Panteón) sin un jugador a menos de `boss-balance.despawn.radius` (50 bloques; `large-radius` 100 para el Centinela y las formas colosales de la Tormenta Wither) durante `delay-ticks` (100, 5 s) desaparece con todo lo que invocó, para que una pelea abandonada no siga gastando el servidor. Los espectadores no cuentan. `enabled: false` lo desactiva.
+
 ---
 
 ## 🛡️ EL CENTINELA DE OBSIDIANA — Jefe final
@@ -38,7 +40,7 @@ La escalera es datos, no código: `armor-stand-boss.phase-thresholds` contiene l
 - **Defensas** (por debajo del 90% de HP, en el suelo, un estado a la vez): **Piel de Piedra** (×0.5 daño recibido), **Barrera Reflectante** (×0.7 daño + 30% reflejado), **Escudo Absorbente** (absorbedor de 100 HP que visualmente cambia de azul a rojo), **Baluarte** (×0.35 daño, pero queda inmóvil tras sus murallas), **Aura de Espinas** (×0.8 daño, cada golpe pincha al atacante por 3 y quien esté a menos de 6 bloques recibe un pinchazo cada segundo) y **Imagen Residual** (el 35% de los golpes fallan). Sus duraciones salen de `defense-duration-*-ticks`: piel de piedra 200, barrera reflectante 160, escudo absorbente 300, baluarte 120, aura de espinas 200, imagen residual 160.
 - **Defensas de curación** (por debajo del 70% de HP, una a la vez): **Círculo de Curación**, **Regeneración** (cura `regeneration-heal-percent` (5%) en 8 s mientras sigue peleando), **Sifón de Almas** (ata a hasta tres jugadores a menos de 16 bloques y los drena, curándose cuatro veces lo que quita; alejarse 20 bloques rompe la atadura) y **Capullo de Obsidiana** (invulnerable 3 s dentro de pilares de obsidiana mientras cura `obsidian-cocoon-heal-percent` (4%), y luego una onda expansiva).
 - **Recuperación de suelo** — un jefe en modo suelo solo ataca mientras `isOnGround` es cierto. Si se queda sin bloque sólido debajo (vacío, agua, un agujero, un borde), flotaba en silencio para siempre. Tras `ground-recovery-grace-ticks` (40) ticks sin suelo se teletransporta a la columna más cercana con piso y espacio libre, prefiriendo la zona de su objetivo actual y recurriendo al spawn del mundo si no encuentra nada, y reanuda el ataque con los cooldowns reiniciados.
-- **Despawn** — sin nadie en un radio de 100 bloques el jefe sigue peleando durante `no-player-despawn-ticks` (200, ~10 s) antes de despawnear y limpiar sus tareas, sellos, música y barra de jefe. Ponlo a `0` para que el jefe se vaya en cuanto la arena se vacíe.
+- **Despawn** — sin nadie en un radio de 100 bloques (`boss-balance.despawn.large-radius`) durante `delay-ticks` (100, 5 s) despawnea y limpia sus tareas, sellos, música y barra de jefe. Con `delay-ticks: 0` se va en cuanto la arena se vacía.
 - **Daño penetrante** — con `penetrating-damage: true` los golpes del jefe ignoran armadura y encantamientos de Protección (se reaplican como daño `OUT_OF_WORLD`, con cap de `max-damage-dealt` (15) por golpe). La Resistencia solo se perfora *en parte*: `penetrating-resistance-pierce: 0.2` hace que el jefe ignore el 20% de la mitigación de la poción, así que un jugador con Resistencia I (20% de reducción) sigue bloqueando el 16% del golpe. `0.0` deja la Resistencia totalmente efectiva y `1.0` la ignora por completo. Usa `/msc debug [jugador]` tras un golpe para ver el desglose completo (daño del evento, las reducciones devueltas, la perforación aplicada y el valor final); el mismo comando también informa de lo que Nix y Jack Star hacen y reciben de ese jugador.
 
 ### Mecánicas especiales
@@ -343,3 +345,97 @@ Saluda a quien se le acerca ("¿Oh? ¿Te estás acercando a mí?"). Sus cuchillo
 
 Todos los golpes de DIO y The World son **daño verdadero**, como los del Centinela (`max-damage-dealt` 15, `true-damage-pierce` 0.2). Su ataque destructivo, **La Hora Final**, llega como mucho una vez cada `final-hour-cooldown-ticks` (900): bajo él se extiende una esfera de reloj dorada de dieciséis bloques, la aguja gira y se detiene en una hora que brilla en verde, y entonces "ZA WARUDO" — The World golpea una a una todas las demás horas. Corre a la hora iluminada.
 
+---
+
+## 🌪️ WITHER STORM — Cracker's Wither Storm Mod
+
+La Tormenta Wither del mod de nonamecrackers2, dibujada solo con *display entities*: cada caja del modelo del mod es un `BlockDisplay` (obsidiana, hormigón negro, obsidiana llorosa, el bloque de comandos en las costillas...) y las tres cabezas del Wither original son `ItemDisplay` con calaveras de esqueleto wither. La geometría, las posiciones de las cabezas, la apertura de las mandíbulas y el balanceo de los tentáculos salen del propio código del modelo del mod, así que cada pieza se mueve donde el mod la pone.
+
+### Invocación
+
+Se construye **la estructura del Wither** (4 bloques de arena o tierra de almas en T y 3 calaveras de esqueleto wither) con el pie de la T apoyado sobre el **bloque núcleo**: `wither-storm.summon.core-block` (por defecto `CRYING_OBSIDIAN`, obsidiana llorosa). No hace falta ningún bloque de comandos. Al poner la tercera calavera, el Wither que iba a nacer es absorbido junto con el núcleo y la tormenta se forma en su lugar: un vórtice de materia oscura, un rayo y once segundos invulnerable (`forming-ticks`, 220) mientras crece y se llena la barra, y al final la explosión del nacimiento (`explosion-power`, 7, como la de un Wither). Construida sobre cualquier otro bloque, la estructura sigue dando un Wither normal.
+
+También: `/msc spawn witherstorm` (OP), y `witherstorm2`…`witherstorm5` para empezar directamente en una forma posterior.
+
+### Las cinco formas
+
+Crece **comiendo**: lo que arrancan y tragan sus rayos tractores suma puntos (`consume-points`: bloque 1, mob 6, jugador mordido 10, objeto 1) y al llegar a `forms.<forma>.evolve-at` evoluciona — ruge con todas las cabezas, el cuerpo viejo se encoge, el nuevo crece y la vida máxima sube (el daño ya hecho se conserva).
+
+| Forma | Modelo del mod | Tamaño (escala 1) | Vida | Cuerpo recibe | Rayo | Vuelo | Evoluciona en |
+|---|---|---|---|---|---|---|---|
+| **La Joroba** | Fase 1: el Wither con el bloque de comandos y el primer bulto | 3 × 3,5 | ×1 | 100% | 20 | 5 | 200 |
+| **La Joroba Creciente** | Fase 2: la masa se tragó la cabeza central y le sale una mandíbula | 3,3 × 3,7 | ×1,5 | 90% | 26 | 6 | 600 |
+| **La Joroba Hinchada** | Fase 3: los tres primeros tentáculos | 11,5 × 11,7 | ×2 | 80% | 32 | 8 | 1500 |
+| **El Destructor** | Fase 4: tres cabezas sobre una masa voladora | 61 × 62 | ×3,5 | 60% | 64 | 28 | 6000 |
+| **El Devorador** | Fase 5: la masa colosal y nueve tentáculos | 110 × 114 | ×5 | 50% | 96 | 40 | — |
+
+La vida base es `wither-storm.health` (800) multiplicada por `forms.<forma>.health-multiplier`. El tamaño se ajusta por forma con `forms.<forma>.scale` (1,0 es el tamaño del mod; el Devorador mide más de cien bloques).
+
+### Cómo se alimenta
+
+- **Las jorobas (formas 1–3) son un agujero negro:** cada 3 s arrancan a su alrededor 3, 9 o 18 trozos de suelo (según la forma) y los atraen girando hasta su masa, como la fuente de racimos del mod. Así crecen hasta el Destructor.
+- **Del Destructor en adelante comen con los rayos:** donde un rayo toca el suelo arranca bloques que vuelan hasta la boca.
+- Respeta `mobGriefing` y los plugins de protección (cada bloque pasa por `EntityChangeBlockEvent`), solo arranca bloques expuestos y nunca toca bloques con inventario, roca madre, portales ni bloques de comandos. Con `grief-blocks: false` el suelo se queda donde está pero la tormenta sigue creciendo.
+- Solo come mientras tiene víctimas cerca: abandonada, no devora el mundo.
+
+### Rayo tractor
+
+Como en el mod: **la primera forma no tiene rayo**, en las dos jorobas siguientes solo lo tiene la cabeza central, y desde el Destructor las tres.
+
+1. El rayo solo se enciende cuando la cabeza apunta a una víctima que **ve** (sin bloques en medio).
+2. Se ilumina **fino y sin tirar** durante `beam.charge-ticks` (30): es el aviso.
+3. **Tira** durante `beam.hold-ticks` (120) a la velocidad del mod, `beam.pull-speed` (0,2 bloques/tick), más despacio en el último bloque.
+4. **Descansa** `beam.rest-ticks` (100) y también al morder.
+
+Mientras el rayo está encendido la cabeza gira **más despacio que un jugador corriendo**: cruza el cono corriendo de lado y te sueltas. Las jorobas solo arrastran a la víctima que fijaron; el Destructor y el Devorador arrastran todo lo que entre en el cono. El rayo se ve como un cono translúcido de cristal morado, igual que en el mod.
+
+### Ataques
+
+Ataca a **todo ser vivo** a su alrededor, jugadores primero (`attack-mobs`).
+
+| Ataque | Qué pasa | Clave (por defecto) |
+|---|---|---|
+| **Mordisco** | Lo que llega a la boca: un jugador es mordido (daño verdadero + Wither II) y escupido, y esa cabeza descansa; un mob o un objeto es devorado. Las mascotas y los mobs con nombre se escupen. | `bite-damage` (14) |
+| **Rugido + calavera ardiente** | Cada 20–50 s (`roar-interval-*`, como el mod) una cabeza ruge (lentitud alrededor) y escupe una **calavera ardiente** que explota con fuego. | potencia por forma (2,5 → 5) |
+| **Calaveras wither** | Las jorobas disparan calaveras de Wither normales (10% cargadas). | — |
+| **Tentáculos** | Las puntas de los tentáculos golpean y lanzan a quien barren. | `tentacle-damage` (10) |
+| **Enfermedad wither** | Cerca de la tormenta, hambre (20 s), luego debilidad (40 s) y luego Wither y fatiga (80 s). Los mobs hostiles cercanos se vuelven **Sickened** y pelean por ella. | `sickness.*` |
+
+### Ataques especiales
+
+Uno cada `specials.cooldown-ticks` (500, +0–10 s), nunca el mismo dos veces seguidas, anunciado en la barra de acción:
+
+| Ataque | Desde | Qué pasa | Clave |
+|---|---|---|---|
+| **Rugido Cataclísmico** | Joroba | Todas las cabezas rugen a la vez, el cielo se oscurece (oscuridad y náusea) y una **onda expansiva** rueda por el suelo. **Sáltala**: a quien esté en el aire no le alcanza. | `roar-damage` (10) |
+| **Andanada de Calaveras** | Joroba Creciente | Cada cabeza escupe un abanico de calaveras ardientes durante dos segundos. | — |
+| **Lluvia de Escombros** | Joroba Hinchada | El suelo que se comió vuelve a caer: círculos rojos marcan dónde caerán las rocas. | `debris-damage` (8) |
+| **Erupción Abisal** | Joroba Hinchada | El suelo bajo sus víctimas tiembla y, segundos después, revientan **tentáculos** de su masa que lanzan por los aires. | `eruption-damage` (12) |
+| **Singularidad** | Destructor | Se queda quieta y arrastra todo el campo hacia su núcleo durante 4 s; luego el núcleo estalla. | `singularity-damage` (16) |
+
+Además, alrededor de las formas colosales caen rayos y truena.
+
+### Invocaciones
+
+Una llamada cada `summons.cooldown-ticks` (700, +0–10 s), con como mucho `summons.max` (8) vivas a la vez. Todas mueren con ella.
+
+| Invocación | Desde | Qué es |
+|---|---|---|
+| **Horda Enferma** | Joroba | `horde-size` (4, +2 en las formas colosales) zombis, esqueletos, arañas, vindicadores, husks y strays enfermos que salen de grietas moradas alrededor de una víctima. |
+| **Simbionte Marchito** | Joroba Hinchada | El esbirro del mod: un esqueleto wither gigante (escala 1,5) con armadura morada y espada de netherite, `symbiont-health` (220) de vida, que dispara calaveras wither. Solo uno a la vez. |
+| **Enjambre de Fantasmas** | Destructor | Tres fantasmas enfermos que caen en picado sobre una víctima. |
+
+Todos sus golpes directos son **daño verdadero** (`max-damage-dealt` 20, `true-damage-pierce` 0.2). Como todos los jefes, su daño se **adapta** a lo que cada jugador ha invertido (`boss-balance.adaptive-damage`): sus golpes directos dentro del daño verdadero, y sus explosiones, calaveras e invocaciones como daño normal. Atraviesa el set Infinity y la espada Infinity le hace la mitad, igual que a los demás jefes.
+
+### Cómo se pelea
+
+- **Hitboxes:** la masa y cada cabeza son entidades `Interaction` que siguen al modelo. Las espadas usan el daño del arma, el enfriamiento, Afilado y **Castigo** (la tormenta es no-muerta como cualquier Wither). Los proyectiles que entran en una caja también cuentan.
+- **Herir las cabezas:** cada proyectil que alcanza una cabeza cuenta; tras unos cuantos (1–2 en las jorobas, 3–8 en las formas colosales) la cabeza queda **herida** `injury-ticks` (200): su rayo se apaga, escupe una calavera azul y recibe ×1,5 de daño. Quien la hirió **escapa**: la tormenta lo deja en paz `escape-ticks` (800, los 40 s del mod). Con **todas** las cabezas heridas a la vez la tormenta queda **expuesta** `exposed-ticks` (160) y recibe ×`exposed-damage-multiplier` (2).
+- **Hacerse el muerto:** el Destructor y el Devorador, al bajar a `play-dead-threshold` (15%), caen al suelo con las mandíbulas rotas durante `play-dead-ticks` (200) recibiendo ×1,5... y se levantan con todas las cabezas rugiendo, una onda que daña (`revive-damage` 12) y lanza a todos, y un 10% de vida recuperada. Solo una vez.
+- **Muerte:** se deshace en rayos de luz mientras sus bloques revientan uno a uno; suelta estrellas del Nether (1 a 5 según la forma) y experiencia, y cura la enfermedad de todos.
+
+### Rendimiento
+
+El cuerpo viaja como pasajero del ancla (un armor stand marcador invisible, `MSC_WitherStorm`), que guarda la forma, la vida y lo comido: tras un reinicio la tormenta se reconstruye donde estaba, y ninguna pieza del cuerpo es persistente. Moverla cuesta un solo paquete; las piezas animadas se reenvían cada 3 ticks y solo si se movieron más de 3 cm o 1°, y el cuerpo gira en pasos que el cliente suaviza durante medio segundo. El Destructor usa la masa de baja resolución del mod (180 displays); `high-detail: true` dibuja la completa (548). Sin jugadores a menos de 50 bloques (100 en el Destructor y el Devorador) durante 5 s se va con sus invocaciones (`boss-balance.despawn`).
+
+Todas las formas, poses y animaciones se pueden ver en el visor de modelos `tools/stand-viewer/index.html`, que se abre directamente en el navegador (doble clic) después de `mvn test`; `tools/stand-viewer/textures.ps1` le añade las texturas de tu Minecraft.

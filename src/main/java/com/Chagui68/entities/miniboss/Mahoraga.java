@@ -1,6 +1,7 @@
 package com.Chagui68.entities.miniboss;
 
 import com.Chagui68.MultiverseCreatures;
+import com.Chagui68.entities.boss.BossDespawn;
 import com.Chagui68.integration.SlimefunArmorAdaptation;
 import com.Chagui68.integration.DrakesBossesIntegration;
 import com.Chagui68.items.components.WheelEssence;
@@ -140,6 +141,11 @@ public class Mahoraga implements Listener {
                         adapterWorlds.put(id, zombie.getWorld().getUID());
                     }
                     if (!zombie.getWorld().isChunkLoaded(zombie.getLocation().getChunk())) continue;
+                    if (BossDespawn.abandoned(zombie)) {
+                        zombie.remove();
+                        removeQueue.add(id);
+                        continue;
+                    }
                     tickAdapter(zombie);
                 }
                 for (UUID id : removeQueue) {

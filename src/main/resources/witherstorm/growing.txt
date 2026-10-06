@@ -1,0 +1,116 @@
+# Wither Storm form 'growing', generated from Cracker's Wither Storm Mod 4.2.1 by tools/wither-storm.
+group head heads/head0 0.7 0
+group base witherBase 1 0
+group mass mass 1.001 0
+head 0 heads/head0 0 34 -19 1.85 0
+part mass 0 24 0 0 0 0
+part lowResMass 0 0 0 0 0 0
+part tentacles 0 0 0 0 0 0
+part heads 0 0 0 0 0 0
+part heads/head0 0 0 0 0 0 0
+part heads/head0/upperJaw 0 2.5 0 0 0 0
+part heads/head0/upperJaw/upperTeeth 0 0.5 0 0 0 0
+part heads/head0/lowerJaw 0 2.5 0 0 0 0
+part heads/head0/lowerJaw/lowerTeeth 0 2.5 8 0 0 0
+part witherBase 0 0 0 0 0 0
+part witherBase/shoulders 0 0 0 0 0 0
+part witherBase/ribcage -2 6.9 -0.5 0.2042 0 0
+part witherBase/ribcage/ribcageExtension 1.5 9.5 -3.5 0 0 0
+part witherBase/ribcage/ribcageExtension/block 0 0 0 0 0 0
+part witherBase/tail -2 16.69223 1.52787 0.83252 0 0
+part witherBase/right_head -8 4 0 0 0 0
+part witherBase/left_head 10 4 0 0 0 0
+box mass -1 -16 0 7 7 7 BLACK_CONCRETE 0
+box mass -5 -19 1 8 8 8 OBSIDIAN 0
+box mass 0 -24 2 8 8 8 BLACK_CONCRETE 0
+box mass 1 -18 2 6 6 6 BLACK_CONCRETE 0
+box mass 6 -23 2 6 6 6 OBSIDIAN 0
+box mass -1 -25 3 6 6 6 BLACK_CONCRETE 0
+box mass -11 -19 1 6 6 6 BLACK_CONCRETE 0
+box mass -8 -22 -1 6 6 6 BLACK_CONCRETE 0
+box mass -4 -23 2 6 6 6 BLACK_CONCRETE 0
+box mass -10 -21 0 6 6 6 BLACK_CONCRETE 0
+box mass -4 -12 -2 6 6 6 BLACK_CONCRETE 0
+box mass -5 -10 3 4 4 4 BLACK_CONCRETE 0
+box mass -7 -13 2 4 4 4 BLACK_CONCRETE 0
+box mass -6 -11 0 4 4 4 CRYING_OBSIDIAN 1
+box mass -8 -15 -1 4 4 4 BLACK_CONCRETE 0
+box mass -2 -10 1 5 5 5 OBSIDIAN 0
+box mass 7 -18 2 4 4 4 BLACK_CONCRETE 0
+box mass -7 -19 0 3 3 3 BLACK_CONCRETE 0
+box mass -6 -20 -3 9 4 4 BLACK_CONCRETE 0
+box mass 4 -15 1 4 4 4 BLACK_CONCRETE 0
+box mass -12 -20 0 4 4 4 BLACK_CONCRETE 0
+box mass 2 -10 1 3 3 3 BLACK_CONCRETE 0
+box mass 2 -9 -1 3 3 3 OBSIDIAN 0
+box mass -2 -6 0 4 3 4 BLACK_CONCRETE 0
+box mass 2 -17 2 3 3 3 BLACK_CONCRETE 0
+box mass 6 -15 0 3 3 3 BLACK_CONCRETE 0
+box mass 4 -13 -2 3 3 3 OBSIDIAN 1
+box mass 6 -19 -2 4 4 4 BLACK_CONCRETE 0
+box mass 2 -21 -2 4 4 4 BLACK_CONCRETE 0
+box mass -1 -3 1 2 2 2 OBSIDIAN 0
+box mass 0 -1 2 1 2 1 OBSIDIAN 0
+box mass 2 -18 -4 4 4 4 OBSIDIAN 1
+box mass -3 -11 6 2 2 2 OBSIDIAN 0
+box mass 11 -21 2 3 3 3 OBSIDIAN 0
+box heads/head0/upperJaw -4 -6.5 12 8 6 2 BLACK_CONCRETE 0
+box heads/head0/upperJaw -2 -8.5 10 4 2 2 OBSIDIAN 0
+box heads/head0/upperJaw -4 -8.5 0 8 2 10 BLACK_CONCRETE 0
+box heads/head0/upperJaw -6 -6.5 0 12 6 12 BLACK_CONCRETE 0
+box heads/head0/upperJaw -1 -4.5 13.1 2 2 1 MAGENTA_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth -1 -1 13 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth -3 -1 12 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth -5 -1 11 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth -6 -1 9 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth -6 -1 7 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth -6 -1 5 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth -6 -1 3 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth -6 -1 1 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth 1 -1 13 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth 3 -1 12 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth 4 -1 10 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth 5 -1 8 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth 5 -1 6 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth 5 -1 4 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth 5 -1 2 1 1 1 WHITE_CONCRETE 1
+box heads/head0/upperJaw/upperTeeth 5 -1 0 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw -4 0.5 12 8 2 2 BLACK_CONCRETE 0
+box heads/head0/lowerJaw -6 0.5 0 12 2 12 BLACK_CONCRETE 0
+box heads/head0/lowerJaw/lowerTeeth 0 -3 5 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth 2 -3 4 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth 4 -3 3 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth 5 -3 1 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth 5 -3 -1 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth 5 -3 -3 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth 5 -3 -5 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth 5 -3 -7 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth -2 -3 5 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth -4 -3 4 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth -5 -3 2 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth -6 -3 0 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth -6 -3 -2 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth -6 -3 -4 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth -6 -3 -6 1 1 1 WHITE_CONCRETE 1
+box heads/head0/lowerJaw/lowerTeeth -6 -3 -8 1 1 1 WHITE_CONCRETE 1
+box witherBase/shoulders -10 3.9 -0.5 20 3 3 OBSIDIAN 0
+box witherBase/ribcage 0 0 0 3 10 3 OBSIDIAN 0
+box witherBase/ribcage -4 1.5 0.5 11 2 2 BLACKSTONE 0
+box witherBase/ribcage -4 4.5 0.5 11 2 2 BLACKSTONE 0
+box witherBase/ribcage -4 7.5 0.5 11 2 2 BLACKSTONE 0
+box witherBase/ribcage/ribcageExtension -5.5 -2 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -5.5 -5 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -5.5 -8 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 3.5 -8 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 3.5 -5 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 3.5 -2 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 2.5 -2 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 2.5 -5 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 2.5 -8 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -3.5 -8 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -3.5 -5 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -3.5 -2 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension/block -4.001 -8.001 -3.001 8.002 8.002 8.002 COMMAND_BLOCK 1
+box witherBase/tail 0 0 0 3 6 3 OBSIDIAN 0
+box witherBase/right_head -4 -4 -4 6 6 6 SKULL 0
+box witherBase/left_head -4 -4 -4 6 6 6 SKULL 0

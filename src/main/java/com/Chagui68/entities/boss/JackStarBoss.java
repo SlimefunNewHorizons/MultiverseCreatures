@@ -384,6 +384,12 @@ public class JackStarBoss implements Listener {
             return;
         }
         if (!stand.getWorld().isChunkLoaded(stand.getLocation().getChunk())) return;
+        if (BossDespawn.abandoned(stand)) {
+            cleanup(inst);
+            activeInstances.remove(stand.getUniqueId());
+            stand.remove();
+            return;
+        }
 
         // Failover / Watchdog recovery sleep
         if (inst.inFailoverRecovery) {

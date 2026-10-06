@@ -34,6 +34,14 @@ boss-balance:
     per-toughness-point: 0.015
     per-protection-level: 0.01    # summed over the four armour pieces
     max-factor: 5.0
+  # A boss with no player (spectators do not count) within radius blocks for delay-ticks is removed,
+  # so an abandoned fight stops costing the server. large-radius is for colossal bosses (the Wither
+  # Storm's Destroyer and Devourer). Applies to every MultiverseCreatures boss.
+  despawn:
+    enabled: true
+    radius: 50.0
+    large-radius: 100.0
+    delay-ticks: 100              # 5 seconds
 #
 # All paths match the code:
 #   general.*                          -> MultiverseCreatures, MobHandler, MscWorldPolicy
@@ -123,9 +131,8 @@ drakes-bosses:
   enabled: true
   # Ticks between the offering and the god's arrival (1 - 200).
   arrival-delay-ticks: 40
-  # Seconds a god may stay with no player within 64 blocks before it is sent away; 0 never.
-  # A living god counts as a boss fight, which locks building and commands in the dimension.
-  no-player-despawn-seconds: 300
+  # A living god counts as a boss fight, which locks building and commands in the dimension. A god
+  # left alone is sent away like every other boss (boss-balance.despawn).
   # Item each god takes, by DrakesBosses id. Keep them unique: an item calls the first god listing it.
   offerings:
     # Olympus
@@ -220,10 +227,6 @@ entities:
     healing-circle-heal-percent: 0.05            # over its 10 s kneel
     regeneration-heal-percent: 0.05              # over 8 s, while it keeps fighting
     obsidian-cocoon-heal-percent: 0.04           # over 3 s sealed (and invulnerable) in obsidian
-
-    # How long the boss keeps fighting after the last player leaves its 100-block radius (~10 s).
-    # 0 despawns it as soon as nobody is in range.
-    no-player-despawn-ticks: 200
 
     # Attacks. Every attack shares one clock: attack-interval-ticks after the last one ends, the
     # attack tick rolls the KIND of attack with these weights, then an attack of that kind. An
@@ -496,6 +499,133 @@ entities:
       - "&b%player% &7received a &cSIGKILL (kill -9) &7from &3JackStar"
       - "&b%player% &7could not escape the &5Vector Override &7of &3JackStar"
       - "&b%player% &7was reaped as an orphan process by the &eGarbage Collector"
+
+  # -------------------------------------------------------------------------
+  # Wither Storm (Cracker's Wither Storm Mod, drawn with block displays)
+  # -------------------------------------------------------------------------
+  # Summoned by building the Wither's own structure (4 soul sand or soul soil, 3 wither skeleton
+  # skulls) with the bottom of its stem resting on summon.core-block. The Wither is swallowed with
+  # the core block and the storm forms in its place; built anywhere else it is a plain Wither.
+  # /msc spawn witherstorm summons it too (witherstorm2..witherstorm5 start in a later form).
+  wither-storm:
+    enabled: true
+    health: 800.0                 # max health of the first form; each form multiplies it
+    max-damage-per-hit: 150.0     # cap on what a single hit takes from it
+    # Its hits are true damage: armour and Protection are ignored, each hit is capped at
+    # max-damage-dealt and Resistance keeps only part of its effect.
+    max-damage-dealt: 20.0
+    true-damage-pierce: 0.2
+    bite-damage: 14.0             # a player dragged into a mouth is bitten and spat out
+    tentacle-damage: 10.0         # a tentacle tip sweeping through a player
+    revive-damage: 12.0           # the blast when it rises after playing dead
+    # Whether the tractor beams tear blocks out of the ground and the flaming skulls break and burn
+    # them. Also needs the mobGriefing game rule, and protection plugins can cancel each block.
+    # Without it the storm still swallows (and grows from) what its beams tear up, but the ground
+    # stays where it is.
+    grief-blocks: true
+    aggro-range: 64.0             # grows with the size of the form
+    attack-mobs: true             # hunts every living thing round it, players first, like the mod
+    max-per-world: 1
+    # Draw the Destroyer with the mod's full 401-voxel mass (548 displays) instead of its low-detail
+    # one (180 displays). Heavier on the network and on clients.
+    high-detail: false
+    # A head roars (and spits a flaming skull) every roar-interval-min..max ticks (the mod: 20-50 s).
+    roar-interval-min-ticks: 400
+    roar-interval-max-ticks: 1000
+    # The tractor beam, from the second form on (only the middle head until the Destroyer). It only
+    # locks on once its head points at a victim it can see, lights up thin for charge-ticks, pulls for
+    # at most hold-ticks at pull-speed blocks per tick (the mod's 0.2) and rests for rest-ticks. While
+    # it is on, the head turns slower than a sprint: run across the beam to break free.
+    beam:
+      pull-speed: 0.2
+      charge-ticks: 30
+      hold-ticks: 120
+      rest-ticks: 100
+    # Projectiles injure a head: its beam goes dark for injury-ticks and it takes 1.5x damage, and the
+    # player who injured it is left alone for escape-ticks (the mod's 40 s). With every head injured
+    # at once the storm is exposed for exposed-ticks and takes exposed-damage-multiplier times the
+    # damage.
+    injury-ticks: 200
+    escape-ticks: 800
+    exposed-ticks: 160
+    exposed-damage-multiplier: 2.0
+    # The Destroyer and the Devourer fall and play dead once, at play-dead-threshold of their
+    # health, for play-dead-ticks (taking 1.5x damage) before they rise again. 0 disables it.
+    play-dead-threshold: 0.15
+    play-dead-ticks: 200
+    max-phantoms: 4               # phantoms circling the Destroyer and the Devourer
+    # Its big attacks, one every cooldown-ticks (+0-10 s), never the same twice in a row: Cataclysmic
+    # Roar (a shockwave along the ground: jump it), Skull Barrage (from the second form), Debris Rain
+    # and Abyssal Eruption (from the third) and Singularity (Destroyer and Devourer).
+    specials:
+      enabled: true
+      cooldown-ticks: 500
+      roar-damage: 10.0
+      debris-damage: 8.0
+      singularity-damage: 16.0
+      eruption-damage: 12.0
+    # What it calls to its side, one call every cooldown-ticks (+0-10 s), at most max alive: the
+    # Sickened Horde (horde-size mobs), the Withered Symbiont (from the third form) and a phantom
+    # swarm (Destroyer and Devourer). They all fall with the storm.
+    summons:
+      enabled: true
+      cooldown-ticks: 700
+      max: 8
+      symbiont-health: 220.0
+      horde-size: 4
+    sickness:
+      enabled: true               # hunger, then weakness, then wither for players near it
+      sicken-mobs: true           # hostile mobs near it are sickened and fight for it
+      max-sickened-mobs: 12
+    # What swallowing each thing adds towards the next form.
+    consume-points:
+      block: 1
+      mob: 6
+      player: 10
+      item: 1
+    summon:
+      enabled: true
+      core-block: CRYING_OBSIDIAN
+      forming-ticks: 220          # the vortex it is born out of, invulnerable
+      explosion-power: 7.0        # the blast when it is born (a Wither's is 7)
+    # Each form: its size (1.0 is the mod's own: the Destroyer is ~56 blocks wide, the Devourer
+    # ~110), its health over the base health, how much it must swallow to grow out of it, how far
+    # its beams reach and how high it flies.
+    forms:
+      hunchback:
+        scale: 1.0
+        health-multiplier: 1.0
+        evolve-at: 200
+        beam-range: 20.0
+        fly-height: 5.0
+      growing:
+        scale: 1.0
+        health-multiplier: 1.5
+        evolve-at: 600
+        beam-range: 26.0
+        fly-height: 6.0
+      pregnant:
+        scale: 1.0
+        health-multiplier: 2.0
+        evolve-at: 1500
+        beam-range: 32.0
+        fly-height: 8.0
+      destroyer:
+        scale: 1.0
+        health-multiplier: 3.5
+        evolve-at: 6000
+        beam-range: 64.0
+        fly-height: 28.0
+      devourer:
+        scale: 1.0
+        health-multiplier: 5.0
+        evolve-at: 0              # the last form: it does not grow any further
+        beam-range: 96.0
+        fly-height: 40.0
+    death-messages:
+      - "&5%player% &7was devoured by the &5Wither Storm"
+      - "&5%player% &7was pulled into the &5Wither Storm&7's tractor beam"
+      - "&5%player% &7could not outrun the &5Wither Storm"
 
   # -------------------------------------------------------------------------
   # Head Slime

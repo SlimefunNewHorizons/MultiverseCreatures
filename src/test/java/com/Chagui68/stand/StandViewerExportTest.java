@@ -22,5 +22,10 @@ class StandViewerExportTest {
             }
         }
         assertTrue(json.contains("\"kind\":\"heads\""), "The World is drawn with heads");
+        for (com.Chagui68.entities.boss.witherstorm.WitherStormForm form
+                : com.Chagui68.entities.boss.witherstorm.WitherStormForm.values()) {
+            assertTrue(json.contains("\"key\":\"wither-storm-" + form.key() + "\""), "Wither Storm " + form.key());
+        }
+        assertTrue(json.contains("\"kind\":\"blocks\""), "the Wither Storm is drawn with block displays");
     }
 }

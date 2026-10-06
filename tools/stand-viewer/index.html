@@ -3,32 +3,145 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stand Model Viewer</title>
+<title>Model Viewer</title>
 <style>
-  :root { --bg: #15171c; --panel: #1f232b; --text: #e6e8ec; --muted: #9aa3b2; --accent: #f2c230; }
+  :root {
+    --bg: #101216; --viewport: #15171c; --panel: #1b1e25; --panel-2: #232731; --line: #2e333f;
+    --text: #e6e8ec; --muted: #9aa3b2; --faint: #6b7383; --accent: #f2c230; --accent-ink: #1b1600;
+    --radius: 8px; --sidebar: 300px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
-    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  #bar { position: fixed; top: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; gap: 12px;
-    align-items: center; padding: 10px 16px; background: var(--panel); z-index: 2; }
-  #bar h1 { font-size: 15px; margin: 0 8px 0 0; color: var(--accent); }
-  select, button { background: #2a2f39; color: var(--text); border: 1px solid #3a404c; border-radius: 6px;
-    padding: 6px 10px; font: inherit; }
-  label { color: var(--muted); display: flex; gap: 6px; align-items: center; }
-  #info { position: fixed; left: 16px; bottom: 12px; color: var(--muted); font-size: 12px; z-index: 2; }
-  canvas { display: block; }
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display: grid; grid-template-columns: var(--sidebar) 1fr; overflow: hidden; }
+
+  /* ---------------------------------------------------------------- sidebar */
+  aside { display: flex; flex-direction: column; min-height: 0; background: var(--panel);
+    border-right: 1px solid var(--line); }
+  header { padding: 16px 16px 12px; border-bottom: 1px solid var(--line); }
+  header h1 { margin: 0; font-size: 16px; color: var(--accent); letter-spacing: .2px; }
+  header p { margin: 2px 0 0; color: var(--faint); font-size: 12px; }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 0 12px; }
+  section { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  section:last-child { border-bottom: 0; }
+  h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px;
+    color: var(--muted); }
+  .off { display: none !important; }
+
+  input[type=search], select, button { width: 100%; background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font: inherit; }
+  input[type=search]:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+  button { cursor: pointer; }
+  button:hover { border-color: #444b5a; }
+
+  /* model list */
+  #models { position: relative; margin-top: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .group { margin: 8px 0 2px; color: var(--faint); font-size: 11px; display: flex; justify-content: space-between; }
+  .group:first-child { margin-top: 0; }
+  .model { text-align: left; border: 1px solid transparent; background: transparent; padding: 6px 9px; color: var(--text); }
+  .model:hover { background: var(--panel-2); border-color: transparent; }
+  .model[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .empty { color: var(--faint); padding: 6px 2px; }
+
+  /* fields */
+  .field { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 8px; margin-top: 6px; }
+  .field:first-of-type { margin-top: 0; }
+  .field span { color: var(--muted); }
+
+  /* toggles */
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0;
+    color: var(--text); cursor: pointer; }
+  .toggle small { display: block; color: var(--faint); font-size: 11px; }
+  .toggle input { appearance: none; flex: none; width: 32px; height: 18px; border-radius: 9px; background: #3a404c;
+    position: relative; cursor: pointer; transition: background .15s; margin: 0; }
+  .toggle input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+    border-radius: 50%; background: #cfd3da; transition: transform .15s; }
+  .toggle input:checked { background: var(--accent); }
+  .toggle input:checked::after { transform: translateX(14px); background: var(--accent-ink); }
+  .toggle input:disabled { opacity: .4; cursor: not-allowed; }
+  .toggle input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .segmented { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .segmented button { padding: 6px 0; }
+
+  /* stats */
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .note { margin: 8px 0 0; color: var(--faint); font-size: 11px; }
+  code { font: 11px ui-monospace, Consolas, monospace; color: var(--muted); }
+
+  /* ---------------------------------------------------------------- viewport */
+  main { position: relative; min-width: 0; min-height: 0; background: var(--viewport); }
+  main canvas { display: block; position: absolute; inset: 0; }
+  .chip { position: absolute; top: 12px; left: 12px; padding: 6px 10px; border-radius: var(--radius);
+    background: rgba(16, 18, 22, .78); border: 1px solid var(--line); pointer-events: none; max-width: calc(100% - 24px); }
+  .chip b { display: block; font-size: 14px; }
+  .chip span { color: var(--muted); font-size: 12px; }
+  .hint { position: absolute; right: 12px; bottom: 10px; color: var(--faint); font-size: 11px; pointer-events: none; }
+  #status { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center;
+    color: var(--muted); }
+  #status code { font-size: 12px; color: var(--accent); }
+
+  /* ---------------------------------------------------------------- narrow screens */
+  @media (max-width: 760px) {
+    body { display: flex; flex-direction: column-reverse; overflow: auto; height: auto; min-height: 100%; }
+    main { height: 58vh; flex: none; }
+    aside { border-right: 0; border-top: 1px solid var(--line); }
+    .scroll { overflow: visible; }
+    #models { max-height: 220px; overflow-y: auto; }
+    .hint { display: none; }
+  }
 </style>
 </head>
 <body>
-<div id="bar">
-  <h1>Stand Model Viewer</h1>
-  <label>Stand <select id="stand"></select></label>
-  <label>Pose <select id="pose"></select></label>
-  <label><input type="checkbox" id="all"> All Stands side by side</label>
-  <label><input type="checkbox" id="spin" checked> Turn</label>
-  <label title="Draw the Stands with the skins of tools/stand-skins on The World's eleven heads"><input type="checkbox" id="painted"> Painted skins</label>
-  <button id="front">Front</button><button id="side">Side</button><button id="back">Back</button>
-</div>
-<div id="info"></div>
+<aside>
+  <header>
+    <h1>Model Viewer</h1>
+    <p>MultiverseCreatures · Stands and bosses as the game draws them</p>
+  </header>
+  <div class="scroll">
+    <section>
+      <h2>Model</h2>
+      <input type="search" id="search" placeholder="Search models" autocomplete="off" aria-label="Search models">
+      <div id="models" role="list"></div>
+    </section>
+    <section>
+      <h2>Pose</h2>
+      <label class="field"><span>Pose</span><select id="pose" autocomplete="off"></select></label>
+      <label class="field" id="animLabel"><span>Animation</span><select id="anim" autocomplete="off"></select></label>
+    </section>
+    <section>
+      <h2>Show</h2>
+      <label class="toggle"><span>Turn slowly</span><input type="checkbox" id="spin" checked></label>
+      <label class="toggle" id="allLabel"><span>All Stands side by side</span><input type="checkbox" id="all"></label>
+      <label class="toggle" id="paintedLabel"><span>Painted skins<small>tools/stand-skins on The World's eleven heads</small></span><input type="checkbox" id="painted"></label>
+      <label class="toggle" id="beamLabel"><span>Tractor beams<small>At each form's default reach</small></span><input type="checkbox" id="beams" checked></label>
+      <label class="toggle" id="boxLabel"><span>Hitboxes<small>The mass (yellow) and one per head (blue)</small></span><input type="checkbox" id="boxes"></label>
+    </section>
+    <section>
+      <h2>Camera</h2>
+      <div class="segmented">
+        <button id="front">Front</button><button id="side">Side</button><button id="back">Back</button><button id="top">Top</button>
+      </div>
+    </section>
+    <section>
+      <h2>Details</h2>
+      <dl id="stats"></dl>
+      <p class="note" id="note"></p>
+    </section>
+  </div>
+</aside>
+<main id="viewport">
+  <div class="chip"><b id="chipName">Loading…</b><span id="chipGroup"></span></div>
+  <div class="hint">Drag to orbit · right-drag to pan · scroll to zoom</div>
+  <div id="status" class="off"></div>
+</main>
+<!-- Opened straight from disk (file://) the page cannot fetch files: `mvn test` and textures.ps1 also write
+     their data as scripts, which a file:// page does run. Served over http they are read either way. -->
+<script src="../../target/stand-viewer/models.js"></script>
+<script src="../../target/stand-viewer/textures.js"></script>
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -39,15 +152,23 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+const viewport = document.getElementById("viewport");
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
-document.body.appendChild(renderer.domElement);
+viewport.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x15171c);
-const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.05, 100);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 4000);
+function resize() {
+  const w = Math.max(1, viewport.clientWidth), h = Math.max(1, viewport.clientHeight);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+resize();
+new ResizeObserver(resize).observe(viewport);
 camera.position.set(0, 1.2, 4.2);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 0.95, 0);
@@ -58,7 +179,7 @@ const sun = new THREE.DirectionalLight(0xffffff, 1.6);
 sun.position.set(3, 6, 4);
 sun.castShadow = true;
 scene.add(sun);
-const grid = new THREE.GridHelper(12, 12, 0x3a404c, 0x262a33);
+let grid = new THREE.GridHelper(12, 12, 0x3a404c, 0x262a33);
 scene.add(grid);
 
 const loader = new THREE.TextureLoader();
@@ -97,6 +218,161 @@ function place(object, p) {
   object.scale.set(p.s[0], p.s[1], p.s[2]);
 }
 
+// ------------------------------------------------------------------ block displays
+
+// A block display draws its block in the unit cube from its origin; a skull item hangs below it.
+const BLOCK = new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5);
+const SKULL = new THREE.BoxGeometry(0.5, 0.5, 0.5).translate(0, -0.25, 0);
+// The blocks the forms are drawn with: a base and a speckle colour for a 16x16 texture.
+const BLOCKS = {
+  OBSIDIAN: [0x0f0b17, 0x2c1f45], BLACK_CONCRETE: [0x08090d, 0x14161c], CRYING_OBSIDIAN: [0x200a3a, 0x9b3cff],
+  BLACKSTONE: [0x2a2329, 0x3d343c], POLISHED_BLACKSTONE: [0x353038, 0x48414b], GRAY_CONCRETE: [0x36393d, 0x44474c],
+  PURPLE_CONCRETE: [0x64209c, 0x7a2bbd], MAGENTA_CONCRETE: [0xa9309f, 0xd65ccb], AMETHYST_BLOCK: [0x8561bf, 0xb08ce8],
+  LIGHT_GRAY_CONCRETE: [0x7d7d73, 0x8c8c82], WHITE_CONCRETE: [0xcfd5d6, 0xf0f6f6], COMMAND_BLOCK: [0xb5784a, 0x8a9696],
+};
+const blockMaterials = new Map();
+// The game's own textures, copied out of a local Minecraft client by tools/stand-viewer/textures.ps1.
+// Without them the blocks fall back to the flat stand-ins below.
+const VANILLA = new URL("../../target/stand-viewer/textures/", location.href);
+const vanillaTextures = new Map();
+function vanilla(name) {
+  if (!vanillaTextures.has(name)) {
+    const embedded = window.STAND_VIEWER_TEXTURES && window.STAND_VIEWER_TEXTURES[name];
+    const tex = loader.load(embedded || new URL(name + ".png", VANILLA).href, t => {
+      // Animated textures (the command block's) are frame strips: show the first frame.
+      const { width, height } = t.image;
+      if (height > width) { t.repeat.set(1, width / height); t.offset.set(0, 1 - width / height); }
+    }, undefined, () => { tex.userData.failed = true; blockMaterials.clear(); skullMaterials = null; refresh(); });
+    tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
+    vanillaTextures.set(name, tex);
+  }
+  const tex = vanillaTextures.get(name);
+  return tex.userData.failed ? null : tex;
+}
+// Which texture each face of a block uses, in BoxGeometry's order: +x, -x, +y, -y, +z, -z.
+// A command block faces north (-z) with its back to the south.
+function blockFaces(name) {
+  const lower = name.toLowerCase();
+  if (name === "COMMAND_BLOCK") {
+    const side = "command_block_side";
+    return [side, side, side, side, "command_block_back", "command_block_front"];
+  }
+  if (name === "BLACKSTONE") return [lower, lower, "blackstone_top", "blackstone_top", lower, lower];
+  return [lower, lower, lower, lower, lower, lower];
+}
+function vanillaMaterial(name, glow) {
+  const maps = blockFaces(name).map(vanilla);
+  if (maps.some(m => !m)) return null;
+  // Brightness 15 in the game draws a block fully lit, whatever the light round it: unlit here.
+  return maps.map(map => glow ? new THREE.MeshBasicMaterial({ map }) : new THREE.MeshStandardMaterial({ map, roughness: 0.9 }));
+}
+function seeded(seed) { return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296; }
+function texture(draw) {
+  const c = document.createElement("canvas"); c.width = c.height = 16;
+  draw(c.getContext("2d"));
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const hex = n => "#" + n.toString(16).padStart(6, "0");
+function blockMaterial(name, glow) {
+  const key = name + glow;
+  if (!blockMaterials.has(key)) {
+    const real = vanillaMaterial(name, glow);
+    if (real) { blockMaterials.set(key, real); return real; }
+    const [base, speck] = BLOCKS[name] || [0x101010, 0x202020];
+    const rand = seeded([...name].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
+    const map = texture(g => {
+      g.fillStyle = hex(base); g.fillRect(0, 0, 16, 16);
+      g.fillStyle = hex(speck);
+      if (name === "COMMAND_BLOCK") {
+        g.fillRect(3, 3, 10, 10); g.fillStyle = hex(base); g.fillRect(5, 5, 6, 6);
+      } else {
+        for (let i = 0; i < 40; i++) g.fillRect(Math.floor(rand() * 16), Math.floor(rand() * 16), 1 + Math.floor(rand() * 2), 1);
+      }
+    });
+    blockMaterials.set(key, new THREE.MeshStandardMaterial(glow
+        ? { map, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.9 }
+        : { map, roughness: 0.9 }));
+  }
+  return blockMaterials.get(key);
+}
+// The skull item the game draws: the wither skeleton's head, laid out on its 64x32 texture the way a
+// player head is on a skin, face on -z.
+const SKULL_TEXTURED = (() => {
+  const g = new THREE.BoxGeometry(0.5, 0.5, 0.5).translate(0, -0.25, 0);
+  const faces = [[0, 8], [16, 8], [8, 0], [16, 0], [24, 8], [8, 8]];
+  const uv = g.attributes.uv;
+  faces.forEach(([px, py], f) => {
+    const u0 = px / 64, u1 = (px + 8) / 64, v0 = 1 - py / 32, v1 = 1 - (py + 8) / 32;
+    const quad = [[u0, v0], [u1, v0], [u0, v1], [u1, v1]];
+    for (let i = 0; i < 4; i++) uv.setXY(f * 4 + i, quad[i][0], quad[i][1]);
+  });
+  return g;
+})();
+// Without the real texture: charcoal sides, its face (on -z) with the two hollow eyes and the grin.
+let skullMaterials;
+function skullFaces() {
+  if (!skullMaterials) {
+    const real = vanilla("wither_skeleton");
+    if (real) {
+      skullMaterials = new THREE.MeshStandardMaterial({ map: real, roughness: 0.9 });
+      return skullMaterials;
+    }
+    const side = texture(g => { g.fillStyle = "#2b2b2b"; g.fillRect(0, 0, 16, 16); g.fillStyle = "#3a3a3a";
+      for (let i = 0; i < 16; i += 3) g.fillRect(i, (i * 7) % 16, 2, 1); });
+    const face = texture(g => {
+      g.fillStyle = "#2f2f2f"; g.fillRect(0, 0, 16, 16);
+      g.fillStyle = "#0a0a0a"; g.fillRect(3, 5, 4, 3); g.fillRect(9, 5, 4, 3); g.fillRect(4, 11, 8, 2);
+      g.fillStyle = "#4a4a4a"; g.fillRect(5, 11, 1, 2); g.fillRect(8, 11, 1, 2); g.fillRect(10, 11, 1, 2);
+    });
+    const plain = new THREE.MeshStandardMaterial({ map: side, roughness: 0.9 });
+    skullMaterials = [plain, plain, plain, plain, plain, new THREE.MeshStandardMaterial({ map: face, roughness: 0.9 })];
+  }
+  return skullMaterials;
+}
+
+function buildBlocks(model, pieces) {
+  const group = new THREE.Group();
+  const meshes = [];
+  pieces.forEach(p => {
+    if (!p) { meshes.push(null); return; }
+    const skull = p.k === "s" ? skullFaces() : null;
+    const mesh = skull ? new THREE.Mesh(Array.isArray(skull) ? SKULL : SKULL_TEXTURED, skull)
+        : new THREE.Mesh(BLOCK, blockMaterial(p.m, p.g));
+    place(mesh, p);
+    group.add(mesh);
+    meshes.push(mesh);
+  });
+  group.userData.meshes = meshes;
+  return group;
+}
+
+function beamsOf(model, pose) {
+  const group = new THREE.Group();
+  const material = new THREE.MeshBasicMaterial({ color: 0xb06cff, transparent: true, opacity: 0.16,
+    depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+  for (const b of (model.beams && model.beams[pose]) || []) {
+    const cone = new THREE.Mesh(new THREE.CylinderGeometry(b.r, 0.12, b.l, 24, 1, true), material);
+    const dir = new THREE.Vector3(...b.d);
+    cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    cone.position.set(...b.o).addScaledVector(dir, b.l / 2);
+    group.add(cone);
+  }
+  return group;
+}
+
+function hitboxesOf(model) {
+  const group = new THREE.Group();
+  (model.hitboxes || []).forEach((b, i) => {
+    const box = new THREE.Box3(new THREE.Vector3(b[0], b[1], b[2]), new THREE.Vector3(b[3], b[4], b[5]));
+    group.add(new THREE.Box3Helper(box, i === 0 ? 0xf2c230 : 0x3fd7ff));
+  });
+  return group;
+}
+
+// ------------------------------------------------------------------ stands
+
 // A Stand painted in tools/stand-skins wears The World's eleven heads with its own skins.
 function painted(stand) {
   const files = paintedBox.checked && manifest && manifest[stand.key];
@@ -105,10 +381,20 @@ function painted(stand) {
 }
 
 function buildStand(stand, poseName) {
+  if (stand.kind === "blocks") {
+    const group = new THREE.Group();
+    const body = buildBlocks(stand, stand.poses[poseName] || stand.poses.idle);
+    group.add(body);
+    group.userData.meshes = body.userData.meshes;
+    if (beamBox.checked) group.add(beamsOf(stand, poseName));
+    if (hitBox.checked) group.add(hitboxesOf(stand));
+    return group;
+  }
   const group = new THREE.Group();
   const paint = painted(stand);
   const pieces = paint
-      ? (paint.base.poses[poseName] || paint.base.poses.idle).map((p, i) => ({ ...p, skin: "../stand-skins/out/" + paint.files[i] }))
+      ? (paint.base.poses[poseName] || paint.base.poses.idle).map((p, i) => ({ ...p,
+          skin: (window.STAND_VIEWER_PAINTED && window.STAND_VIEWER_PAINTED[paint.files[i]]) || "../stand-skins/out/" + paint.files[i] }))
       : (stand.poses[poseName] || stand.poses.idle);
   for (const p of pieces) {
     const tex = skin(p.skin);
@@ -126,9 +412,67 @@ function buildStand(stand, poseName) {
 
 let data, manifest, current = new THREE.Group();
 scene.add(current);
-const standSelect = document.getElementById("stand"), poseSelect = document.getElementById("pose");
+const modelList = document.getElementById("models"), search = document.getElementById("search");
+const poseSelect = document.getElementById("pose");
+const animSelect = document.getElementById("anim");
 const allBox = document.getElementById("all"), spinBox = document.getElementById("spin");
 const paintedBox = document.getElementById("painted");
+const beamBox = document.getElementById("beams"), hitBox = document.getElementById("boxes");
+let frame = 0, clock = 0, selectedIndex = 0;
+
+const selected = () => data.stands[selectedIndex];
+const groupOf = s => s.group || "Stands";
+// "Wither Storm: The Hunchback" is listed under its group as "The Hunchback".
+const shortName = s => s.name.startsWith(groupOf(s) + ": ") ? s.name.slice(groupOf(s).length + 2) : s.name;
+
+/** The model list, grouped, filtered by the search box, with the selected model highlighted. */
+function fillModels() {
+  const query = search.value.trim().toLowerCase();
+  modelList.innerHTML = "";
+  const groups = new Map();
+  data.stands.forEach((s, i) => {
+    if (query && !s.name.toLowerCase().includes(query) && !groupOf(s).toLowerCase().includes(query)) return;
+    if (!groups.has(groupOf(s))) groups.set(groupOf(s), []);
+    groups.get(groupOf(s)).push(i);
+  });
+  for (const [label, indices] of groups) {
+    const title = document.createElement("div");
+    title.className = "group";
+    const name = document.createElement("span"), count = document.createElement("span");
+    name.textContent = label;
+    count.textContent = indices.length;
+    title.append(name, count);
+    modelList.append(title);
+    for (const i of indices) {
+      const b = document.createElement("button");
+      b.className = "model";
+      b.textContent = shortName(data.stands[i]);
+      b.setAttribute("role", "listitem");
+      b.setAttribute("aria-pressed", String(i === selectedIndex && !allBox.checked));
+      b.onclick = () => select(i);
+      modelList.append(b);
+    }
+  }
+  if (!groups.size) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No model matches.";
+    modelList.append(empty);
+  }
+  // On a phone the list scrolls on its own: keep the chosen model in sight.
+  const chosen = modelList.querySelector("[aria-pressed=true]");
+  if (chosen) modelList.scrollTop = chosen.offsetTop - 40;
+}
+
+function select(i) {
+  selectedIndex = i;
+  allBox.checked = false;
+  fillModels();
+  fillPoses();
+  frameView();
+  refresh();
+}
+const isBlocks = () => !allBox.checked && selected().kind === "blocks";
 
 function refresh() {
   if (!data) return;
@@ -136,34 +480,103 @@ function refresh() {
   current = new THREE.Group();
   const pose = poseSelect.value;
   if (allBox.checked) {
-    data.stands.forEach((stand, i) => {
+    const stands = data.stands.filter(s => s.kind === "heads");
+    stands.forEach((stand, i) => {
       const g = buildStand(stand, pose);
-      g.position.x = (i - (data.stands.length - 1) / 2) * 1.6;
+      g.position.x = (i - (stands.length - 1) / 2) * 1.6;
       current.add(g);
     });
   } else {
-    current.add(buildStand(data.stands[standSelect.value], pose));
+    const built = buildStand(selected(), pose);
+    current.add(built);
+    current.userData.meshes = built.userData.meshes;
   }
   scene.add(current);
-  const stand = data.stands[standSelect.value];
-  const count = allBox.checked ? data.stands.reduce((n, s) => n + (s.poses[pose] || s.poses.idle).length, 0)
-      : (stand.poses[pose] || stand.poses.idle).length;
-  document.getElementById("info").textContent = `${count} display entities · drag to orbit, scroll to zoom`
-      + (allBox.checked ? "" : ` · ${stand.name} drawn with ${painted(stand) ? "local skins" : "Mojang textures"}`);
+  frame = 0;
+  updateInfo();
+}
+
+function updateInfo() {
+  const stand = selected(), pose = poseSelect.value;
+  const pieces = s => (s.poses[pose] || s.poses.idle).filter(p => p).length;
+  const heads = data.stands.filter(s => s.kind === "heads");
+  const count = allBox.checked ? heads.reduce((n, s) => n + pieces(s), 0) : pieces(stand);
+  const rows = [];
+  if (allBox.checked) {
+    document.getElementById("chipName").textContent = "All Stands";
+    document.getElementById("chipGroup").textContent = `${heads.length} side by side`;
+    rows.push(["Models", heads.length]);
+  } else {
+    document.getElementById("chipName").textContent = shortName(stand);
+    document.getElementById("chipGroup").textContent = groupOf(stand);
+  }
+  rows.push(["Display entities", count.toLocaleString()]);
+  let note = "";
+  if (!allBox.checked && stand.kind === "blocks") {
+    const b = stand.size;
+    rows.push(["Size (blocks)", `${(b[3] - b[0]).toFixed(1)} × ${(b[4] - b[1]).toFixed(1)} × ${(b[5] - b[2]).toFixed(1)}`]);
+    rows.push(["Animation", animSelect.value === "none" ? "—" : animSelect.value]);
+    const real = vanilla("obsidian");
+    rows.push(["Textures", real ? "Minecraft" : "Stand-in colours"]);
+    if (!real) note = "Run <code>tools/stand-viewer/textures.ps1</code> to draw the blocks with your Minecraft's textures.";
+  } else if (!allBox.checked) {
+    rows.push(["Skins", painted(stand) ? "Local (stand-skins)" : "Mojang"]);
+  }
+  const stats = document.getElementById("stats");
+  stats.innerHTML = "";
+  for (const [k, v] of rows) {
+    const dt = document.createElement("dt"), dd = document.createElement("dd");
+    dt.textContent = k;
+    dd.textContent = v;
+    stats.append(dt, dd);
+  }
+  document.getElementById("note").innerHTML = note;
 }
 
 function fillPoses() {
   const poses = new Set();
-  (allBox.checked ? data.stands : [data.stands[standSelect.value]]).forEach(s => Object.keys(s.poses).forEach(k => poses.add(k)));
+  const shown = allBox.checked ? data.stands.filter(s => s.kind === "heads") : [selected()];
+  shown.forEach(s => Object.keys(s.poses).forEach(k => poses.add(k)));
   const keep = poseSelect.value;
   poseSelect.innerHTML = "";
   poses.forEach(p => poseSelect.add(new Option(p, p)));
   if (poses.has(keep)) poseSelect.value = keep;
+
+  animSelect.innerHTML = "";
+  animSelect.add(new Option("none", "none"));
+  if (isBlocks() && selected().frames) Object.keys(selected().frames).forEach(a => animSelect.add(new Option(a, a)));
+  if (isBlocks()) animSelect.value = "idle";
+  const blocks = isBlocks();
+  document.getElementById("animLabel").classList.toggle("off", !blocks);
+  document.getElementById("beamLabel").classList.toggle("off", !blocks);
+  document.getElementById("boxLabel").classList.toggle("off", !blocks);
+  document.getElementById("paintedLabel").classList.toggle("off", blocks || !manifest);
 }
 
-const manifestLoad = fetch(new URL("../stand-skins/out/manifest.json", location.href)).then(r => r.json())
-    .catch(() => { paintedBox.disabled = true; return null; });
-Promise.all([fetch(new URL("../../target/stand-viewer/models.json", location.href)).then(r => r.json()), manifestLoad])
+/** Frames the camera and the grid on what is shown: a Stand is two blocks tall, a storm a hundred. */
+function frameView(x = 0, z = 1, y = 0.25) {
+  let centre = new THREE.Vector3(0, 0.95, 0), distance = allBox.checked ? 9 : 4.2, extent = 12;
+  if (isBlocks()) {
+    const b = selected().size;
+    centre = new THREE.Vector3((b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2);
+    const radius = Math.max(b[3] - b[0], b[4] - b[1], b[5] - b[2]) / 2;
+    distance = Math.max(9, radius * 3.4);
+    extent = Math.max(16, Math.ceil(radius * 4 / 8) * 8);
+  }
+  controls.target.copy(centre);
+  camera.position.set(centre.x + x * distance, centre.y + distance * y, centre.z + z * distance);
+  controls.update();
+  scene.remove(grid);
+  grid = new THREE.GridHelper(extent, Math.min(64, extent), 0x3a404c, 0x262a33);
+  scene.add(grid);
+}
+
+const manifestLoad = window.STAND_VIEWER_MANIFEST ? Promise.resolve(window.STAND_VIEWER_MANIFEST)
+    : fetch(new URL("../stand-skins/out/manifest.json", location.href)).then(r => r.json())
+        .catch(() => { paintedBox.disabled = true; return null; });
+const modelsLoad = window.STAND_VIEWER_DATA ? Promise.resolve(window.STAND_VIEWER_DATA)
+    : fetch(new URL("../../target/stand-viewer/models.json", location.href)).then(r => r.json());
+Promise.all([modelsLoad, manifestLoad])
     .then(([json, m]) => {
   data = json;
   manifest = m;
@@ -175,38 +588,57 @@ Promise.all([fetch(new URL("../../target/stand-viewer/models.json", location.hre
       data.stands.push({ key, name, kind: "heads", poses: base.poses });
     }
   }
-  data.stands.forEach((s, i) => standSelect.add(new Option(s.name, i)));
   const wanted = new URLSearchParams(location.search);
   if (wanted.has("stand")) {
     const i = data.stands.findIndex(s => s.key === wanted.get("stand"));
-    if (i >= 0) standSelect.value = i;
+    if (i >= 0) selectedIndex = i;
   }
   if (wanted.has("all")) allBox.checked = true;
   if (wanted.has("still")) spinBox.checked = false;
   if (wanted.has("painted")) paintedBox.checked = true;
+  if (wanted.has("boxes")) hitBox.checked = true;
+  fillModels();
   fillPoses();
   if (wanted.has("pose")) poseSelect.value = wanted.get("pose");
-  if (allBox.checked) { camera.position.set(0, 1.4, 9); }
+  if (wanted.has("anim")) animSelect.value = wanted.get("anim");
+  frameView();
   refresh();
-}).catch(e => { document.getElementById("info").textContent = "Run mvn test first: " + e; });
+}).catch(e => {
+  const status = document.getElementById("status");
+  status.classList.remove("off");
+  status.innerHTML = "<div>No models yet. Run <code>mvn test</code> once, then reload this page.<br><br><small></small></div>";
+  status.querySelector("small").textContent = String(e);
+  document.getElementById("chipName").textContent = "No models";
+});
 
-standSelect.onchange = () => { fillPoses(); refresh(); };
-poseSelect.onchange = refresh;
+search.oninput = () => { if (data) fillModels(); };
+poseSelect.onchange = () => { animSelect.value = "none"; refresh(); };
+animSelect.onchange = () => { frame = 0; refresh(); };
 paintedBox.onchange = refresh;
-allBox.onchange = () => { fillPoses(); camera.position.set(0, 1.4, allBox.checked ? 9 : 4.2); refresh(); };
-const view = (x, z) => () => { spinBox.checked = false; current.rotation.y = 0;
-  const d = allBox.checked ? 9 : 4.2; camera.position.set(x * d, 1.2, z * d); controls.update(); };
+beamBox.onchange = refresh;
+hitBox.onchange = refresh;
+allBox.onchange = () => { fillModels(); fillPoses(); frameView(); refresh(); };
+const view = (x, z, y) => () => { spinBox.checked = false; current.rotation.y = 0; frameView(x, z, y); };
 document.getElementById("front").onclick = view(0, 1);
 document.getElementById("side").onclick = view(1, 0);
 document.getElementById("back").onclick = view(0, -1);
+document.getElementById("top").onclick = view(0, 0.02, 1.1);
 
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-renderer.setAnimationLoop(() => {
-  if (spinBox.checked) current.rotation.y += 0.006;
+// The exported frames are three ticks apart, so they are played at 20 ticks a second.
+const FRAME_MS = 150;
+let last = performance.now();
+renderer.setAnimationLoop(now => {
+  if (spinBox.checked) current.rotation.y += 0.004;
+  if (data && isBlocks() && animSelect.value !== "none" && current.userData.meshes) {
+    clock += now - last;
+    const frames = selected().frames[animSelect.value];
+    while (clock >= FRAME_MS) {
+      clock -= FRAME_MS;
+      frame = (frame + 1) % frames.length;
+      frames[frame].forEach((p, i) => { const mesh = current.userData.meshes[i]; if (p && mesh) place(mesh, p); });
+    }
+  }
+  last = now;
   controls.update();
   renderer.render(scene, camera);
 });

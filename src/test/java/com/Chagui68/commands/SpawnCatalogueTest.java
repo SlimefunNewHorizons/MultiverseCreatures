@@ -26,6 +26,7 @@ class SpawnCatalogueTest {
     private static final List<String> LEGACY_PAGE_1 = List.of(
             " &e• nix &8- &cNIX - The Executioner &7(Scaffold Ritual Boss)",
             " &e• dio &8- &6DIO &7(The World — JoJo's Bizarre Adventure)",
+            " &e• witherstorm &8- &5Wither Storm &7(Cracker's Wither Storm Mod)",
             " &e• armorstand &8- &6The Ancient Armor Stand &7(Multiverse Boss)",
             " &e• mahoraga &8- &fMahoraga &7(Adapting Divine General)",
             " &e• garou &8- &bGarou &7(Martial Arts Miniboss)",

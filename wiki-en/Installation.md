@@ -88,7 +88,6 @@ armor-stand-boss:
   defense-duration-stone-skin-ticks: 200
   defense-duration-reflect-barrier-ticks: 160
   defense-duration-absorb-shield-ticks: 300
-  no-player-despawn-ticks: 200              # 0 despawns the boss as soon as nobody is in range
   ground-recovery-grace-ticks: 40           # ticks without a floor before it relocates
   ground-recovery-search-radius: 12
   ground-recovery-cooldown-ticks: 100

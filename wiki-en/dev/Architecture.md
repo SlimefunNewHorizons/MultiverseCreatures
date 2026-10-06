@@ -45,6 +45,12 @@ src/main/java/com/Chagui68/
 │   │   │   ├── Fx.java / Shapes.java / Palette.java        Particle brushes, geometry and the colour palette
 │   │   │   └── Telegraph.java / Area.java / Missile.java / Prop.java  Warnings, hit volumes, projectiles, display props
 │   │   ├── NixMoves.java / JackMoves.java  Pose tables of NIX's and JackStar's signature moves
+│   │   ├── witherstorm/                 The Wither Storm (Cracker's Wither Storm Mod) made of display entities
+│   │   │   ├── WitherStormModel.java        The mod's part tree and animation, pure and testable (resources/witherstorm/*.txt)
+│   │   │   ├── WitherStormForm.java         The five forms and the numbers their fight runs on
+│   │   │   ├── WitherStormBody.java         One display per box, riding the anchor as passengers
+│   │   │   ├── WitherStorm.java             One living storm: tractor beams, bites, skulls, evolution, death
+│   │   │   └── WitherStormBoss.java         Lifecycle, Interaction hitboxes and the summoning with the Wither's structure
 │   ├── miniboss/                      Mahoraga.java
 │   ├── Kinger.java                    ♟️ chess-piece miniboss (ArmorStand + ItemDisplay suit)
 │   ├── KingerModel.java               Kinger's part geometry: pivots, second joint, walk cycle

@@ -36,6 +36,8 @@ Invoca una sola entidad (o una formación táctica) en la ubicación del ejecuto
 | `garou` | Minijefe Garou [Hero Hunter] |
 | `nix` (`executioner`, `nixelverdugo`) | NIX - El Verdugo (jefe con modelo custom de 27 piezas) |
 | `dio` (`diobrando`, `theworld`) | DIO con su Stand The World (jefe de JoJo's Bizarre Adventure) |
+| `witherstorm` (`tormentawither`) | WITHER STORM, nacido de su vórtice en su primera forma (Cracker's Wither Storm Mod) |
+| `witherstorm2` … `witherstorm5` | WITHER STORM ya crecido: Joroba Creciente, Joroba Hinchada, Destructor, Devorador |
 | `armorstand` (`armorstandboss`) | EL CENTINELA DE OBSIDIANA, jefe final |
 | `jack` | JACK STAR — El Arquitecto del Sistema (5 fases, 3 vidas) |
 | `creeperjr` | Creeper Jr. (×3 — aparece en trío) |

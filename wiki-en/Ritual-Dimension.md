@@ -206,7 +206,7 @@ P . . . P
 3. **Drop (Q) the god's offering** on the core (within **3 blocks**). **One** item is consumed; the rest of the stack stays on the ground. An offering from another pantheon is refused and kept.
 4. After `drakes-bosses.arrival-delay-ticks` (40 by default) lightning strikes and the god appears on the core. If DrakesBosses cannot spawn it (e.g. Jax disabled), the offering is given back.
 
-> One altar per world at a time, and it will not wake while another boss fights in the dimension. While the god lives, the building and command locks apply. A god with no player within 64 blocks for `drakes-bosses.no-player-despawn-seconds` (300 by default; 0 = never) is sent away so it cannot lock the dimension.
+> One altar per world at a time, and it will not wake while another boss fights in the dimension. While the god lives, the building and command locks apply. A god with no player near is sent away like every other boss (`boss-balance.despawn`: 50 blocks, 5 s) so it cannot lock the dimension.
 
 ---
 

@@ -1,0 +1,59 @@
+# Wither Storm form 'hunchback', generated from Cracker's Wither Storm Mod 4.2.1 by tools/wither-storm.
+group base witherBase 1 0
+group mass mass 1 0
+part mass 0 24 0 0 0 0
+part lowResMass 0 0 0 0 0 0
+part tentacles 0 0 0 0 0 0
+part heads 0 0 0 0 0 0
+part witherBase 0 0 0 0 0 0
+part witherBase/shoulders 0 0 0 0 0 0
+part witherBase/ribcage -2 6.9 -0.5 0.2042 0 0
+part witherBase/ribcage/ribcageExtension 1.5 9.5 -3.5 0 0 0
+part witherBase/ribcage/ribcageExtension/block 0 0 0 0 0 0
+part witherBase/tail -2 16.69223 1.52787 0.83252 0 0
+part witherBase/center_head 0 0 0 0 0 0
+part witherBase/right_head -8 4 0 0 0 0
+part witherBase/left_head 10 4 0 0 0 0
+box mass -2 -18 1 6 6 6 OBSIDIAN 0
+box mass -1 -22 0 6 6 6 BLACK_CONCRETE 0
+box mass -8 -20 1 6 6 6 BLACK_CONCRETE 0
+box mass -2 -13 2 4 4 4 CRYING_OBSIDIAN 1
+box mass -5 -15 2 4 4 4 BLACK_CONCRETE 0
+box mass -2 -11 1 4 4 4 OBSIDIAN 0
+box mass 4 -19 2 4 4 4 OBSIDIAN 0
+box mass 1 -12 2 3 3 3 BLACK_CONCRETE 0
+box mass -4 -12 2 3 3 3 BLACK_CONCRETE 0
+box mass 2 -17 2 3 3 3 BLACK_CONCRETE 0
+box mass 7 -19 2 3 3 3 BLACK_CONCRETE 0
+box mass -9 -21 2 3 3 3 BLACK_CONCRETE 0
+box mass 5 -22 2 3 3 3 BLACK_CONCRETE 0
+box mass -4 -21 2 3 3 3 BLACK_CONCRETE 0
+box mass -1 -7 2 2 2 2 BLACK_CONCRETE 0
+box mass 10 -20 2 2 2 2 OBSIDIAN 0
+box mass -10 -19 2 2 2 2 OBSIDIAN 0
+box mass -6 -15 1 2 2 2 OBSIDIAN 0
+box mass -6 -22 2 2 2 2 OBSIDIAN 0
+box mass 4 -18 5 1 2 2 OBSIDIAN 0
+box mass 8 -21 2 2 2 2 BLACK_CONCRETE 0
+box witherBase/shoulders -10 3.9 -0.5 20 3 3 OBSIDIAN 0
+box witherBase/ribcage 0 0 0 3 10 3 OBSIDIAN 0
+box witherBase/ribcage -4 1.5 0.5 11 2 2 BLACKSTONE 0
+box witherBase/ribcage -4 4.5 0.5 11 2 2 BLACKSTONE 0
+box witherBase/ribcage -4 7.5 0.5 11 2 2 BLACKSTONE 0
+box witherBase/ribcage/ribcageExtension -5.5 -2 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -5.5 -5 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -5.5 -8 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 3.5 -8 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 3.5 -5 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 3.5 -2 -4 2 2 8 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 2.5 -2 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 2.5 -5 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension 2.5 -8 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -3.5 -8 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -3.5 -5 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension -3.5 -2 -4 1 2 2 GRAY_CONCRETE 0
+box witherBase/ribcage/ribcageExtension/block -4.001 -8.001 -3.001 8.002 8.002 8.002 COMMAND_BLOCK 1
+box witherBase/tail 0 0 0 3 6 3 OBSIDIAN 0
+box witherBase/center_head -4 -4 -4 8 8 8 SKULL 0
+box witherBase/right_head -4 -4 -4 6 6 6 SKULL 0
+box witherBase/left_head -4 -4 -4 6 6 6 SKULL 0

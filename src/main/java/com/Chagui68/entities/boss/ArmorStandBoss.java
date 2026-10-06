@@ -168,8 +168,6 @@ public class ArmorStandBoss implements Listener, BossHost {
     private static final int DEFENSE_REFLECT_BARRIER_TICKS = 160;
     /** Default ticks an absorb-shield defence lasts (~15 s, or until the shield is broken). */
     private static final int DEFENSE_ABSORB_SHIELD_TICKS = 300;
-    /** Default ticks the boss keeps fighting after the last player leaves its radius (~10 s). */
-    private static final int NO_PLAYER_DESPAWN_TICKS = 200;
     /**
      * Share of a player's Resistance mitigation that penetrating hits ignore. Penetration is
      * partial on purpose: armour is bypassed outright, but the potion still protects with the
@@ -232,7 +230,6 @@ public class ArmorStandBoss implements Listener, BossHost {
     private int defenseBulwarkTicks;
     private int defenseThornsTicks;
     private int defenseEvasionTicks;
-    private int noPlayerDespawnTicks;
     /** Scale of the boss's own stand: model size and hitbox at once. */
     private double hitboxScale = MODEL_HITBOX_SCALE;
 
@@ -406,9 +403,6 @@ public class ArmorStandBoss implements Listener, BossHost {
                 "entities.armor-stand-boss.defense-duration-thorn-aura-ticks", 200));
         this.defenseEvasionTicks = Math.max(1, plugin.getConfig().getInt(
                 "entities.armor-stand-boss.defense-duration-afterimage-ticks", 160));
-        // 0 means "despawn as soon as nobody is in range".
-        this.noPlayerDespawnTicks = Math.max(0, plugin.getConfig().getInt(
-                "entities.armor-stand-boss.no-player-despawn-ticks", NO_PLAYER_DESPAWN_TICKS));
         this.hitboxScale = MscEntityUtils.clampHitboxScale(plugin.getConfig().getDouble(
                 "entities.armor-stand-boss.hitbox-scale", MODEL_HITBOX_SCALE));
         List<Integer> delays = plugin.getConfig().getIntegerList("entities.armor-stand-boss.shield-retrieve-delays");
@@ -806,19 +800,12 @@ public class ArmorStandBoss implements Listener, BossHost {
                     }
                 }
 
-                boolean hasPlayer = countPlayersInRange(stand.getLocation(), 100) > 0;
-                if (hasPlayer) {
-                    instance.noPlayerTicks = 0;
-                } else {
-                    // The counter exists for this grace period. Despawning on the first playerless
-                    // tick deleted the boss on a one-tick gap: a lag spike, a wipe, or everyone
-                    // stepping just outside the radius mid-fight.
-                    instance.noPlayerTicks++;
-                    if (instance.noPlayerTicks >= noPlayerDespawnTicks) {
-                        teardown(instance);
-                        stand.remove();
-                        return;
-                    }
+                // Abandoned: nobody within the colossal radius for boss-balance.despawn.delay-ticks.
+                // A grace period, not the first playerless tick, so a lag spike does not delete it.
+                if (BossDespawn.abandoned(stand.entidad(), true)) {
+                    teardown(instance);
+                    stand.remove();
+                    return;
                 }
             }
         };

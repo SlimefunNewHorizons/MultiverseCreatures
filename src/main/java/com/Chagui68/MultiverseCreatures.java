@@ -97,6 +97,8 @@ public class MultiverseCreatures extends JavaPlugin {
     private NixBoss nixBoss;
     private JackStarBoss jackStarBoss;
     private DioBoss dioBoss;
+    /** The Wither Storm of Cracker's Wither Storm Mod, summoned with the Wither's own structure. */
+    private com.Chagui68.entities.boss.witherstorm.WitherStormBoss witherStormBoss;
     private JackInvocationManager jackInvocationManager;
     /** DrakesBosses' gods, summoned at the Pantheon Altars of the Boss Dimension. */
     private PantheonInvocationManager pantheonInvocationManager;
@@ -153,6 +155,7 @@ public class MultiverseCreatures extends JavaPlugin {
         // reads the config.
         com.Chagui68.utils.MscConfigMigration.run(this);
         com.Chagui68.entities.boss.BossDamageScaling.load(getConfig());
+        com.Chagui68.entities.boss.BossDespawn.load(getConfig());
         com.Chagui68.entities.boss.fx.ParticleBudget.load(getConfig());
         com.Chagui68.stand.HeadModels.init(this);
 
@@ -198,6 +201,7 @@ public class MultiverseCreatures extends JavaPlugin {
         nixBoss = new NixBoss(this);
         jackStarBoss = new JackStarBoss(this);
         dioBoss = new DioBoss(this);
+        witherStormBoss = new com.Chagui68.entities.boss.witherstorm.WitherStormBoss(this);
         discTrader = new DiscTrader(this);
         warlord = new Warlord(this);
 
@@ -328,6 +332,7 @@ public class MultiverseCreatures extends JavaPlugin {
         if (nixBoss != null) nixBoss.stopTasks();
         if (jackStarBoss != null) jackStarBoss.stopTasks();
         if (dioBoss != null) dioBoss.stopTasks();
+        if (witherStormBoss != null) witherStormBoss.stopTasks();
         if (pantheonInvocationManager != null) pantheonInvocationManager.stopTasks();
         if (itemCombatHandler != null) itemCombatHandler.stopTasks();
         if (wirtsLanternHandler != null) wirtsLanternHandler.stopTasks();
@@ -456,12 +461,17 @@ public class MultiverseCreatures extends JavaPlugin {
         return dioBoss;
     }
 
+    public com.Chagui68.entities.boss.witherstorm.WitherStormBoss getWitherStormBoss() {
+        return witherStormBoss;
+    }
+
     /** Whether any of the arena bosses, or a summoned DrakesBosses god, is fighting in {@code world}. */
     public boolean isBossFightIn(org.bukkit.World world) {
         return (armorStandBoss != null && armorStandBoss.isBossActiveIn(world))
                 || (nixBoss != null && nixBoss.isBossActiveIn(world))
                 || (jackStarBoss != null && jackStarBoss.isBossActiveIn(world))
                 || (dioBoss != null && dioBoss.isBossActiveIn(world))
+                || (witherStormBoss != null && witherStormBoss.isBossActiveIn(world))
                 || (pantheonInvocationManager != null && pantheonInvocationManager.isBossActiveIn(world));
     }
 

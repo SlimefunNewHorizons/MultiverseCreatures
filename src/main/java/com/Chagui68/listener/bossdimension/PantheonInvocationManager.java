@@ -1,6 +1,7 @@
 package com.Chagui68.listener.bossdimension;
 
 import com.Chagui68.MultiverseCreatures;
+import com.Chagui68.entities.boss.BossDespawn;
 import com.Chagui68.entities.boss.fx.Fx;
 import com.Chagui68.entities.boss.fx.LiveStage;
 import com.Chagui68.entities.boss.fx.Sfx;
@@ -16,7 +17,6 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -51,27 +51,23 @@ import java.util.UUID;
  * descends, spawned by DrakesBosses itself (stats, skills, loot and rewards stay theirs).
  *
  * <p>DrakesBosses is a soft dependency: without it the candles light and nothing answers. A god
- * counts as a boss fight for {@link BossFightGuard} while it lives, and one left alone with no
- * player near it for {@code drakes-bosses.no-player-despawn-seconds} is sent away so it cannot lock
- * the dimension for good.
+ * counts as a boss fight for {@link BossFightGuard} while it lives, and one left alone is sent away
+ * like every other boss ({@link BossDespawn}), so it cannot lock the dimension for good.
  */
 public class PantheonInvocationManager implements Listener {
 
     private static final String ENABLED_KEY = "drakes-bosses.enabled";
     private static final String ARRIVAL_DELAY_KEY = "drakes-bosses.arrival-delay-ticks";
-    private static final String DESPAWN_KEY = "drakes-bosses.no-player-despawn-seconds";
-    /** How near a player has to be for a god to count as being fought. */
-    private static final double PRESENCE_RANGE = 64.0;
     /** Ticks between two checks of the summoned gods. */
-    private static final long WATCH_PERIOD = 100L;
+    private static final long WATCH_PERIOD = 20L;
 
     private final MultiverseCreatures plugin;
     /** One open altar per world, like every other ritual of the dimension. */
     private final Map<UUID, InvocationData> activeInvocations = new HashMap<>();
     /** Worlds where an offering was accepted and the god is on its way. */
     private final Set<UUID> arriving = new HashSet<>();
-    /** Summoned gods by entity id, with the last time a player was near them. */
-    private final Map<UUID, Long> summonedGods = new HashMap<>();
+    /** Summoned gods by entity id. */
+    private final Set<UUID> summonedGods = new HashSet<>();
     private BukkitTask watchdog;
 
     public PantheonInvocationManager(MultiverseCreatures plugin) {
@@ -90,7 +86,7 @@ public class PantheonInvocationManager implements Listener {
     /** Whether a summoned god is alive in {@code world}, or one is about to arrive there. */
     public boolean isBossActiveIn(World world) {
         if (arriving.contains(world.getUID())) return true;
-        for (UUID id : summonedGods.keySet()) {
+        for (UUID id : summonedGods) {
             Entity god = Bukkit.getEntity(id);
             if (god != null && god.isValid() && god.getWorld().equals(world)) return true;
         }
@@ -284,26 +280,19 @@ public class PantheonInvocationManager implements Listener {
 
     /** Starts tracking a summoned god, and the watchdog that sends forgotten ones away. */
     private void watch(LivingEntity god) {
-        summonedGods.put(god.getUniqueId(), System.currentTimeMillis());
+        summonedGods.add(god.getUniqueId());
         if (watchdog == null) {
             watchdog = plugin.getServer().getScheduler().runTaskTimer(plugin, this::checkGods, WATCH_PERIOD, WATCH_PERIOD);
         }
     }
 
     private void checkGods() {
-        long now = System.currentTimeMillis();
-        long limit = Math.max(0, plugin.getConfig().getLong(DESPAWN_KEY, 300)) * 1000L;
-        Iterator<Map.Entry<UUID, Long>> it = summonedGods.entrySet().iterator();
+        Iterator<UUID> it = summonedGods.iterator();
         while (it.hasNext()) {
-            Map.Entry<UUID, Long> entry = it.next();
-            Entity god = Bukkit.getEntity(entry.getKey());
+            Entity god = Bukkit.getEntity(it.next());
             if (god == null || !god.isValid()) {
                 it.remove();
-                continue;
-            }
-            if (hasPlayerNear(god)) {
-                entry.setValue(now);
-            } else if (limit > 0 && now - entry.getValue() >= limit) {
+            } else if (BossDespawn.abandoned(god)) {
                 // DrakesBosses notices the invalid entity on its next tick and clears its boss bar.
                 god.remove();
                 it.remove();
@@ -319,14 +308,6 @@ public class PantheonInvocationManager implements Listener {
             watchdog.cancel();
             watchdog = null;
         }
-    }
-
-    private static boolean hasPlayerNear(Entity god) {
-        for (Player p : god.getWorld().getPlayers()) {
-            if (p.getGameMode() == GameMode.SPECTATOR || p.isDead()) continue;
-            if (p.getLocation().distanceSquared(god.getLocation()) <= PRESENCE_RANGE * PRESENCE_RANGE) return true;
-        }
-        return false;
     }
 
     /** Stops the watchdog and every open altar; called on disable. */

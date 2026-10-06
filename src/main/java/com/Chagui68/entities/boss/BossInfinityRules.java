@@ -32,7 +32,8 @@ public class BossInfinityRules implements Listener {
     /** Tags of the bosses and of the pieces their bodies are hit through. Mahoraga is not here. */
     static final Set<String> BOSS_TAGS = Set.of(
             ArmorStandBoss.TAG, JackStarBoss.TAG, JackStarBoss.PART_TAG, NixBoss.TAG, NixBoss.PART_TAG,
-            DioBoss.TAG, DioBoss.STAND_TAG, Kinger.TAG, Kinger.PART_TAG, "MSC_Garou");
+            DioBoss.TAG, DioBoss.STAND_TAG, Kinger.TAG, Kinger.PART_TAG, "MSC_Garou",
+            com.Chagui68.entities.boss.witherstorm.WitherStormBoss.TAG);
 
     /** Bosses whose hits armour still reduces: their damage scales with the player's gear too. */
     static final Set<String> ARMORED_HIT_TAGS = Set.of(Kinger.TAG, "MSC_Garou");

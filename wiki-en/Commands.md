@@ -36,6 +36,8 @@ Summons a single entity (or a tactical formation) at the executor's location. Th
 | `garou` | Garou [Hero Hunter] miniboss |
 | `nix` (`executioner`, `nixelverdugo`) | NIX - The Executioner (custom 27-part model boss) |
 | `dio` (`diobrando`, `theworld`) | DIO with his Stand The World (JoJo's Bizarre Adventure boss) |
+| `witherstorm` (`tormentawither`) | THE WITHER STORM, born out of its vortex in its first form (Cracker's Wither Storm Mod) |
+| `witherstorm2` … `witherstorm5` | THE WITHER STORM already grown: Growing Hunchback, Swollen Hunchback, Destroyer, Devourer |
 | `armorstand` (`armorstandboss`) | THE OBSIDIAN SENTINEL final boss |
 | `jack` | JACK STAR — The System Architect (5 phases, 3 lives) |
 | `creeperjr` | Creeper Jr. (×3 — spawns in trio) |

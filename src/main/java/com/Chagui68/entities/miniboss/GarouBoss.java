@@ -1,6 +1,7 @@
 package com.Chagui68.entities.miniboss;
 
 import com.Chagui68.MultiverseCreatures;
+import com.Chagui68.entities.boss.BossDespawn;
 import com.Chagui68.utils.MscEntityUtils;
 import com.Chagui68.utils.MscText;
 import net.kyori.adventure.text.Component;
@@ -146,6 +147,11 @@ public class GarouBoss implements Listener {
                 Location gLoc = garou.getLocation();
                 World w = gLoc.getWorld();
                 if (w == null) return;
+                if (BossDespawn.abandoned(garou)) {
+                    garou.remove();
+                    cancel();
+                    return;
+                }
 
                 // Constant cosmic aura effect
                 w.spawnParticle(Particle.PORTAL, gLoc.clone().add(0, 1.0, 0), 6, 0.3, 0.6, 0.3, 0.05);
