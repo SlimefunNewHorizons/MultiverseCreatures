@@ -50,14 +50,21 @@ public final class MonitorServer {
         this.linkMillis = Math.max(1, linkMinutes) * 60_000L;
     }
 
-    /** Opens the port on first use. Returns the port actually bound. */
+    /** How many ports above the wanted one are tried before asking the system for any free one. */
+    static final int PORT_TRIES = 20;
+
+    /**
+     * Opens the port on first use and returns the one actually bound. A port that is taken (a hosting
+     * panel gives the plugin one port and often something else already holds it) moves on to the next
+     * ones, and finally to any free port the system picks.
+     */
     public synchronized int start(int port) throws IOException {
         if (http != null) return http.getAddress().getPort();
         try (InputStream in = MonitorServer.class.getResourceAsStream("/monitor/index.html")) {
             if (in == null) throw new IOException("monitor/index.html is missing from the jar");
             page = new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
-        http = HttpServer.create(new InetSocketAddress(port), 0);
+        http = bind(port);
         http.createContext("/", this::handle);
         http.setExecutor(Executors.newFixedThreadPool(2, r -> {
             Thread t = new Thread(r, "MSC-Monitor-Http");
@@ -66,6 +73,23 @@ public final class MonitorServer {
         }));
         http.start();
         return http.getAddress().getPort();
+    }
+
+    private static HttpServer bind(int port) throws IOException {
+        IOException last = null;
+        for (int i = 0; i <= PORT_TRIES && port > 0 && port + i <= 65535; i++) {
+            try {
+                return HttpServer.create(new InetSocketAddress(port + i), 0);
+            } catch (java.net.BindException e) {
+                last = e;
+            }
+        }
+        try {
+            return HttpServer.create(new InetSocketAddress(0), 0);
+        } catch (IOException e) {
+            if (last != null) e.addSuppressed(last);
+            throw e;
+        }
     }
 
     public synchronized void stop() {
@@ -135,7 +159,7 @@ public final class MonitorServer {
 
     // ------------------------------------------------------------------ json
 
-    String json(ServerMonitor.Snapshot snap) {
+    public String json(ServerMonitor.Snapshot snap) {
         JsonObject root = new JsonObject();
         root.addProperty("server", serverName);
         root.addProperty("version", version);

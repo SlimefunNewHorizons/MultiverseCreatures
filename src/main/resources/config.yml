@@ -21,8 +21,17 @@ performance:
 # served by this plugin (never GitHub Pages); the port must be reachable from the admin's browser.
 monitor:
   enabled: true
+  # upload: /msc tps uploads an encrypted snapshot and links to a page that reads it. Nothing has to be
+  #         reachable from outside, so it works on any hosting. The key is only in the link.
+  # local:  the plugin serves a live page itself on `port` below (the port must be open to you).
+  mode: upload
+  # Bytebin-compatible storage the snapshot is uploaded to (it only ever sees encrypted bytes).
+  upload-url: "https://bytebin.lucko.me"
+  # The page that decrypts and draws a snapshot (it ships with the project's GitHub Pages site).
+  viewer-url: "https://slimefunnewhorizons.github.io/MultiverseCreatures/monitor/"
+  # Preferred port. If it is taken the plugin tries the next 20 and then any free one, and says which.
   port: 8765
-  # Address put in the link. Empty uses server-ip, then localhost.
+  # Address put in the link. Empty uses the address the admin joined with, then server-ip, then localhost.
   public-host: ""
   # How long a link stays valid. A new /msc tps cancels the previous one.
   link-minutes: 30

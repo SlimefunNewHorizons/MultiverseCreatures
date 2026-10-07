@@ -74,6 +74,10 @@ pre{margin:0;padding:10px 12px;overflow:auto;border-top:1px solid var(--line);co
   </div>
 </main>
 <script>
+// Two ways in. A link with #c=<code>&k=<key> is a snapshot the server uploaded: it is read, decrypted here
+// and drawn once. Otherwise the page is the plugin's own live one and polls /<token>/data.
+const hash = new URLSearchParams(location.hash.slice(1));
+const snapshot = hash.has('c') && hash.has('k');
 const token = location.pathname.split('/')[1];
 const $ = id => document.getElementById(id);
 let data = null;
@@ -156,6 +160,25 @@ function render(){
   $('kinds').innerHTML = kinds.length ? '<table>' + kinds.map(([k,v]) => `<tr><td>${esc(k.replace(/^MSC_/,''))}</td><td style="width:45%"><div class="bar" style="width:${v/top*100}%"></div></td><td class="n">${fmt(v,0)}</td></tr>`).join('') + '</table>' : '<div class="empty">No custom entity is alive right now.</div>';
 }
 
+const b64 = s => Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
+async function loadSnapshot(){
+  const status = $('live');
+  try{
+    const base = hash.has('u') ? new TextDecoder().decode(b64(hash.get('u'))) : 'https://bytebin.lucko.me';
+    const r = await fetch(base.replace(/\/$/,'') + '/' + encodeURIComponent(hash.get('c')));
+    if(!r.ok) throw new Error('expired');
+    const sealed = new Uint8Array(await r.arrayBuffer());
+    const key = await crypto.subtle.importKey('raw', b64(hash.get('k')), 'AES-GCM', false, ['decrypt']);
+    const zipped = await crypto.subtle.decrypt({name:'AES-GCM', iv:sealed.slice(0,12)}, key, sealed.slice(12));
+    const text = await new Response(new Blob([zipped]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    data = JSON.parse(text); $('expired').style.display = 'none';
+    status.className = 'pill'; status.textContent = 'snapshot · ' + new Date(data.now).toLocaleTimeString();
+    render();
+  }catch(e){
+    $('expired').innerHTML = '<b>This snapshot is not available.</b> It may have expired or the link is incomplete. Run <code>/msc tps</code> in game for a new one.';
+    $('expired').style.display = 'block'; status.className = 'pill dead'; status.textContent = 'unavailable';
+  }
+}
 async function poll(){
   try{
     const r = await fetch('/'+token+'/data', {cache:'no-store'});
@@ -165,7 +188,7 @@ async function poll(){
   setTimeout(poll, 2000);
 }
 window.addEventListener('resize', () => data && render());
-poll();
+snapshot ? loadSnapshot() : poll();
 </script>
 </body>
 </html>

@@ -7,8 +7,9 @@
 
 What goes in: everything in docs/, the model data `mvn test` exports (rounded, and without the
 Destroyer's high-detail variant, which is seven megabytes on its own) and the painted Stand skins.
-What never goes in: the server monitor page (it lives in the plugin's jar and is served only to the
-link /msc tps hands an admin) and Mojang's textures (the viewer draws stand-in blocks instead).
+The server monitor's page also goes in (monitor/): empty on its own, it only draws a snapshot when it is
+opened with the link /msc tps hands an admin, whose key is in the fragment and never reaches any server.
+What never goes in: Mojang's textures (the viewer draws stand-in blocks instead).
 """
 import json
 import shutil
@@ -29,6 +30,10 @@ def main() -> int:
         shutil.rmtree(OUT)
     shutil.copytree(ROOT / "docs", OUT)
     (OUT / ".nojekyll").write_text("")
+    # The monitor's page is an empty shell without a snapshot link (the data and its key are only in
+    # the link /msc tps hands an admin), so it can be published for the snapshot mode to open.
+    (OUT / "monitor").mkdir()
+    shutil.copy2(ROOT / "src" / "main" / "resources" / "monitor" / "index.html", OUT / "monitor" / "index.html")
 
     data = json.loads(MODELS.read_text(encoding="utf-8"), parse_float=lambda s: round(float(s), 4))
     data["stands"] = [m for m in data["stands"] if not m["key"].endswith("-detailed")]

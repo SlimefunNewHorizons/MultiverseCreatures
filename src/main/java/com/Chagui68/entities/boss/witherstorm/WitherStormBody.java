@@ -45,6 +45,9 @@ final class WitherStormBody {
     private final Display[] displays;
     private final WitherStormModel.Placement[] sent;
     private final BlockDisplay[][] beams = new BlockDisplay[3][];
+    /** What each head's beam was drawn with last frame, so aim and length ease instead of jumping. */
+    private final Vector3f[] beamAim = new Vector3f[3];
+    private final float[] beamReach = new float[3];
     private ArmorStand anchor;
     private String ownerTag;
     private float viewRange;
@@ -179,7 +182,20 @@ final class WitherStormBody {
             }
             beams[head] = pieces;
         }
-        Quaternionf facing = new Quaternionf().rotationTo(new Vector3f(0, 0, 1), new Vector3f(direction).normalize());
+        // The heads face -z in the model, the one direction a shortest-arc rotation cannot turn to from +z
+        // without picking a spin at random: it flipped the cone's roll from frame to frame. The facing is
+        // built from an up vector instead, and aim and length ease towards their targets, because the
+        // ground ray under a moving victim changes the length by whole blocks from one frame to the next.
+        Vector3f want = new Vector3f(direction).normalize();
+        if (beamAim[head] == null) {
+            beamAim[head] = new Vector3f(want);
+            beamReach[head] = length;
+        } else {
+            beamAim[head].lerp(want, 0.6f).normalize();
+            beamReach[head] += (length - beamReach[head]) * 0.4f;
+        }
+        length = beamReach[head];
+        Quaternionf facing = facing(beamAim[head]);
         for (int i = 0; i < BEAM_PIECES; i++) {
             float from, to, width;
             if (i == BEAM_SEGMENTS) {
@@ -201,9 +217,20 @@ final class WitherStormBody {
         }
     }
 
+    /** A rotation taking +z to {@code direction} that keeps the cone's sides level, whatever the direction. */
+    static Quaternionf facing(Vector3f direction) {
+        Vector3f z = new Vector3f(direction).normalize();
+        Vector3f x = new Vector3f(0, 1, 0).cross(z);
+        if (x.lengthSquared() < 1.0e-6f) x.set(1, 0, 0);
+        x.normalize();
+        Vector3f y = new Vector3f(z).cross(x);
+        return new Quaternionf().setFromNormalized(new org.joml.Matrix3f(x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z));
+    }
+
     /** Puts a head's beam out; its displays stay, shrunk to nothing, for the next time. */
     void hideBeam(int head) {
         if (head < 0 || head >= beams.length || beams[head] == null) return;
+        beamAim[head] = null;
         for (BlockDisplay piece : beams[head]) {
             if (piece == null || !piece.isValid()) continue;
             piece.setInterpolationDelay(0);

@@ -4,9 +4,10 @@
 #   Ejecuta los tests (que exportan los modelos a target/stand-viewer/models.json), arma el sitio con
 #   tools/site/build.py y lo publica.
 #
-# QUE NO PUBLICA
-#   La pagina de monitoreo de /msc tps. Vive dentro del jar del plugin (src/main/resources/monitor) y
-#   solo la sirve el propio servidor de Minecraft al enlace privado que entrega el comando.
+# LA PAGINA DE MONITOREO
+#   /msc tps (modo upload) abre monitor/ de este sitio. Sola esta vacia: solo dibuja un snapshot cuando
+#   se abre con el enlace que entrega el comando, cuya clave de cifrado va en el fragmento (#) y no llega
+#   a ningun servidor.
 name: Sitio (GitHub Pages)
 
 on:
@@ -15,6 +16,7 @@ on:
     paths:
       - 'docs/**'
       - 'tools/site/**'
+      - 'src/main/resources/monitor/**'
       - 'tools/stand-skins/out/**'
       - 'src/main/resources/stands/**'
       - 'src/main/resources/witherstorm/**'
