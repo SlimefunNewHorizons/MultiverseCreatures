@@ -15,6 +15,7 @@ Todos los comandos usan la raíz **`/msc`**. **Permiso:** `msc.admin` (OP del se
 /msc kill [tipo|all] [radio]   Purga criaturas de MSC de forma segura
 /msc debug [jugador]           Desglosa el daño de cada jefe hacia y desde un jugador
 /msc debug geometry [jefe]     Dibuja la hitbox y las articulaciones de un jefe, o reproduce su caminar
+/msc tps                       Monitor del servidor: TPS en el chat y un enlace privado a la página en vivo
 /msc reload                    Recarga config.yml, fusiona los defaults nuevos y sincroniza entidades y jefes
 ```
 
@@ -289,6 +290,16 @@ Añade **`walk`** (p. ej. `/msc debug geometry kinger walk`) para reproducir el 
 Drawing kinger for 10 s: hitbox 0.50 x 1.98 x 0.50 blocks (red), 8 joints (cyan).
 Replaying kinger's walk in front of you for 10 s: hitbox (red), joints (cyan), bones (blue), hands and feet (green). Nothing was spawned.
 ```
+
+---
+
+## /msc tps
+
+Muestra en el chat los TPS, el tiempo de tick, la memoria, las entidades y los congelamientos detectados y, a un jugador, le envía un **enlace privado** a una página de monitoreo en vivo: gráficos de TPS y tiempo de tick, memoria y pausas del recolector de basura, entidades por mundo y por etiqueta custom, presión de partículas de los jefes, un diagnóstico en frases simples y cada **congelamiento** con la pila del hilo principal mientras duró (y a qué plugin apunta).
+
+- La página la sirve el propio plugin, desde su jar, en `monitor.port` (8765 por defecto). **No** forma parte del sitio de GitHub Pages: solo responde al enlace aleatorio que entrega `/msc tps`, que caduca a los `monitor.link-minutes` (30) y se anula con el siguiente `/msc tps` del mismo admin.
+- El puerto debe ser alcanzable desde tu navegador. Define `monitor.public-host` con la dirección que usan los jugadores si `server-ip` está vacío; detrás de un panel hay que abrir o redirigir el puerto.
+- Mismo permiso que el resto de `/msc` (`msc.admin` u OP). `monitor.enabled: false` apaga el muestreo; `freeze-threshold-ms` (150) es lo que debe tardar un tick para contar como congelamiento.
 
 ---
 

@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The Wither Storm's five forms for the model viewer in {@code tools/stand-viewer}: every box with the
+ * The Wither Storm's five forms for the model viewer in {@code docs/viewer}: every box with the
  * transformation the plugin sends to the game, in a handful of poses and two animations, plus where
  * the tractor beams and the hitboxes go. {@code StandViewerExport} writes them into the same file as
  * the Stands.

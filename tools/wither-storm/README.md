@@ -36,7 +36,7 @@ No code of the mod is stored here: it is read from the decompiled sources each t
 
 ## Seeing them
 
-`mvn test` writes `target/stand-viewer/models.json`, and `tools/stand-viewer/` shows every form, in
+`mvn test` writes `target/stand-viewer/models.json`, and the viewer in `docs/viewer/` (the one on the GitHub Pages site) shows every form, in
 its poses and animations, with its tractor beams and hitboxes.
 
 The viewer draws the blocks, the command block and the wither skeleton skulls with the game's own

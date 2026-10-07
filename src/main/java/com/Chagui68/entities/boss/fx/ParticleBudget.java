@@ -35,6 +35,8 @@ public final class ParticleBudget {
     private static int demand;
     private static int sent;
     private static double keep = 1.0;
+    private static int peakDemand;
+    private static long dropped;
 
     private ParticleBudget() {
     }
@@ -54,16 +56,30 @@ public final class ParticleBudget {
     /** Whether one more particle call may go out this tick. */
     static synchronized boolean allow(int now, double roll) {
         if (now != tick) {
+            peakDemand = Math.max(peakDemand, demand);
             keep = keepShare(demand, budget);
             tick = now;
             demand = 0;
             sent = 0;
         }
         demand++;
-        if (sent >= budget * 2) return false;
-        if (keep < 1.0 && roll >= keep) return false;
+        if (sent >= budget * 2 || (keep < 1.0 && roll >= keep)) {
+            dropped++;
+            return false;
+        }
         sent++;
         return true;
+    }
+
+    /**
+     * The busiest tick and the calls dropped since the last read, then zeroed: what the server
+     * monitor charts. Index 0 is the peak demand, 1 the dropped calls, 2 the budget.
+     */
+    public static synchronized long[] drainStats() {
+        long[] stats = {Math.max(peakDemand, demand), dropped, budget};
+        peakDemand = 0;
+        dropped = 0;
+        return stats;
     }
 
     /** Spawns a particle within the budget, to the players in reach. */

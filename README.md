@@ -20,6 +20,7 @@
 **A Paper/Purpur/Spigot plugin that brings adaptive bosses, signature weapons, and themed mobs inspired by JoJo, Jujutsu Kaisen, Hollow Knight, Adventure Time, Arthurian legend, Half-Life, Scooby-Doo, Diablo and more.**
 
 [📥 Download on Modrinth](https://modrinth.com/plugin/multiversecreatures) ·
+[🌐 Site & 3D viewer](https://slimefunnewhorizons.github.io/MultiverseCreatures/) ·
 [📖 Full Wiki](wiki-en/Home.md) ·
 [🐛 Report Issues](https://github.com/Chagui68/MultiverseCreatures/issues)
 

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MultiverseCreatures · Bosses, Stands and creatures from across the multiverse</title>
+<meta name="description" content="Adaptive bosses, the Wither Storm, Stands and themed creatures for Paper and Purpur. See every custom entity in 3D and watch their attacks play out.">
+<meta property="og:title" content="MultiverseCreatures">
+<meta property="og:description" content="Adaptive bosses, the Wither Storm, Stands and themed creatures for Paper and Purpur.">
+<meta property="og:image" content="banner.svg">
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="icon.svg" alt="">MultiverseCreatures</a>
+    <div class="links">
+      <a href="#bosses">Bosses</a><a href="#lab">Attacks</a><a href="#witherstorm">Wither Storm</a><a href="#stands">Stands</a><a href="#creatures">Creatures</a>
+      <a class="cta-s" href="https://modrinth.com/plugin/multiversecreatures">Download</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">Paper · Purpur · Minecraft 1.21+</div>
+    <h1>Bosses from across the multiverse</h1>
+    <p>Adaptive bosses, a Wither Storm made of display entities, JoJo Stands and a bestiary of themed creatures. Look at every one of them in 3D and watch how their attacks play out.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://modrinth.com/plugin/multiversecreatures">Download on Modrinth</a>
+      <a class="btn gold" href="viewer/">Open the 3D viewer</a>
+      <a class="btn" href="https://github.com/SlimefunNewHorizons/MultiverseCreatures/blob/main/wiki-en/Home.md">Read the wiki</a>
+    </div>
+    <img class="banner" src="banner.svg" alt="MultiverseCreatures" width="1200">
+    <div class="stats">
+      <div class="stat"><b>96</b><span>Sentinel attacks</span></div>
+      <div class="stat"><b>8</b><span>bosses and minibosses</span></div>
+      <div class="stat"><b>5</b><span>Wither Storm forms</span></div>
+      <div class="stat"><b>6</b><span>Stands</span></div>
+      <div class="stat"><b>14</b><span>custom creatures</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="block" id="bosses">
+    <div class="head"><div class="eyebrow">The bosses</div><h2>Fights worth preparing for</h2>
+      <p class="lead">Every boss adapts its damage to what each player has invested, and every attack is a choreography: a warning on the floor, a blow and a recovery.</p></div>
+    <div class="grid g3" id="bossGrid"></div>
+  </section>
+
+  <section class="block" id="lab">
+    <div class="head"><div class="eyebrow">Attack lab</div><h2>Watch the attacks play out</h2>
+      <p class="lead">A top-down preview of each attack with the same three beats the game gives it. The white dot is you; the circle at the centre is the boss. Shapes follow the wiki, not the exact particles.</p></div>
+    <div class="lab">
+      <div class="side">
+        <div class="filters" id="filters"></div>
+        <div class="alist" id="alist"></div>
+      </div>
+      <div class="stage">
+        <canvas id="stage" aria-label="Animated preview of the selected attack"></canvas>
+        <div class="info">
+          <h3 id="aname"></h3><div class="by" id="aby"></div>
+          <p id="atext"></p>
+          <div class="phases"><div class="phase t">Telegraph</div><div class="phase h">The blow</div><div class="phase r">Recovery</div></div>
+          <div class="legend">Telegraph: where it lands (red heats to yellow). Blow: it lands. Recovery: the boss is open.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="witherstorm">
+    <div class="head"><div class="eyebrow">Wither Storm</div><h2>It grows by eating the world</h2>
+      <p class="lead">Nothing but block and item displays, laid out from the mod's own model code. Feed it and it evolves through five forms; each one is a different monster to fight.</p></div>
+    <div class="forms" id="forms"></div>
+    <div class="preview" id="preview">
+      <div class="gate"><h3>See it in 3D</h3><p>Orbit the selected form, play its roar and its head animations, and show its tractor beams and hitboxes.</p>
+        <div><button class="btn primary" id="load3d">Load the live 3D preview</button></div><p style="font-size:12px;color:var(--faint)">About 1.5 MB, loaded only when you ask.</p></div>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>A tractor beam with a warning</b><span>It glows thin and harmless first, then pulls. Run sideways across the cone to break free.</span></div>
+      <div class="fact"><b>Injure its heads</b><span>Projectiles that reach a head injure it: the beam goes dark and it takes more damage. Injure all three and the storm is exposed.</span></div>
+      <div class="fact"><b>It plays dead</b><span>The Destroyer and the Devourer fall with their jaws hanging, then rise with a roar and a blast. Only once.</span></div>
+    </div>
+  </section>
+
+  <section class="block" id="stands">
+    <div class="head"><div class="eyebrow">JoJo's Bizarre Adventure</div><h2>The Arrow chooses</h2>
+      <p class="lead">Stands are drawn with player heads, each with its own pose and painted skin. Open any of them in the viewer.</p></div>
+    <div class="grid g3" id="standGrid"></div>
+  </section>
+
+  <section class="block" id="creatures">
+    <div class="head"><div class="eyebrow">Bestiary</div><h2>Creatures with a personality</h2></div>
+    <div class="grid g3" id="creatureGrid"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>MultiverseCreatures by Chagui68 · GPL-3.0<br>A fan project. The characters belong to their respective owners; Minecraft belongs to Mojang.</div>
+    <div><a href="https://modrinth.com/plugin/multiversecreatures">Modrinth</a> · <a href="https://github.com/SlimefunNewHorizons/MultiverseCreatures">GitHub</a> · <a href="viewer/">3D viewer</a> · <a href="https://discord.gg/rv3vtXZTk7">Discord</a></div>
+  </div>
+</footer>
+<script src="assets/attacks.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

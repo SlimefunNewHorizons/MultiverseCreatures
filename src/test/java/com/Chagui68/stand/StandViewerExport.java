@@ -19,7 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Writes every Stand, in every pose, for the model viewer in {@code tools/stand-viewer}: the same
+ * Writes every Stand, in every pose, for the model viewer in {@code docs/viewer}: the same
  * transformations the plugin sends to the game, so the viewer shows what a player would see.
  *
  * <p>Run it with {@code mvn test -Dtest=StandViewerExportTest}; it writes

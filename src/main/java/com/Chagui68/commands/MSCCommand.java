@@ -63,7 +63,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
     /** Sub-commands shown by {@code /msc} and offered by tab completion. */
     private static final List<String> SUB_COMMANDS = List.of(
             "spawn", "give", "attack", "music", "cleanstands", "kill", "debug", "reload", "seal", "dummy",
-            "dimtp");
+            "dimtp", "tps");
 
     /** How far {@code /msc debug} looks for the player the executor is aiming at. */
     private static final int DEBUG_TARGET_RANGE = 30;
@@ -90,12 +90,14 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
     private final MobHandler mobHandler;
     private final DummyStudio dummyStudio;
     private final SealStudio sealStudio;
+    private final TpsStudio tpsStudio;
 
     public MSCCommand(MultiverseCreatures plugin, MobHandler mobHandler) {
         this.plugin = plugin;
         this.mobHandler = mobHandler;
         this.dummyStudio = new DummyStudio(plugin);
         this.sealStudio = new SealStudio(plugin);
+        this.tpsStudio = new TpsStudio(plugin);
     }
 
     /**
@@ -172,6 +174,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             case "cleanstands" -> handleCleanStands(sender, args);
             case "kill" -> handleKill(sender, args);
             case "debug" -> handleDebug(sender, args);
+            case "tps" -> tpsStudio.handle(sender);
             case "reload" -> handleReload(sender);
             default -> {
                 sender.sendMessage(RED + "Unknown command. Use /msc for help.");

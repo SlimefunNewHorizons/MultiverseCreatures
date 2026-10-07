@@ -1,0 +1,64 @@
+# Sitio de GitHub Pages: la pagina de presentacion, el visor 3D y los ataques animados.
+#
+# QUE HACE
+#   Ejecuta los tests (que exportan los modelos a target/stand-viewer/models.json), arma el sitio con
+#   tools/site/build.py y lo publica.
+#
+# QUE NO PUBLICA
+#   La pagina de monitoreo de /msc tps. Vive dentro del jar del plugin (src/main/resources/monitor) y
+#   solo la sirve el propio servidor de Minecraft al enlace privado que entrega el comando.
+name: Sitio (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'tools/site/**'
+      - 'tools/stand-skins/out/**'
+      - 'src/main/resources/stands/**'
+      - 'src/main/resources/witherstorm/**'
+      - 'src/main/java/com/Chagui68/stand/**'
+      - 'src/main/java/com/Chagui68/entities/boss/witherstorm/**'
+      - 'src/test/java/com/Chagui68/stand/**'
+      - 'src/test/java/com/Chagui68/entities/boss/witherstorm/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Exportar los modelos (mvn test)
+        run: mvn -B -ntp test
+      - name: Armar el sitio
+        run: python3 tools/site/build.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  publicar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

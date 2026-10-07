@@ -145,6 +145,7 @@ final class CommandMenu {
         line(" &a&l🛠 TESTING & SYSTEM&8:");
         line("   &e/msc dummy [action] &8- &7Spawn & pose test dummies.");
         line("   &e/msc debug [player] &8- &7Break down the Sentinel's last penetrating hit.");
+        line("   &e/msc tps &8- &7Server monitor: TPS, freezes and what causes them.");
         line("   &e/msc reload &8- &7Reload config.yml & sync entities.");
         line("");
         line(" &7&oExplore subcommands: &e/msc <cmd> help &7(e.g. &e/msc spawn help&7)");

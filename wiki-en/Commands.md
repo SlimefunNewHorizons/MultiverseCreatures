@@ -15,6 +15,7 @@ All commands use the **`/msc`** root. **Permission:** `msc.admin` (server OP by 
 /msc kill [type|all] [radius]  Safely kill/purge MSC custom creatures
 /msc debug [player]            Break down each boss's damage to and from a player
 /msc debug geometry [boss]     Draw a boss's hitbox and joints, or replay its walk
+/msc tps                       Server monitor: TPS in chat plus a private link to the live page
 /msc reload                    Reload config.yml, merge new defaults and sync entities and bosses
 ```
 
@@ -289,6 +290,16 @@ Append **`walk`** (e.g. `/msc debug geometry kinger walk`) to replay a model's *
 Drawing kinger for 10 s: hitbox 0.50 x 1.98 x 0.50 blocks (red), 8 joints (cyan).
 Replaying kinger's walk in front of you for 10 s: hitbox (red), joints (cyan), bones (blue), hands and feet (green). Nothing was spawned.
 ```
+
+---
+
+## /msc tps
+
+Prints the TPS, tick time, heap use, entity count and freezes caught in chat and, for a player, sends a **private link** to a live monitor page: TPS and tick-time charts, memory and garbage-collection pauses, entities per world and per custom tag, boss particle pressure, a diagnosis in plain sentences and every **freeze** the server suffered with the stack of the main thread while it lasted (and which plugin it points to).
+
+- The page is served by the plugin itself, from its jar, on `monitor.port` (default 8765). It is **not** part of the GitHub Pages site: it only answers to the random link `/msc tps` hands out, which expires after `monitor.link-minutes` (30) and is cancelled by the next `/msc tps` from the same admin.
+- The port has to be reachable from your browser. Set `monitor.public-host` to the address players use if `server-ip` is empty; on a host behind a panel, open or forward the port.
+- Same permission as the rest of `/msc` (`msc.admin` or OP). `monitor.enabled: false` turns the sampling off; `freeze-threshold-ms` (150) is how long a tick must take to count as a freeze.
 
 ---
 

@@ -38,3 +38,4 @@ build/
 
 # Agent/IDE scratch files
 .freebuff/
+_site/
