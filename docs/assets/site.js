@@ -16,24 +16,31 @@
     { icon: "👨‍💻", name: "Jack Star", src: "The System Architect", color: "#38d6e6",
       text: "Five phases, three lives and a body built from eleven skin heads. He summons other bosses as subprocesses, but never hides behind them.",
       tags: ["3 lives", "5 phases", "Subprocesses"] },
-    { icon: "⏱️", name: "DIO", src: "JoJo's Bizarre Adventure", color: "#f2c230", viewer: "the-world",
+    { icon: "⏱️", name: "DIO", src: "JoJo's Bizarre Adventure", color: "#f2c230", viewer: "dio-brando",
       text: "Walks in with ゴゴゴ letters drifting up and The World floating behind him. Below half health he enrages: time stops for longer and the knives multiply.",
       tags: ["Time stop", "Stand", "Final Hour"] },
     { icon: "⚙️", name: "Mahoraga", src: "Jujutsu Kaisen", color: "#9aa3b2",
-      text: "The Divine General adapts to whatever kills it. A miniboss that learns from every fight.", tags: ["Adaptive", "Miniboss"] },
+      text: "The Divine General reads its target's armour, enchantments and weapons every tick and adapts: more damage against heavy armour, Resistance against high Sharpness, speed against a runner.", tags: ["Adaptive", "Miniboss"] },
     { icon: "♟️", name: "Kinger", src: "The Amazing Digital Circus", color: "#d94fd5",
-      text: "A chess-piece king with a fully animated custom model that walks, cleaves and guards.", tags: ["Custom model", "Miniboss"] },
-    { icon: "👊", name: "Garou", src: "One-Punch Man", color: "#ff7a2a",
-      text: "A martial-arts miniboss, and one of the bosses Jack Star and the Sentinel can call through the gate.", tags: ["Miniboss", "Summonable"] },
+      text: "A living chess king in a 15-piece suit whose legs fold at the knee. Chases, sweeps in melee and strikes from range; 1% of placed armor stands become him.", tags: ["Custom model", "Miniboss"] },
+    { icon: "👊", name: "Garou", src: "Hero Hunter", color: "#ff7a2a",
+      text: "A miniboss, and one of the bosses Jack Star calls in as a subprocess and the Sentinel can bring through its gate.", tags: ["Miniboss", "Summonable"] },
   ];
 
+  // Rarity is the weight the Arrow rolls with (stands.<stand> in config.yml): lower is rarer.
   const STANDS = [
-    { name: "Star Platinum", key: "star-platinum", face: "star-platinum", color: "#7c8cff", text: "Precise and overwhelmingly strong." },
-    { name: "The World", key: "the-world", color: "#f2c230", text: "Stops time. DIO's Stand, drawn with eleven player heads." },
-    { name: "Killer Queen", key: "killer-queen", face: "killer-queen", color: "#ff7ac3", text: "Turns anything it touches into a bomb, and brings Sheer Heart Attack." },
-    { name: "Crazy Diamond", key: "crazy-diamond", face: "crazy-diamond", color: "#ff9bd6", text: "Restores what was broken." },
-    { name: "Magician's Red", key: "magicians-red", face: "magicians-red", color: "#ff5a3a", text: "A bird-headed Stand that commands fire." },
-    { name: "DIO Brando", key: "dio-brando", face: "dio-brando", color: "#ffd24a", text: "DIO's own skin set, on the same eleven heads." },
+    { name: "The World", key: "the-world", color: "#f2c230", rarity: 3,
+      text: "F: MUDA MUDA barrage. Sneak + left click: ZA WARUDO, time stops for 3 seconds." },
+    { name: "Star Platinum", key: "star-platinum", face: "star-platinum", color: "#7c8cff", rarity: 10,
+      text: "F: ORA ORA barrage. Sneak + left click: stops time for 1.5 seconds." },
+    { name: "Killer Queen", key: "killer-queen", face: "killer-queen", color: "#ff7ac3", rarity: 14,
+      text: "Passive: First Bomb. F or /stand sha: Sheer Heart Attack." },
+    { name: "Crazy Diamond", key: "crazy-diamond", face: "crazy-diamond", color: "#ff9bd6", rarity: 18,
+      text: "F: Restoration. Heals whoever you look at and mends half of what they hold." },
+    { name: "Magician's Red", key: "magicians-red", face: "magicians-red", color: "#ff5a3a", rarity: 25,
+      text: "F: Crossfire Hurricane, a fan of three burning ankhs." },
+    { name: "Hermit Purple", color: "#9b59d0", rarity: 30,
+      text: "F: Spirit Photography. Everything alive within 48 blocks glows and the nearest player is named." },
   ];
 
   const CREATURES = [
@@ -79,10 +86,10 @@
   // ---------------------------------------------------------------- stands
   $("#standGrid").innerHTML = STANDS.map(s => `
     <article class="card reveal" style="--accent:${s.color}">
-      ${s.face ? `<div class="face" style="background-image:url(viewer/skins/${s.face}/00_head.png)"></div>` : `<div class="ico">✋</div>`}
-      <h3>${esc(s.name)}</h3><div class="src">JoJo's Bizarre Adventure</div>
+      ${s.face ? `<div class="face" style="background-image:url(viewer/skins/${s.face}/00_head.png)" role="img" aria-label="${esc(s.name)}'s head skin"></div>` : `<div class="ico">✋</div>`}
+      <h3>${esc(s.name)}</h3><div class="src">Rarity weight ${s.rarity}${s.rarity <= 10 ? " · rare" : ""}</div>
       <p>${esc(s.text)}</p>
-      <a class="go" href="${viewerUrl(s.key, s.face ? "&painted" : "")}">View in 3D →</a>
+      ${s.key ? `<a class="go" href="${viewerUrl(s.key, s.face ? "&painted" : "")}">View in 3D →</a>` : `<span class="go" style="color:var(--faint);cursor:default">No body: it acts through vines</span>`}
     </article>`).join("");
 
   // ---------------------------------------------------------------- creatures
@@ -122,6 +129,15 @@
   });
 
   const LOOP = 5200;
+  let paused = false, pausedAt = 0;
+  const playBtn = $("#play");
+  playBtn.addEventListener("click", () => {
+    paused = !paused;
+    if (paused) pausedAt = performance.now(); else t0 += performance.now() - pausedAt;
+    playBtn.textContent = paused ? "▶ Play" : "❚❚ Pause";
+    playBtn.setAttribute("aria-pressed", paused);
+  });
+  $("#replay").addEventListener("click", () => { t0 = performance.now(); if (paused) pausedAt = t0; });
   function fit() {
     const dpr = Math.min(2, devicePixelRatio || 1), w = canvas.clientWidth, h = canvas.clientHeight;
     if (canvas.width !== Math.round(w * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
@@ -134,7 +150,8 @@
     requestAnimationFrame(frame);
     if (!visible) return;
     const [w, h] = fit(), a = A.ATTACKS.find(x => x.id === state.id);
-    const t = reduced ? 0.55 : ((now - t0) % LOOP) / LOOP;
+    const t = reduced ? 0.55 : (((paused ? pausedAt : now) - t0) % LOOP) / LOOP;
+    $("#progress").style.width = (t * 100).toFixed(1) + "%";
     A.draw(c, w, h, a, t);
     phases.t.classList.toggle("on", t < A.T1);
     phases.h.classList.toggle("on", t >= A.T1 && t < A.T2);

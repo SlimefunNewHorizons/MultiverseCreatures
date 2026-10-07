@@ -15,7 +15,7 @@ Todos los comandos usan la raíz **`/msc`**. **Permiso:** `msc.admin` (OP del se
 /msc kill [tipo|all] [radio]   Purga criaturas de MSC de forma segura
 /msc debug [jugador]           Desglosa el daño de cada jefe hacia y desde un jugador
 /msc debug geometry [jefe]     Dibuja la hitbox y las articulaciones de un jefe, o reproduce su caminar
-/msc tps                       Monitor del servidor: TPS en el chat y un enlace privado a la página en vivo
+/msc tps                       Monitor del servidor: TPS en el chat y un enlace privado al reporte completo
 /msc reload                    Recarga config.yml, fusiona los defaults nuevos y sincroniza entidades y jefes
 ```
 
@@ -295,11 +295,13 @@ Replaying kinger's walk in front of you for 10 s: hitbox (red), joints (cyan), b
 
 ## /msc tps
 
-Muestra en el chat los TPS, el tiempo de tick, la memoria, las entidades y los congelamientos detectados y, a un jugador, le envía un **enlace privado** a una página de monitoreo en vivo: gráficos de TPS y tiempo de tick, memoria y pausas del recolector de basura, entidades por mundo y por etiqueta custom, presión de partículas de los jefes, un diagnóstico en frases simples y cada **congelamiento** con la pila del hilo principal mientras duró (y a qué plugin apunta).
+Muestra en el chat los TPS, el tiempo de tick, la memoria, las entidades y los congelamientos detectados y, a un jugador, le envía un **enlace privado** a un reporte de rendimiento: gráficos de TPS y tiempo de tick, memoria y pausas del recolector de basura, entidades por mundo y por etiqueta custom, carga de partículas de los jefes, un diagnóstico en frases simples y cada **congelamiento** con la pila del hilo principal mientras duró y el plugin y método al que apunta.
 
-- La página la sirve el propio plugin, desde su jar, en `monitor.port` (8765 por defecto). **No** forma parte del sitio de GitHub Pages: solo responde al enlace aleatorio que entrega `/msc tps`, que caduca a los `monitor.link-minutes` (30) y se anula con el siguiente `/msc tps` del mismo admin.
-- El puerto debe ser alcanzable desde tu navegador. Define `monitor.public-host` con la dirección que usan los jugadores si `server-ip` está vacío; detrás de un panel hay que abrir o redirigir el puerto.
-- Mismo permiso que el resto de `/msc` (`msc.admin` u OP). `monitor.enabled: false` apaga el muestreo; `freeze-threshold-ms` (150) es lo que debe tardar un tick para contar como congelamiento.
+**`monitor.mode: upload` (por defecto, funciona en cualquier hosting).** El reporte es un snapshot de ese momento (con los últimos `history-seconds` de historial). Se comprime y se **cifra con AES-256-GCM en el servidor**, se sube a `monitor.upload-url` (un servicio bytebin, `https://bytebin.lucko.me` por defecto, el mismo que usa Spark) y se abre en `monitor.viewer-url`, la página `monitor/` del sitio del proyecto. La clave solo viaja en el enlace, después del `#`, que el navegador nunca envía a ningún servidor: el almacenamiento guarda bytes que no puede leer y la página está vacía sin el enlace. No hay que abrir ningún puerto; el servidor hace una sola petición HTTPS saliente, fuera del hilo principal. Ejecuta `/msc tps` otra vez para un snapshot más nuevo. No incluye nombres de jugadores, IPs ni coordenadas; sí incluye los nombres de los mundos y los nombres de clases de las pilas de congelamientos.
+
+**`monitor.mode: local`.** El plugin sirve una página en vivo (se actualiza cada 2 s) en `monitor.port` (8765). Si ese puerto está ocupado prueba los 20 siguientes y luego cualquiera libre, y avisa cuál en el chat. El enlace usa `monitor.public-host`, si no la dirección con la que entraste, si no `server-ip`. El puerto debe ser alcanzable desde tu navegador. Los enlaces caducan a los `link-minutes` (30) y el siguiente `/msc tps` del mismo admin anula el anterior.
+
+Mismo permiso que el resto de `/msc` (`msc.admin` u OP). `monitor.enabled: false` apaga el muestreo; `freeze-threshold-ms` (150) es lo que debe tardar un tick para contar como congelamiento. Mientras no hay nadie conectado (cuando Paper pausa un servidor vacío) no se registran congelamientos.
 
 ---
 

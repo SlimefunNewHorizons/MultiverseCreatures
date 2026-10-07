@@ -15,7 +15,7 @@ All commands use the **`/msc`** root. **Permission:** `msc.admin` (server OP by 
 /msc kill [type|all] [radius]  Safely kill/purge MSC custom creatures
 /msc debug [player]            Break down each boss's damage to and from a player
 /msc debug geometry [boss]     Draw a boss's hitbox and joints, or replay its walk
-/msc tps                       Server monitor: TPS in chat plus a private link to the live page
+/msc tps                       Server monitor: TPS in chat plus a private link to the full report
 /msc reload                    Reload config.yml, merge new defaults and sync entities and bosses
 ```
 
@@ -295,11 +295,13 @@ Replaying kinger's walk in front of you for 10 s: hitbox (red), joints (cyan), b
 
 ## /msc tps
 
-Prints the TPS, tick time, heap use, entity count and freezes caught in chat and, for a player, sends a **private link** to a live monitor page: TPS and tick-time charts, memory and garbage-collection pauses, entities per world and per custom tag, boss particle pressure, a diagnosis in plain sentences and every **freeze** the server suffered with the stack of the main thread while it lasted (and which plugin it points to).
+Prints the TPS, tick time, heap use, entity count and freezes caught in chat and, for a player, sends a **private link** to a performance report: TPS and tick-time charts, memory and garbage-collection pauses, entities per world and per custom tag, boss particle load, a diagnosis in plain sentences and every **freeze** the server suffered, with the main thread's stack while it lasted and the plugin and method it points to.
 
-- The page is served by the plugin itself, from its jar, on `monitor.port` (default 8765). It is **not** part of the GitHub Pages site: it only answers to the random link `/msc tps` hands out, which expires after `monitor.link-minutes` (30) and is cancelled by the next `/msc tps` from the same admin.
-- The port has to be reachable from your browser. Set `monitor.public-host` to the address players use if `server-ip` is empty; on a host behind a panel, open or forward the port.
-- Same permission as the rest of `/msc` (`msc.admin` or OP). `monitor.enabled: false` turns the sampling off; `freeze-threshold-ms` (150) is how long a tick must take to count as a freeze.
+**`monitor.mode: upload` (default, works on any hosting).** The report is a snapshot of that moment (with the last `history-seconds` of history). It is gzipped and **encrypted with AES-256-GCM on the server**, uploaded to `monitor.upload-url` (a bytebin service, `https://bytebin.lucko.me` by default, the one Spark uses) and opened on `monitor.viewer-url`, the `monitor/` page of the project's site. The key only travels in the link after the `#`, which browsers never send to any server: the storage holds bytes it cannot read and the page is empty without the link. No port has to be open; the server makes one outgoing HTTPS request, off the main thread. Run `/msc tps` again for a newer snapshot. The snapshot has no player names, IPs or coordinates; it does carry world names and the class names in freeze stacks.
+
+**`monitor.mode: local`.** The plugin serves a live page itself (refreshing every 2 s) on `monitor.port` (8765). If that port is taken it tries the next 20 and then any free one, and says which in chat. The link uses `monitor.public-host`, else the address you joined with, else `server-ip`. The port must be reachable from your browser. Links expire after `link-minutes` (30) and the next `/msc tps` from the same admin cancels the previous one.
+
+Same permission as the rest of `/msc` (`msc.admin` or OP). `monitor.enabled: false` turns the sampling off; `freeze-threshold-ms` (150) is how long a tick must take to count as a freeze. While nobody is online (when Paper pauses an empty server) no freezes are recorded.
 
 ---
 

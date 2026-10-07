@@ -7,7 +7,8 @@
 <meta name="description" content="Adaptive bosses, the Wither Storm, Stands and themed creatures for Paper and Purpur. See every custom entity in 3D and watch their attacks play out.">
 <meta property="og:title" content="MultiverseCreatures">
 <meta property="og:description" content="Adaptive bosses, the Wither Storm, Stands and themed creatures for Paper and Purpur.">
-<meta property="og:image" content="banner.svg">
+<meta property="og:image" content="https://slimefunnewhorizons.github.io/MultiverseCreatures/icon.png">
+<meta name="theme-color" content="#0b0a12">
 <link rel="icon" href="icon.svg">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -16,7 +17,7 @@
   <div class="wrap">
     <a class="brand" href="#top"><img src="icon.svg" alt="">MultiverseCreatures</a>
     <div class="links">
-      <a href="#bosses">Bosses</a><a href="#lab">Attacks</a><a href="#witherstorm">Wither Storm</a><a href="#stands">Stands</a><a href="#creatures">Creatures</a>
+      <a href="#bosses">Bosses</a><a href="#lab">Attacks</a><a href="#witherstorm">Wither Storm</a><a href="#stands">Stands</a><a href="#creatures">Creatures</a><a href="#monitor">Monitor</a>
       <a class="cta-s" href="https://modrinth.com/plugin/multiversecreatures">Download</a>
     </div>
   </div>
@@ -37,7 +38,7 @@
       <div class="stat"><b>96</b><span>Sentinel attacks</span></div>
       <div class="stat"><b>8</b><span>bosses and minibosses</span></div>
       <div class="stat"><b>5</b><span>Wither Storm forms</span></div>
-      <div class="stat"><b>6</b><span>Stands</span></div>
+      <div class="stat"><b>6</b><span>Stands to awaken</span></div>
       <div class="stat"><b>14</b><span>custom creatures</span></div>
     </div>
   </div>
@@ -64,6 +65,8 @@
           <h3 id="aname"></h3><div class="by" id="aby"></div>
           <p id="atext"></p>
           <div class="phases"><div class="phase t">Telegraph</div><div class="phase h">The blow</div><div class="phase r">Recovery</div></div>
+          <div class="track"><i id="progress"></i></div>
+          <div class="controls"><button class="chip" id="play" aria-pressed="false">❚❚ Pause</button><button class="chip" id="replay">↺ Replay</button></div>
           <div class="legend">Telegraph: where it lands (red heats to yellow). Blow: it lands. Recovery: the boss is open.</div>
         </div>
       </div>
@@ -87,8 +90,18 @@
 
   <section class="block" id="stands">
     <div class="head"><div class="eyebrow">JoJo's Bizarre Adventure</div><h2>The Arrow chooses</h2>
-      <p class="lead">Stands are drawn with player heads, each with its own pose and painted skin. Open any of them in the viewer.</p></div>
+      <p class="lead">An Archer of the Arrow drops the Arrow; drink the Bearer's Elixir brewed from DIO's blood and it always awakens a Stand. Without it, the Arrow kills 70% of the time. Stands with a body are drawn with player heads: open them in the viewer.</p></div>
     <div class="grid g3" id="standGrid"></div>
+  </section>
+
+  <section class="block" id="monitor">
+    <div class="head"><div class="eyebrow">For server owners</div><h2>Find out why the server freezes</h2>
+      <p class="lead"><code>/msc tps</code> sends an admin a private link to a performance report. It needs no open port, so it works on any hosting.</p></div>
+    <div class="facts">
+      <div class="fact"><b>Freezes with their culprit</b><span>When a tick stalls, a watchdog records what the main thread was running and names the plugin and the method behind it.</span></div>
+      <div class="fact"><b>The whole picture</b><span>TPS, tick time, memory and garbage-collection pauses, entities per world, boss particle load, and a diagnosis in plain sentences.</span></div>
+      <div class="fact"><b>Private by design</b><span>The snapshot is encrypted on the server. The key only travels in the link, so the page is empty for anyone without it.</span></div>
+    </div>
   </section>
 
   <section class="block" id="creatures">

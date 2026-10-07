@@ -55,6 +55,8 @@ public final class ServerMonitor {
     private static final String JACK_TAG_PREFIX = "msc_jackstar_";
     private static final int SCAN_EVERY_SAMPLES = 5;
     private static final long NANOS_PER_MS = 1_000_000L;
+    /** A second sample this late means the server was not ticking at all. */
+    private static final double PAUSE_SECONDS = 5;
 
     private final JavaPlugin plugin;
     private final int historySize;
@@ -138,6 +140,13 @@ public final class ServerMonitor {
         double tps = Math.min(20.0, ticksSinceSample / seconds);
         lastSampleNanos = now;
         ticksSinceSample = 0;
+        if (seconds > PAUSE_SECONDS && lastPlayers == 0) {
+            // An empty Paper server stops ticking (pause-when-empty-seconds). That gap is not lag: skip it
+            // instead of charting one second of near-zero TPS.
+            gapMaxNanos = 0;
+            lastGcMs = gcMillis();
+            return;
+        }
         double gap = gapMaxNanos / NANOS_PER_MS;
         gapMaxNanos = 0;
 
@@ -246,6 +255,18 @@ public final class ServerMonitor {
             }
             long seen = beat;
             if (System.nanoTime() - seen < thresholdNanos) continue;
+            if (lastPlayers == 0) {
+                // Nobody online: a stopped tick is Paper pausing an empty server, not a freeze. Wait it out
+                // without sampling the stack every few milliseconds for as long as the pause lasts.
+                while (running && beat == seen) {
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+                continue;
+            }
 
             Map<String, int[]> votes = new HashMap<>();
             Map<String, StallSource.Blame> blames = new HashMap<>();

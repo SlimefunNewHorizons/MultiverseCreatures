@@ -377,6 +377,8 @@ final class WitherStorm {
         if (age % FRAME == 0) {
             drawFrame();
         }
+        // Every tick, not every frame: the beam is stepped along its arc between the body's frames.
+        drawBeams(age % FRAME == 0);
         tickSkulls();
         if (age % 2 == 0) {
             tickDebris();
@@ -400,7 +402,6 @@ final class WitherStorm {
         frame = model.partMatrices(pose(), size());
         body.update(model.place(frame), FRAME);
         locateHeads();
-        drawBeams();
         if (state == State.FIGHTING) {
             tentacleStrikes();
         }
@@ -829,7 +830,7 @@ final class WitherStorm {
     }
 
     /** Draws every head's beam as it stands this frame: thin while charging, a full cone while pulling. */
-    private void drawBeams() {
+    private void drawBeams(boolean fresh) {
         for (HeadState h : heads) {
             int i = h.gaze.index();
             boolean on = state == State.FIGHTING && (h.beam == Beam.CHARGING || h.beam == Beam.PULLING);
@@ -846,7 +847,7 @@ final class WitherStorm {
             double length = h.beam == Beam.PULLING && h.beamLength > 0 ? h.beamLength : beamRange();
             float start = Math.max(0.15f, h.width * 0.18f);
             float endWidth = h.beam == Beam.PULLING ? (float) beamEndRadius() * 2f : start * 1.5f;
-            body.beam(i, mouth, dir, (float) length, start, endWidth, sentYaw, FRAME);
+            body.beam(i, mouth, dir, (float) length, start, endWidth, sentYaw, FRAME, fresh);
             if (h.beam == Beam.PULLING && age % 6 == 0) {
                 Vector p = h.mouth.clone().add(forward(h).multiply(length * ThreadLocalRandom.current().nextDouble()));
                 ParticleBudget.spawn(world(), Particle.REVERSE_PORTAL, p.getX(), p.getY(), p.getZ(), 4, 0.5, 0.5, 0.5, 0.02, null);

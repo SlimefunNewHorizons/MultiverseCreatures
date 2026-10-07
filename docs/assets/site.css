@@ -24,9 +24,18 @@ nav .wrap{display:flex;align-items:center;gap:22px;height:58px}
 nav .brand{display:flex;align-items:center;gap:10px;font-weight:700;text-decoration:none}
 nav .brand img{width:26px;height:26px}
 nav .links{display:flex;gap:18px;margin-left:auto;font-size:14px}
-nav .links a{color:var(--muted);text-decoration:none}
+nav .links a{color:var(--muted);text-decoration:none;white-space:nowrap;flex:none}
 nav .links a:hover{color:var(--text)}
-@media(max-width:720px){nav .links a:not(.cta-s){display:none}}
+@media(max-width:720px){
+  nav .wrap{height:auto;flex-wrap:wrap;padding-top:10px;padding-bottom:8px;gap:8px}
+  nav .links{order:3;width:100%;margin:0;overflow-x:auto;gap:16px;padding-bottom:4px;scrollbar-width:none}
+  nav .links .cta-s{margin-left:auto}
+}
+code{font:13px ui-monospace,Consolas,monospace;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--text)}
+.track{height:4px;border-radius:2px;background:var(--panel2);margin-top:10px;overflow:hidden}
+.track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb54a,#ff5a5a 50%,#7fe3a3)}
+.controls{display:flex;gap:8px;margin-top:12px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
 /* buttons */
 .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;font-weight:600;text-decoration:none;border:1px solid var(--line);background:var(--panel);transition:.15s}

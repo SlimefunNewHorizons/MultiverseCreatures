@@ -36,6 +36,8 @@ canvas{width:100%;height:170px;display:block}
 .finding.critical{border-color:var(--bad)}.finding.warn{border-color:var(--warn)}.finding.ok{border-color:var(--ok)}
 .dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:5px}
 .critical .dot{background:var(--bad)}.warn .dot{background:var(--warn)}.ok .dot{background:var(--ok)}.info .dot{background:var(--info)}
+.tablewrap{overflow-x:auto}
+section{min-width:0}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
 th{color:var(--dim);font-weight:500;font-size:12px}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .bar{height:8px;border-radius:4px;background:var(--accent);min-width:2px}
@@ -44,15 +46,23 @@ summary{cursor:pointer;padding:9px 12px;display:flex;gap:12px;flex-wrap:wrap;ali
 summary .ms{font-weight:650}summary .src{color:var(--accent)}summary .when{color:var(--dim);margin-left:auto;font-size:12px}
 pre{margin:0;padding:10px 12px;overflow:auto;border-top:1px solid var(--line);color:#c4cad8;font-size:12px}
 .empty{color:var(--dim);padding:6px 0}
+.note{display:none;padding:12px 16px;border-radius:10px;margin-bottom:14px;background:#141a26;border:1px solid var(--line);color:var(--dim)}
+.note b{color:var(--text)}
+.loading{padding:40px 0;text-align:center;color:var(--dim)}
+main.wait > :not(#loading):not(.banner){display:none}
+button.dl{font:inherit;font-size:12px;padding:3px 10px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--dim);cursor:pointer}
+button.dl:hover{color:var(--text)}
 </style>
 </head>
 <body>
 <header>
   <h1>MSC Server Monitor<small id="srv"></small></h1>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill" id="up"></span><span class="pill" id="ver"></span><span class="pill live" id="live">live</span></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill" id="up"></span><span class="pill" id="ver"></span><span class="pill live" id="live">loading</span><button class="dl" id="dl" title="Save the raw numbers as JSON">Download JSON</button></div>
 </header>
-<main>
+<main class="wait">
   <div class="banner" id="expired"><b>This link expired.</b> Run <code>/msc tps</code> in game to get a new one.</div>
+  <div class="note" id="snapnote"></div>
+  <div class="loading" id="loading">Loading the report…</div>
 
   <section><h2>Diagnosis</h2><div id="findings"></div></section>
 
@@ -122,6 +132,7 @@ function kpi(label, value, sub, cls){ return `<div class="kpi"><div class="l">${
 function grade(v, good, bad, invert){ if(invert) return v>=good?'ok':v>=bad?'warn':'bad'; return v<=good?'ok':v<=bad?'warn':'bad'; }
 
 function render(){
+  document.querySelector('main').classList.remove('wait');
   const H = data.history, last = H[H.length-1];
   $('srv').textContent = data.server; $('ver').textContent = data.version; $('up').textContent = 'uptime ' + dur(data.now-data.boot);
   const c = n => last ? last[col(n)] : 0;
@@ -153,8 +164,8 @@ function render(){
     + `${f.gc>0?`<span class="warn">GC ${fmt(f.gc,0)} ms</span>`:''}<span class="when">${ago(f.time)} · ${f.players} players · ${f.msc} custom entities</span></summary><pre>${esc(f.stack.join('\n'))}</pre></details>`).join('')
     : '<div class="empty">No freeze caught since the plugin started. A freeze is a tick that takes longer than the configured threshold (monitor.freeze-threshold-ms).</div>';
 
-  $('worlds').innerHTML = '<table><tr><th>World</th><th class="n">Entities</th><th class="n">Displays</th><th class="n">Stands</th><th class="n">Items</th><th class="n">Chunks</th><th class="n">Players</th></tr>'
-    + data.worlds.map(w => `<tr><td>${esc(w.name)}</td><td class="n">${fmt(w.entities,0)}</td><td class="n">${fmt(w.display,0)}</td><td class="n">${fmt(w.stands,0)}</td><td class="n">${fmt(w.items,0)}</td><td class="n">${fmt(w.chunks,0)}</td><td class="n">${w.players}</td></tr>`).join('') + '</table>';
+  $('worlds').innerHTML = '<div class="tablewrap"><table><tr><th>World</th><th class="n">Entities</th><th class="n">Displays</th><th class="n">Stands</th><th class="n">Items</th><th class="n">Chunks</th><th class="n">Players</th></tr>'
+    + data.worlds.map(w => `<tr><td>${esc(w.name)}</td><td class="n">${fmt(w.entities,0)}</td><td class="n">${fmt(w.display,0)}</td><td class="n">${fmt(w.stands,0)}</td><td class="n">${fmt(w.items,0)}</td><td class="n">${fmt(w.chunks,0)}</td><td class="n">${w.players}</td></tr>`).join('') + '</table></div>';
 
   const kinds = Object.entries(data.kinds), top = Math.max(1, ...kinds.map(k=>k[1]));
   $('kinds').innerHTML = kinds.length ? '<table>' + kinds.map(([k,v]) => `<tr><td>${esc(k.replace(/^MSC_/,''))}</td><td style="width:45%"><div class="bar" style="width:${v/top*100}%"></div></td><td class="n">${fmt(v,0)}</td></tr>`).join('') + '</table>' : '<div class="empty">No custom entity is alive right now.</div>';
@@ -172,22 +183,32 @@ async function loadSnapshot(){
     const zipped = await crypto.subtle.decrypt({name:'AES-GCM', iv:sealed.slice(0,12)}, key, sealed.slice(12));
     const text = await new Response(new Blob([zipped]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
     data = JSON.parse(text); $('expired').style.display = 'none';
-    status.className = 'pill'; status.textContent = 'snapshot · ' + new Date(data.now).toLocaleTimeString();
+    status.className = 'pill'; status.textContent = 'snapshot · ' + new Date(data.now).toLocaleString();
+    $('snapnote').innerHTML = '<b>Snapshot</b> of the server at ' + esc(new Date(data.now).toLocaleString()) + ', with the last ' + Math.round(data.history.length / 60) + ' minutes of history. Run <code>/msc tps</code> again for a newer one.';
+    $('snapnote').style.display = 'block';
     render();
   }catch(e){
     $('expired').innerHTML = '<b>This snapshot is not available.</b> It may have expired or the link is incomplete. Run <code>/msc tps</code> in game for a new one.';
     $('expired').style.display = 'block'; status.className = 'pill dead'; status.textContent = 'unavailable';
+    $('loading').style.display = 'none';
   }
 }
 async function poll(){
   try{
     const r = await fetch('/'+token+'/data', {cache:'no-store'});
-    if(r.status === 404){ $('expired').style.display='block'; $('live').className='pill dead'; $('live').textContent='expired'; return; }
+    if(r.status === 404){ $('loading').style.display='none'; $('expired').style.display='block'; $('live').className='pill dead'; $('live').textContent='expired'; return; }
     data = await r.json(); $('live').className='pill live'; $('live').textContent='live'; render();
   }catch(e){ $('live').className='pill dead'; $('live').textContent='offline'; }
   setTimeout(poll, 2000);
 }
 window.addEventListener('resize', () => data && render());
+$('dl').addEventListener('click', () => {
+  if(!data) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], {type:'application/json'}));
+  a.download = 'msc-monitor-' + new Date(data.now).toISOString().replace(/[:.]/g, '-') + '.json';
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
 snapshot ? loadSnapshot() : poll();
 </script>
 </body>
