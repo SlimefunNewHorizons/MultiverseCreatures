@@ -98,6 +98,8 @@ final class WitherStorm {
         Beam beam = Beam.OFF;
         int beamTicks;
         double beamLength;
+        /** The length the beam is drawn with: the ground ray eased, so torn ground does not make it bob. */
+        double shownLength;
         /** Last frame's points in the world: the pivot it turns on, its middle and its mouth. */
         Vector pivot, centre, mouth;
         float width;
@@ -153,6 +155,10 @@ final class WitherStorm {
     private static final int MAX_DEBRIS = 24;
     /** A beam only lights up once its head points this close to its victim, in degrees. */
     private static final double LOCK_ANGLE = 12;
+    /** A holding head ignores a victim this far off its aim, in degrees, and the beam stays put. */
+    private static final float HOLD_SLACK = 3f;
+    /** The drawn beam ignores the ground ray moving less than this, in blocks. */
+    private static final double LENGTH_SLACK = 1.0;
     private static final Set<Material> NEVER_TORN = EnumSet.of(Material.BEDROCK, Material.BARRIER,
             Material.END_PORTAL_FRAME, Material.END_PORTAL, Material.NETHER_PORTAL, Material.END_GATEWAY,
             Material.COMMAND_BLOCK, Material.CHAIN_COMMAND_BLOCK, Material.REPEATING_COMMAND_BLOCK,
@@ -636,8 +642,15 @@ final class WitherStorm {
             wantedPitch = Math.max(-60, Math.min(80, wantedPitch));
             // With its beam on a head drags round slower than a sprint: running across the beam escapes it.
             float step = h.beam == Beam.CHARGING || h.beam == Beam.PULLING ? (float) form.beamAimRate() : free;
-            h.yaw += Math.max(-step, Math.min(step, wrap(wantedYaw - h.yaw)));
-            h.pitch += Math.max(-step, Math.min(step, wantedPitch - h.pitch));
+            float dYaw = wrap(wantedYaw - h.yaw);
+            float dPitch = wantedPitch - h.pitch;
+            if (h.beam == Beam.PULLING) {
+                // Holding: a victim bobbing inside the beam does not swing it; one leaving it is followed smoothly.
+                dYaw = hold(dYaw);
+                dPitch = hold(dPitch);
+            }
+            h.yaw += Math.max(-step, Math.min(step, dYaw));
+            h.pitch += Math.max(-step, Math.min(step, dPitch));
 
             if (state == State.PLAYING_DEAD) {
                 h.jaw += (1.2f - h.jaw) * 0.1f;
@@ -655,6 +668,11 @@ final class WitherStorm {
         }
         float wantedJaw = state == State.PLAYING_DEAD ? 1.5f : 0f;
         brokenJaw += (wantedJaw - brokenJaw) * 0.2f;
+    }
+
+    private static float hold(float error) {
+        float past = Math.abs(error) - HOLD_SLACK;
+        return past <= 0 ? 0 : Math.signum(error) * past * 0.3f;
     }
 
     private void tickRoar(HeadState h) {
@@ -836,6 +854,7 @@ final class WitherStorm {
             boolean on = state == State.FIGHTING && (h.beam == Beam.CHARGING || h.beam == Beam.PULLING);
             if (!on || frame[h.gaze.part()] == null) {
                 body.hideBeam(i);
+                h.shownLength = 0;
                 continue;
             }
             Matrix4f m = frame[h.gaze.part()];
@@ -844,7 +863,7 @@ final class WitherStorm {
             Vector3f centre = WitherStormModel.point(m, g.centre().x, g.centre().y, g.centre().z);
             Vector3f dir = new Vector3f(mouth).sub(centre);
             if (dir.lengthSquared() < 1.0e-6f) continue;
-            double length = h.beam == Beam.PULLING && h.beamLength > 0 ? h.beamLength : beamRange();
+            double length = steadyLength(h, h.beam == Beam.PULLING && h.beamLength > 0 ? h.beamLength : beamRange(), fresh);
             float start = Math.max(0.15f, h.width * 0.18f);
             float endWidth = h.beam == Beam.PULLING ? (float) beamEndRadius() * 2f : start * 1.5f;
             body.beam(i, mouth, dir, (float) length, start, endWidth, sentYaw, FRAME, fresh);
@@ -853,6 +872,23 @@ final class WitherStorm {
                 ParticleBudget.spawn(world(), Particle.REVERSE_PORTAL, p.getX(), p.getY(), p.getZ(), 4, 0.5, 0.5, 0.5, 0.02, null);
             }
         }
+    }
+
+    /**
+     * The ground ray under a sweeping head, and under the ground the beam itself tears up, jumps by whole
+     * blocks from one tick to the next. Drawn raw, the far end of a beam pointing down bobbed up and down,
+     * so the drawn length only moves on frames, ignores small changes and eases towards big ones.
+     */
+    private static double steadyLength(HeadState h, double length, boolean fresh) {
+        if (h.shownLength <= 0) {
+            h.shownLength = length;
+        } else if (fresh) {
+            double gap = length - h.shownLength;
+            if (Math.abs(gap) > LENGTH_SLACK) {
+                h.shownLength += (gap - Math.signum(gap) * LENGTH_SLACK) * (gap < 0 ? 0.5 : 0.3);
+            }
+        }
+        return h.shownLength;
     }
 
     /** Living things, dropped items and falling blocks; never anything of a boss. */
