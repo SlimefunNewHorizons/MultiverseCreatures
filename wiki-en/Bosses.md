@@ -388,7 +388,7 @@ As in the mod: **the first form has no beam**, in the next two hunchbacks only t
 
 While its beam is on a head turns **slower than a player sprints**: run sideways across the cone and you break free. The hunchbacks only drag the victim they locked onto; the Destroyer and the Devourer drag anything inside the cone. The beam is a translucent cone of purple glass, as in the mod.
 
-The cone is drawn steady: it follows its head between animation frames, its length ignores the ground it tears up underneath (changes under a block are ignored, bigger ones are eased in), and while it holds a victim the head does not chase every small bob of the victim inside the cone (3 degrees of slack) — it only follows, smoothly, a victim that is leaving it.
+The cone is drawn steady: it is redrawn on the same animation frames as the head it leaves, so both move together on the client; the head aims at a point that follows its victim's eyes smoothly instead of at every step and jump, and turns back as the body turns so the beam does not swing; its length ignores the ground it tears up underneath (changes under a block are ignored, bigger ones are eased in); and while it holds a victim the head ignores small bobs inside the cone (3 degrees of slack) and only follows, smoothly, a victim that is leaving it.
 
 ### Attacks
 

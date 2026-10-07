@@ -100,8 +100,13 @@ final class WitherStorm {
         double beamLength;
         /** The length the beam is drawn with: the ground ray eased, so torn ground does not make it bob. */
         double shownLength;
-        /** Last frame's points in the world: the pivot it turns on, its middle and its mouth. */
+        /** The pivot it turns on, its middle and its mouth: in the world, refreshed every tick. */
         Vector pivot, centre, mouth;
+        /** The same three points in the display space, from the last frame's matrices. */
+        Vector3f pivotLocal, centreLocal, mouthLocal;
+        /** Where the head aims: its victim's eyes followed smoothly, so a step or a jump does not jolt it. */
+        Vector aim;
+        LivingEntity aimed;
         float width;
 
         HeadState(WitherStormModel.Gaze gaze) {
@@ -157,6 +162,8 @@ final class WitherStorm {
     private static final double LOCK_ANGLE = 12;
     /** A holding head ignores a victim this far off its aim, in degrees, and the beam stays put. */
     private static final float HOLD_SLACK = 3f;
+    /** Share of the way to its victim's eyes a head's aim point moves each tick. */
+    private static final double AIM_FOLLOW = 0.3;
     /** The drawn beam ignores the ground ray moving less than this, in blocks. */
     private static final double LENGTH_SLACK = 1.0;
     private static final Set<Material> NEVER_TORN = EnumSet.of(Material.BEDROCK, Material.BARRIER,
@@ -186,7 +193,12 @@ final class WitherStorm {
     private int age;
     private float tentacleClock;
     private float yaw;
+    /** The yaw last sent to the displays, which the client turns them to over TURN_TICKS. */
     private float sentYaw;
+    /** The yaw the client is showing this tick, part way through that turn, and where the turn began. */
+    private float shownYaw;
+    private float turnFrom;
+    private int turnStart;
     private float bodyPitch;
     private float growth = 1f;
     private float brokenJaw;
@@ -222,6 +234,8 @@ final class WitherStorm {
         this.state = state;
         this.yaw = anchor.getLocation().getYaw();
         this.sentYaw = yaw;
+        this.shownYaw = yaw;
+        this.turnFrom = yaw;
         this.specials = new WitherStormSpecials(this);
         if (state == State.FORMING) {
             growth = 0.35f;
@@ -256,6 +270,9 @@ final class WitherStorm {
         body.spawn(anchor, model.place(frame), ownerTag, next.isColossal() ? 6f : 2.5f);
         body.turn(yaw);
         sentYaw = yaw;
+        shownYaw = yaw;
+        turnFrom = yaw;
+        turnStart = age - WitherStormBody.TURN_TICKS;
         locateHeads();
     }
 
@@ -287,19 +304,46 @@ final class WitherStorm {
     }
 
     /**
-     * A point of the display space in the world. The displays are drawn at the yaw last sent to
-     * them, so that is the yaw used: the world point is where the player sees the box.
+     * A point of the display space in the world, at the yaw the client is showing this tick: the
+     * world point is where the player sees the box, part way through a turn included.
      */
     Vector toWorld(Vector3f local) {
-        Vector3f v = new Quaternionf().rotateY(-sentYaw * DEG).transform(new Vector3f(local));
+        Vector3f v = new Quaternionf().rotateY(-shownYaw * DEG).transform(new Vector3f(local));
         Location a = anchor.getLocation();
         return new Vector(a.getX() + v.x, a.getY() + v.y, a.getZ() + v.z);
     }
 
     /** A world direction in the display space (yaw taken out). */
     private Vector3f toLocal(Vector direction) {
-        return new Quaternionf().rotateY(sentYaw * DEG).transform(new Vector3f((float) direction.getX(),
+        return new Quaternionf().rotateY(shownYaw * DEG).transform(new Vector3f((float) direction.getX(),
                 (float) direction.getY(), (float) direction.getZ()));
+    }
+
+    /**
+     * The heads' points in the world, from the last frame's matrices and where the anchor is now. The
+     * storm moves every tick but the frame comes every third; aimed from a pivot left two ticks behind,
+     * a head's wanted angle jumped back and forth on every frame.
+     */
+    private void placeHeads() {
+        // The client turns the body to a new yaw over TURN_TICKS; follow it tick by tick. A head's yaw
+        // is relative to the body, so each head turns back by the same amount and what it looks at
+        // stays put, instead of being dragged round with the body and found again at the beam's slow
+        // aiming rate, which swung a lit beam off its victim on every turn.
+        float progress = Math.min(1f, (age - turnStart) / (float) WitherStormBody.TURN_TICKS);
+        float shown = wrap(turnFrom + wrap(sentYaw - turnFrom) * progress);
+        float turned = wrap(shown - shownYaw);
+        shownYaw = shown;
+        if (heads == null) return;
+        for (HeadState h : heads) {
+            if (turned != 0f) {
+                float reach = h.gaze.jawed() ? 80 : 60;
+                h.yaw = Math.max(-reach, Math.min(reach, wrap(h.yaw - turned)));
+            }
+            if (h.pivotLocal == null) continue;
+            h.pivot = toWorld(h.pivotLocal);
+            h.centre = toWorld(h.centreLocal);
+            h.mouth = toWorld(h.mouthLocal);
+        }
     }
 
     private void locateHeads() {
@@ -307,9 +351,12 @@ final class WitherStorm {
             Matrix4f m = frame[h.gaze.part()];
             if (m == null) continue;
             WitherStormModel.Gaze g = h.gaze;
-            h.pivot = toWorld(WitherStormModel.point(m, 0, 0, 0));
-            h.centre = toWorld(WitherStormModel.point(m, g.centre().x, g.centre().y, g.centre().z));
-            h.mouth = toWorld(WitherStormModel.point(m, g.mouth().x, g.mouth().y, g.mouth().z));
+            h.pivotLocal = WitherStormModel.point(m, 0, 0, 0);
+            h.centreLocal = WitherStormModel.point(m, g.centre().x, g.centre().y, g.centre().z);
+            h.mouthLocal = WitherStormModel.point(m, g.mouth().x, g.mouth().y, g.mouth().z);
+            h.pivot = toWorld(h.pivotLocal);
+            h.centre = toWorld(h.centreLocal);
+            h.mouth = toWorld(h.mouthLocal);
             h.width = WitherStormModel.width(m, g);
         }
     }
@@ -364,6 +411,7 @@ final class WitherStorm {
         age++;
         stateTicks++;
         tickCooldowns();
+        placeHeads();
         if (age % 5 == 0 || targets.isEmpty()) {
             targets = findTargets();
         }
@@ -383,8 +431,6 @@ final class WitherStorm {
         if (age % FRAME == 0) {
             drawFrame();
         }
-        // Every tick, not every frame: the beam is stepped along its arc between the body's frames.
-        drawBeams(age % FRAME == 0);
         tickSkulls();
         if (age % 2 == 0) {
             tickDebris();
@@ -403,11 +449,15 @@ final class WitherStorm {
         if (age % WitherStormBody.TURN_TICKS == 0 && Math.abs(wrap(yaw - sentYaw)) > 2f) {
             body.turn(yaw);
             if (oldBody != null) oldBody.turn(yaw);
+            turnFrom = shownYaw;
+            turnStart = age;
             sentYaw = yaw;
         }
         frame = model.partMatrices(pose(), size());
         body.update(model.place(frame), FRAME);
         locateHeads();
+        // The beam is drawn on the same frames as the head it leaves, so the client slides both together.
+        drawBeams();
         if (state == State.FIGHTING) {
             tentacleStrikes();
         }
@@ -630,7 +680,7 @@ final class WitherStorm {
                 wantedYaw = h.yaw + (float) Math.sin(age * 0.4 + h.gaze.index()) * 4;
                 wantedPitch = 35;
             } else if (alive(h.target) && h.pivot != null) {
-                Vector3f d = toLocal(h.target.getEyeLocation().toVector().subtract(h.pivot));
+                Vector3f d = toLocal(aimAt(h).clone().subtract(h.pivot));
                 wantedYaw = (float) Math.toDegrees(Math.atan2(-d.x, d.z));
                 wantedPitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));
             } else {
@@ -668,6 +718,22 @@ final class WitherStorm {
         }
         float wantedJaw = state == State.PLAYING_DEAD ? 1.5f : 0f;
         brokenJaw += (wantedJaw - brokenJaw) * 0.2f;
+    }
+
+    /**
+     * The point a head aims at: its victim's eyes, followed at a third of the way per tick. The eyes
+     * bob with every step and jump, and a victim being pulled jitters in its own movement packets;
+     * aimed at directly, each of those bobs swung the far end of a long beam up and down.
+     */
+    private Vector aimAt(HeadState h) {
+        Vector eye = h.target.getEyeLocation().toVector();
+        if (h.aim == null || h.aimed != h.target || h.aim.distanceSquared(eye) > 64) {
+            h.aim = eye;
+            h.aimed = h.target;
+        } else {
+            h.aim.add(eye.subtract(h.aim).multiply(AIM_FOLLOW));
+        }
+        return h.aim;
     }
 
     private static float hold(float error) {
@@ -848,7 +914,7 @@ final class WitherStorm {
     }
 
     /** Draws every head's beam as it stands this frame: thin while charging, a full cone while pulling. */
-    private void drawBeams(boolean fresh) {
+    private void drawBeams() {
         for (HeadState h : heads) {
             int i = h.gaze.index();
             boolean on = state == State.FIGHTING && (h.beam == Beam.CHARGING || h.beam == Beam.PULLING);
@@ -863,10 +929,10 @@ final class WitherStorm {
             Vector3f centre = WitherStormModel.point(m, g.centre().x, g.centre().y, g.centre().z);
             Vector3f dir = new Vector3f(mouth).sub(centre);
             if (dir.lengthSquared() < 1.0e-6f) continue;
-            double length = steadyLength(h, h.beam == Beam.PULLING && h.beamLength > 0 ? h.beamLength : beamRange(), fresh);
+            double length = steadyLength(h, h.beam == Beam.PULLING && h.beamLength > 0 ? h.beamLength : beamRange());
             float start = Math.max(0.15f, h.width * 0.18f);
             float endWidth = h.beam == Beam.PULLING ? (float) beamEndRadius() * 2f : start * 1.5f;
-            body.beam(i, mouth, dir, (float) length, start, endWidth, sentYaw, FRAME, fresh);
+            body.beam(i, mouth, dir, (float) length, start, endWidth, sentYaw, FRAME);
             if (h.beam == Beam.PULLING && age % 6 == 0) {
                 Vector p = h.mouth.clone().add(forward(h).multiply(length * ThreadLocalRandom.current().nextDouble()));
                 ParticleBudget.spawn(world(), Particle.REVERSE_PORTAL, p.getX(), p.getY(), p.getZ(), 4, 0.5, 0.5, 0.5, 0.02, null);
@@ -877,12 +943,12 @@ final class WitherStorm {
     /**
      * The ground ray under a sweeping head, and under the ground the beam itself tears up, jumps by whole
      * blocks from one tick to the next. Drawn raw, the far end of a beam pointing down bobbed up and down,
-     * so the drawn length only moves on frames, ignores small changes and eases towards big ones.
+     * so the drawn length ignores small changes and eases towards big ones, once a frame.
      */
-    private static double steadyLength(HeadState h, double length, boolean fresh) {
+    private static double steadyLength(HeadState h, double length) {
         if (h.shownLength <= 0) {
             h.shownLength = length;
-        } else if (fresh) {
+        } else {
             double gap = length - h.shownLength;
             if (Math.abs(gap) > LENGTH_SLACK) {
                 h.shownLength += (gap - Math.signum(gap) * LENGTH_SLACK) * (gap < 0 ? 0.5 : 0.3);

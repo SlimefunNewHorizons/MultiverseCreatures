@@ -389,7 +389,7 @@ Como en el mod: **la primera forma no tiene rayo**, en las dos jorobas siguiente
 
 Mientras el rayo está encendido la cabeza gira **más despacio que un jugador corriendo**: cruza el cono corriendo de lado y te sueltas. Las jorobas solo arrastran a la víctima que fijaron; el Destructor y el Devorador arrastran todo lo que entre en el cono. El rayo se ve como un cono translúcido de cristal morado, igual que en el mod.
 
-El cono se dibuja estable: sigue a su cabeza entre los fotogramas de la animación, su largo no se deja llevar por el suelo que arranca debajo (los cambios de menos de un bloque se ignoran y los mayores se suavizan), y mientras sujeta a una víctima la cabeza no persigue cada pequeño vaivén de la víctima dentro del cono (3 grados de margen): solo sigue, con suavidad, a una víctima que se está saliendo.
+El cono se dibuja estable: se redibuja en los mismos fotogramas de animación que la cabeza de la que sale, así que en el cliente se mueven juntos; la cabeza apunta a un punto que sigue con suavidad los ojos de la víctima en vez de cada paso y cada salto, y gira al revés cuando gira el cuerpo para que el rayo no se desvíe; su largo no se deja llevar por el suelo que arranca debajo (los cambios de menos de un bloque se ignoran y los mayores se suavizan); y mientras sujeta a una víctima la cabeza ignora los vaivenes pequeños dentro del cono (3 grados de margen) y solo sigue, con suavidad, a una víctima que se está saliendo.
 
 ### Ataques
 

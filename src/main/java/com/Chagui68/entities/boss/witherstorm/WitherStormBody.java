@@ -45,23 +45,11 @@ final class WitherStormBody {
     private final Display[] displays;
     private final WitherStormModel.Placement[] sent;
     private final BlockDisplay[][] beams = new BlockDisplay[3][];
-    private final BeamState[] beamStates = new BeamState[3];
-    /** A hidden beam is not sent again: drawBeams asks every tick for every head. */
+    /** The last facing sent per head: q and -q are the same turn, but the client would slide the long way. */
+    private final Quaternionf[] lastFacing = new Quaternionf[3];
+    /** A hidden beam is not sent again: drawBeams asks every frame for every head. */
     private final boolean[] beamHidden = {true, true, true};
 
-    /**
-     * Where a head's beam is going and where it was a frame ago. The client slides a display's corner
-     * along a straight line while it turns it, so a long segment swung through a big angle in one
-     * three-tick slide drifts off its neighbours. The beam is therefore stepped here, every tick, along
-     * the arc, and each step is only a one-tick slide.
-     */
-    private static final class BeamState {
-        final Vector3f fromOrigin = new Vector3f(), toOrigin = new Vector3f();
-        final Vector3f fromAim = new Vector3f(), toAim = new Vector3f();
-        float fromLength, toLength, fromStart, toStart, fromEnd, toEnd;
-        int step;
-        Quaternionf last = new Quaternionf();
-    }
     private ArmorStand anchor;
     private String ownerTag;
     private float viewRange;
@@ -178,12 +166,13 @@ final class WitherStormBody {
      * {@code length} long and {@code endWidth} wide at its far end, with a brighter core. Points are in
      * the display space (before the yaw), like the boxes.
      *
-     * <p>Called every tick. {@code fresh} marks the frames on which the targets are new (the body's
-     * own frames, {@code frameTicks} apart); in between, the beam moves on towards them one tick at a
-     * time, the way the body slides, so the beam and the mouth it leaves stay together.</p>
+     * <p>Called on the body's frames and slid over the same {@code frameTicks} as the head it leaves,
+     * so the client moves both on one clock. Sent every tick with a one-tick slide, any packet that
+     * arrived a little early or late made the beam stutter against the head it hangs from, and over a
+     * cone tens of blocks long that stutter was the constant shake players saw.</p>
      */
     void beam(int head, Vector3f origin, Vector3f direction, float length, float startWidth, float endWidth,
-              float yaw, int frameTicks, boolean fresh) {
+              float yaw, int frameTicks) {
         if (head < 0 || head >= beams.length || anchor == null || !anchor.isValid()) return;
         BlockDisplay[] pieces = beams[head];
         if (pieces == null) {
@@ -201,70 +190,36 @@ final class WitherStormBody {
             beams[head] = pieces;
         }
 
+        // A beam lighting up appears where it is instead of growing out of the anchor.
+        int ticks = beamHidden[head] ? 0 : frameTicks;
         beamHidden[head] = false;
-        BeamState st = beamStates[head];
-        Vector3f want = new Vector3f(direction).normalize();
-        if (st == null) {
-            st = beamStates[head] = new BeamState();
-            st.fromOrigin.set(origin);
-            st.fromAim.set(want);
-            st.fromLength = length;
-            st.fromStart = startWidth;
-            st.fromEnd = endWidth;
-            fresh = true;
-            st.step = frameTicks;
-        } else if (fresh) {
-            float k = (float) st.step / frameTicks;
-            // Where it stands now becomes where it starts from: no jump if the frame was cut short.
-            st.fromOrigin.set(st.toOrigin).sub(st.fromOrigin).mul(k).add(st.fromOrigin);
-            st.fromAim.lerp(st.toAim, k).normalize();
-            st.fromLength += (st.toLength - st.fromLength) * k;
-            st.fromStart += (st.toStart - st.fromStart) * k;
-            st.fromEnd += (st.toEnd - st.fromEnd) * k;
-            st.step = 0;
-        }
-        if (fresh) {
-            st.toOrigin.set(origin);
-            st.toAim.set(want);
-            st.toLength = length;
-            st.toStart = startWidth;
-            st.toEnd = endWidth;
-        }
-        st.step = Math.min(frameTicks, st.step + 1);
-        float k = (float) st.step / frameTicks;
-        Vector3f o = new Vector3f(st.fromOrigin).lerp(st.toOrigin, k);
-        Vector3f aim = new Vector3f(st.fromAim).lerp(st.toAim, k);
-        if (aim.lengthSquared() < 1.0e-8f) aim.set(st.toAim);
-        aim.normalize();
-        float len = st.fromLength + (st.toLength - st.fromLength) * k;
-        float w0 = st.fromStart + (st.toStart - st.fromStart) * k;
-        float w1 = st.fromEnd + (st.toEnd - st.fromEnd) * k;
 
         // The heads face -z in the model, the one direction a shortest-arc rotation cannot turn to from +z
         // without picking a spin at random, so the facing is built from an up vector. Its sign follows the
         // last one sent: q and -q are the same turn, but the client would slide between them the long way.
-        Quaternionf facing = facing(aim);
-        if (facing.x * st.last.x + facing.y * st.last.y + facing.z * st.last.z + facing.w * st.last.w < 0) {
+        Quaternionf facing = facing(direction);
+        Quaternionf last = lastFacing[head];
+        if (last != null && facing.x * last.x + facing.y * last.y + facing.z * last.z + facing.w * last.w < 0) {
             facing.set(-facing.x, -facing.y, -facing.z, -facing.w);
         }
-        st.last.set(facing);
+        lastFacing[head] = new Quaternionf(facing);
 
         for (int i = 0; i < BEAM_PIECES; i++) {
             float from, to, width;
             if (i == BEAM_SEGMENTS) {
                 from = 0;
-                to = len;
-                width = Math.max(0.08f, w0 * 0.6f);
+                to = length;
+                width = Math.max(0.08f, startWidth * 0.6f);
             } else {
-                from = len * i / BEAM_SEGMENTS;
-                to = len * (i + 1) / BEAM_SEGMENTS;
-                width = w0 + (w1 - w0) * (i + 0.5f) / BEAM_SEGMENTS;
+                from = length * i / BEAM_SEGMENTS;
+                to = length * (i + 1) / BEAM_SEGMENTS;
+                width = startWidth + (endWidth - startWidth) * (i + 0.5f) / BEAM_SEGMENTS;
             }
-            Vector3f corner = facing.transform(new Vector3f(-width / 2, -width / 2, from)).add(o);
+            Vector3f corner = facing.transform(new Vector3f(-width / 2, -width / 2, from)).add(origin);
             BlockDisplay piece = pieces[i];
             if (piece == null || !piece.isValid()) continue;
             piece.setInterpolationDelay(0);
-            piece.setInterpolationDuration(1);
+            piece.setInterpolationDuration(ticks);
             piece.setTransformation(new Transformation(corner, new Quaternionf(facing),
                     new Vector3f(width, width, Math.max(0.01f, to - from)), new Quaternionf()));
         }
@@ -284,7 +239,7 @@ final class WitherStormBody {
     void hideBeam(int head) {
         if (head < 0 || head >= beams.length || beams[head] == null || beamHidden[head]) return;
         beamHidden[head] = true;
-        beamStates[head] = null;
+        lastFacing[head] = null;
         for (BlockDisplay piece : beams[head]) {
             if (piece == null || !piece.isValid()) continue;
             piece.setInterpolationDelay(0);
