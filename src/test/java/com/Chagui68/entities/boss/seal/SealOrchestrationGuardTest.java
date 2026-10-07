@@ -34,23 +34,23 @@ class SealOrchestrationGuardTest {
             "Math.cos(", "Math.sin(", "Math.tan(", "Math.toRadians(", "Math.sqrt(", "Math.pow(");
 
     @Test
-    @DisplayName("The listener has one scheduling site, so every seal shares the same loop")
-    void theListenerSchedulesOnce() {
+    @DisplayName("The listener stays a thin brush: one scheduling site, no shape math, its shapes from the seal package")
+    void theListenerOnlyDraws() {
         String code = SourceText.codeOnly(ProjectPaths.read(LISTENER));
         assertEquals(1, count(code, ".runTaskTimer("),
                 "the seals have to go through the shared repeat() helper; a second scheduling site means a "
                         + "seal grew its own loop again");
-    }
-
-    @Test
-    @DisplayName("The listener draws; it does not do shape math")
-    void theListenerDoesNotComputeShapes() {
-        String code = SourceText.codeOnly(ProjectPaths.read(LISTENER));
         for (String call : TRIGONOMETRY) {
             assertFalse(code.contains(call),
                     "MagicSealListener calls " + call + ": trigonometry belongs in the seal package, where it "
                             + "can be tested without a server");
         }
+        assertTrue(code.contains("WingGeometry."), "the listener stopped using the extracted wing geometry");
+        assertTrue(count(code, "SealGeometry.") >= 20,
+                "the listener should be a walk over the geometry, not a handful of leftover shapes");
+        long lines = ProjectPaths.read(LISTENER).lines().count();
+        assertTrue(lines < 700, "MagicSealListener is " + lines + " lines again: a seal has to be a short "
+                + "frame body over the geometry, not its own drawing code");
     }
 
     @Test
@@ -66,24 +66,6 @@ class SealOrchestrationGuardTest {
                                 + ": the geometry has to stay runnable from a plain unit test");
             }
         }
-    }
-
-    @Test
-    @DisplayName("The listener delegates its shapes to the seal package")
-    void theListenerDelegates() {
-        String code = SourceText.codeOnly(ProjectPaths.read(LISTENER));
-        assertTrue(code.contains("SealGeometry."), "the listener stopped using the extracted seal geometry");
-        assertTrue(code.contains("WingGeometry."), "the listener stopped using the extracted wing geometry");
-        assertTrue(count(code, "SealGeometry.") >= 20,
-                "the listener should be a walk over the geometry, not a handful of leftover shapes");
-    }
-
-    @Test
-    @DisplayName("The orchestrator stays thin")
-    void theListenerStaysThin() {
-        long lines = ProjectPaths.read(LISTENER).lines().count();
-        assertTrue(lines < 700, "MagicSealListener is " + lines + " lines again: a seal has to be a short "
-                + "frame body over the geometry, not its own drawing code");
     }
 
     private static int count(String text, String token) {

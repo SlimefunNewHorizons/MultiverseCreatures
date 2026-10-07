@@ -42,28 +42,18 @@ class LimbArticulationGuardTest {
     private static final double JOINT_GAP = 0.02;
 
     @Test
-    @DisplayName("Kinger articulates exactly the limbs its export splits")
-    void kingerArticulatesItsExport() {
+    @DisplayName("Kinger, NIX and JACKSTAR articulate exactly the limbs their exports split")
+    void everyDressedModelArticulatesItsExport() {
         assertArticulated("Kinger", List.of(Kinger.LimbGroup.values()),
                 group -> members(Kinger.KingerPart.values(), Kinger.KingerPart::group, group),
                 part -> KingerModel.baseTranslation(part).y,
                 KingerModel::secondJoint,
                 KingerModel::hangsFromSecondJoint);
-    }
-
-    @Test
-    @DisplayName("NIX articulates exactly the limbs its export splits")
-    void nixArticulatesItsExport() {
         assertArticulated("NIX", List.of(NixBoss.LimbGroup.values()),
                 group -> members(NixBoss.NixPart.values(), part -> part.group, group),
                 part -> NixModel.baseTranslation(part).y,
                 NixModel::secondJoint,
                 NixModel::hangsFromSecondJoint);
-    }
-
-    @Test
-    @DisplayName("JACKSTAR articulates exactly the limbs its export splits")
-    void jackstarArticulatesItsExport() {
         assertArticulated("JACKSTAR", List.of(JackStarBoss.LimbGroup.values()),
                 group -> members(JackStarBoss.JackPart.values(), part -> part.group, group),
                 part -> JackModel.baseTranslation(part).y,

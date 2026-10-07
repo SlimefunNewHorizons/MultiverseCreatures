@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Plays every choreographed attack from start to finish on a stage with no server, and checks what a
  * player would see: no exception, no particle the server would refuse, no prop left behind, the body
- * back at rest, and a lock no longer than the attack.
+ * back at rest, a lock no longer than the attack, and a hit on a player standing in it.
  */
 class ChoreographyTest {
 
@@ -31,7 +31,7 @@ class ChoreographyTest {
         List<String> names = new ArrayList<>();
         for (Path file : ProjectPaths.javaFiles(ProjectPaths.source("com", "Chagui68", "entities", "boss", "attack"))) {
             String source = ProjectPaths.read(file);
-            if (!source.contains("extends ChoreographedAttack")) continue;
+            if (!source.contains("extends ChoreographedAttack") || source.contains("abstract class")) continue;
             String relative = ProjectPaths.mainJava().relativize(file).toString().replace('\\', '/').replace('/', '.');
             names.add(relative.substring(0, relative.length() - ".java".length()));
         }
@@ -66,10 +66,10 @@ class ChoreographyTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("attacks")
-    @DisplayName("Every attack plays to its end cleanly")
+    @DisplayName("Every attack plays to its end cleanly and hurts a player standing in it")
     void playsCleanly(String className) throws Exception {
         Class<?> type = Class.forName(className);
-        if (Modifier.isAbstract(type.getModifiers())) return;
+        assertFalse(Modifier.isAbstract(type.getModifiers()), className + " is abstract");
         ChoreographedAttack attack = (ChoreographedAttack) type.getConstructor(BossHost.class).newInstance(host());
         RecordingStage stage = stage();
         Timeline timeline = attack.choreograph(stage);
@@ -92,21 +92,9 @@ class ChoreographyTest {
         if (!className.endsWith("HoverBarrageAttack") && !className.endsWith("AirSlamAttack")) {
             assertPose(rest, last, className + " does not return to " + (aerial ? "hovering" : "its guard"));
         }
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("attacks")
-    @DisplayName("Every attack that can hurt, hurts a player standing in it")
-    void hitsAPlayerInTheWay(String className) throws Exception {
-        Class<?> type = Class.forName(className);
-        if (Modifier.isAbstract(type.getModifiers())) return;
-        if (className.contains(".defensive.")) return;
-        ChoreographedAttack attack = (ChoreographedAttack) type.getConstructor(BossHost.class).newInstance(host());
-        RecordingStage stage = stage();
-        Timeline timeline = attack.choreograph(stage);
-        stage.play(timeline, attack.lockTicks(timeline));
-        stage.run(600);
-        assertFalse(stage.hits.isEmpty(), className + " hit nobody, with players at 4, 15 and 16 blocks");
+        if (!className.contains(".defensive.")) {
+            assertFalse(stage.hits.isEmpty(), className + " hit nobody, with players at 4, 15 and 16 blocks");
+        }
     }
 
     private static void assertPose(Pose expected, Pose actual, String message) {

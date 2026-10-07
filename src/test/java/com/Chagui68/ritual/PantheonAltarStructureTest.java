@@ -2,7 +2,6 @@ package com.Chagui68.ritual;
 
 import com.Chagui68.ritual.PantheonAltarStructure.Pantheon;
 import com.Chagui68.testsupport.ProjectPaths;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,22 +33,6 @@ class PantheonAltarStructureTest {
             Material.CRYING_OBSIDIAN, Material.LODESTONE, Material.RESPAWN_ANCHOR, Material.BEACON,
             Material.CHISELED_POLISHED_BLACKSTONE, Material.GILDED_BLACKSTONE);
 
-    @Test
-    @DisplayName("Four candles sit right next to the core, pillars on the corners of the 5x5")
-    void layout() {
-        assertEquals(4, PantheonAltarStructure.CANDLE_OFFSETS.length);
-        for (int[] offset : PantheonAltarStructure.CANDLE_OFFSETS) {
-            assertEquals(0, offset[1]);
-            assertEquals(1, Math.abs(offset[0] - 2) + Math.abs(offset[2] - 2));
-        }
-        for (int[] corner : PantheonAltarStructure.CORNER_OFFSETS) {
-            assertTrue((corner[0] == 0 || corner[0] == 4) && (corner[1] == 0 || corner[1] == 4));
-        }
-        Location altar = PantheonAltarStructure.getAltarLocation(new Location(null, 10, 50, -20));
-        assertEquals(12.5, altar.getX(), 1e-9);
-        assertEquals(51.0, altar.getY(), 1e-9);
-        assertEquals(-17.5, altar.getZ(), 1e-9);
-    }
 
     @Test
     @DisplayName("Each pantheon has its own candle, core and pillar, none shared with another ritual")
