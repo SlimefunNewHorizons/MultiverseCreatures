@@ -75,8 +75,6 @@ public class MultiverseCreatures extends JavaPlugin {
     private ArmorStandBoss armorStandBoss;
     /** Latest damage samples the bosses report, read by {@code /msc debug}. */
     private final BossDamageLog bossDamageLog = new BossDamageLog();
-    private com.Chagui68.monitor.ServerMonitor serverMonitor;
-    private com.Chagui68.monitor.MonitorServer monitorServer;
     private MagicSealListener magicSealListener;
     private MusicManager musicManager;
     private BossDimensionManager bossDimensionManager;
@@ -280,15 +278,6 @@ public class MultiverseCreatures extends JavaPlugin {
         getCommand("wiki").setExecutor(wikiCommand);
         getCommand("wiki").setTabCompleter(wikiCommand);
 
-        if (getConfig().getBoolean("monitor.enabled", true)) {
-            serverMonitor = new com.Chagui68.monitor.ServerMonitor(this,
-                    getConfig().getInt("monitor.history-seconds", 900),
-                    getConfig().getLong("monitor.freeze-threshold-ms", 150));
-            serverMonitor.start();
-            monitorServer = new com.Chagui68.monitor.MonitorServer(serverMonitor, getServer().getName(),
-                    getServer().getMinecraftVersion(), getConfig().getInt("monitor.link-minutes", 30));
-        }
-
         // The last line of a good start: the version compatibility check on GitHub waits for it.
         getLogger().info("MultiverseCreatures " + getPluginMeta().getVersion() + " ready on "
                 + getServer().getName() + " " + getServer().getMinecraftVersion());
@@ -296,8 +285,6 @@ public class MultiverseCreatures extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (monitorServer != null) monitorServer.stop();
-        if (serverMonitor != null) serverMonitor.stop();
         HeadSlime.clearAllImmunity();
         // Every tick loop the plugin starts stops here. Bukkit would cancel them on its own, but
         // only this side of the shutdown knows which subsystem was running; a handle nobody
@@ -376,14 +363,6 @@ public class MultiverseCreatures extends JavaPlugin {
 
     public ArmorStandBoss getArmorStandBoss() {
         return armorStandBoss;
-    }
-
-    public com.Chagui68.monitor.ServerMonitor getServerMonitor() {
-        return serverMonitor;
-    }
-
-    public com.Chagui68.monitor.MonitorServer getMonitorServer() {
-        return monitorServer;
     }
 
     public BossDamageLog getBossDamageLog() {
