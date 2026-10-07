@@ -6,28 +6,24 @@ All commands use the **`/msc`** root. **Permission:** `msc.admin` (server OP by 
 /msc                           Show structured, categorized help menu
 /msc spawn <type>              Summon a mob, boss, military strike, etc. (/msc spawn help [1-3])
 /msc give <item> [amount] [player]  Give legendary weapons, armor or components (/msc give help [1-4])
-/msc seal <pattern> [plane]    Render a particle seal pattern
-/msc dummy ...                 Spawn / pose / animate dummies, preview boss attacks
-/msc attack <name> [range]     Trigger an ArmorStandBoss attack/mechanic (/msc attack help [1-4])
+/msc attack <name> [range]     Trigger an ArmorStandBoss attack/mechanic (/msc attack help [1-7])
 /msc music <play|stop|list|disc>  Play / stop NBS songs, get a jukebox disc
 /msc dimtp <world>             Teleport across worlds
-/msc cleanstands [world]       Remove all MSC-related armor stands (optionally by world)
 /msc kill [type|all] [radius]  Safely kill/purge MSC custom creatures
 /msc debug [player]            Break down each boss's damage to and from a player
 /msc debug geometry [boss]     Draw a boss's hitbox and joints, or replay its walk
-/msc tps                       Server monitor: TPS in chat plus a private link to the full report
 /msc reload                    Reload config.yml, merge new defaults and sync entities and bosses
 ```
 
 Each command is detailed below.
 
-The aliases accepted by `spawn`, `give` and `attack` — and the ones offered by tab completion — are declared in a single table per command (`SpawnCatalogue`, `GiveCatalogue` and `AttackCatalogue`): the same table feeds the executor, the help menu and the completer.
+`spawn` and `give` accept exactly one name per entity or item: the one in the tables below, which is also what tab completion offers. The names accepted by `spawn`, `give` and `attack` are declared in a single table per command (`SpawnCatalogue`, `GiveCatalogue` and `AttackCatalogue`): the same table feeds the executor, the help menu and the completer.
 
 ---
 
 ## /msc spawn <type>
 
-Summons a single entity (or a tactical formation) at the executor's location. The following types are supported (aliases in parentheses):
+Summons a single entity (or a tactical formation) at the executor's location. The following types are supported:
 
 | Type | Entity |
 |---|---|
@@ -35,31 +31,32 @@ Summons a single entity (or a tactical formation) at the executor's location. Th
 | `mahoraga` | Mahoraga miniboss |
 | `kinger` | Kinger miniboss |
 | `garou` | Garou [Hero Hunter] miniboss |
-| `nix` (`executioner`, `nixelverdugo`) | NIX - The Executioner (custom 27-part model boss) |
-| `dio` (`diobrando`, `theworld`) | DIO with his Stand The World (JoJo's Bizarre Adventure boss) |
-| `witherstorm` (`tormentawither`) | THE WITHER STORM, born out of its vortex in its first form (Cracker's Wither Storm Mod) |
+| `nix` | NIX - The Executioner (custom 27-part model boss) |
+| `dio` | DIO with his Stand The World (JoJo's Bizarre Adventure boss) |
+| `witherstorm` | THE WITHER STORM, born out of its vortex in its first form (Cracker's Wither Storm Mod) |
 | `witherstorm2` … `witherstorm5` | THE WITHER STORM already grown: Growing Hunchback, Swollen Hunchback, Destroyer, Devourer |
-| `armorstand` (`armorstandboss`) | THE OBSIDIAN SENTINEL final boss |
+| `armorstand` | THE OBSIDIAN SENTINEL final boss |
 | `jack` | JACK STAR — The System Architect (5 phases, 3 lives) |
 | `creeperjr` | Creeper Jr. (×3 — spawns in trio) |
 | `headslime` | Head Slime |
-| `zombietrap` (`army`) | Military Zombie Horse trap (full 5-unit army ambush) |
+| `zombietrap` | Military Zombie Horse trap (full 5-unit army ambush) |
 | `tank` | Zombie Tank (single unit) |
 | `duelist` | Military Skeleton Duelist |
 | `lancer` | Zombie Lancer + ZombieHorse |
 | `camel` | Army Camel with riders |
 | `sniper` | Sniper Skeleton |
-| `boneshield` (`bone`) | Bone Shield |
-| `chaosmage` (`chaos`) | Chaos Mage |
-| `enderknight` (`ender`) | Ender Knight |
-| `flameelemental` (`flame`) | Flame Elemental |
-| `frostgolem` (`frost`) | Frost Golem |
-| `obsidianguard` (`obsidian`) | Obsidian Guard |
-| `shadowrogue` (`rogue`) | Shadow Rogue |
-| `soulreaper` (`reaper`) | Soul Reaper |
-| `stormcaller` (`storm`) | Storm Caller |
-| `venomwitch` (`venom`) | Venom Witch |
-| `voidcrawler` (`void`) | Void Crawler |
+| `boneshield` | Bone Shield |
+| `chaosmage` | Chaos Mage |
+| `enderknight` | Ender Knight |
+| `flameelemental` | Flame Elemental |
+| `frostgolem` | Frost Golem |
+| `obsidianguard` | Obsidian Guard |
+| `shadowrogue` | Shadow Rogue |
+| `soulreaper` | Soul Reaper |
+| `stormcaller` | Storm Caller |
+| `venomwitch` | Venom Witch |
+| `voidcrawler` | Void Crawler |
+| `arrowskeleton` | Archer of the Arrow (Stand Arrow) |
 | `warlord` | Orcish Warlord (berserker rage) |
 | `disctrader` | Disc Trader — librarian villager selling music discs |
 
@@ -73,166 +70,130 @@ Amount defaults to 1 and can be 1–64. Without a target the item goes to the ex
 
 ### Weapons
 
-| Item | Aliases |
-|---|---|
-| `excalibur` | `sword` |
-| `cindergreatsword` | `greatsword` |
-| `nullshearedge` | `nullshear` |
-| `soulreapscythe` | `scythe` |
-| `venomfang` | `dagger` |
-| `aetherpullshot` | `pullshot` |
-| `skyfiretalisman` | `talisman` |
-| `sentinelgrimoire` | `grimoire` |
-| `chaosforge` | — |
+| Item |
+|---|
+| `excalibur` |
+| `cindergreatsword` |
+| `nullshearedge` |
+| `soulreapscythe` |
+| `venomfang` |
+| `aetherpullshot` |
+| `skyfiretalisman` |
+| `sentinelgrimoire` |
+| `chaosforge` |
+| `executionerguillotine` |
+| `architectdeployer` |
 
 ### Armor & relics
 
-| Item | Aliases |
-|---|---|
-| `eighthandledwheel` | `wheel` |
-| `obsidianbastionhelmet` | `bastionhelmet` |
-| `obsidianbastionchestplate` | `bastionchestplate` |
-| `obsidianbastionleggings` | `bastionleggings` |
-| `obsidianbastionboots` | `bastionboots` |
-| `marrowaegis` | `aegis` |
-| `veilwalkermantle` | `mantle` |
-| `frostheartoffhand` | `frostoffhand` |
+| Item |
+|---|
+| `eighthandledwheel` |
+| `obsidianbastionhelmet` |
+| `obsidianbastionchestplate` |
+| `obsidianbastionleggings` |
+| `obsidianbastionboots` |
+| `marrowaegis` |
+| `veilwalkermantle` |
+| `frostheartoffhand` |
 
 ### Misc items
 
-| Item | Aliases |
-|---|---|
-| `icecrown` | `crown` |
-| `mantisclaws` | `claws` |
-| `wirtslantern` | `lantern` |
-| `militarymine` | `mine` |
-| `scoobycookie` | `cookie` |
-| `headslimegelatin` | `gelatin` |
+| Item |
+|---|
+| `icecrown` |
+| `mantisclaws` |
+| `wirtslantern` |
+| `militarymine` |
+| `scoobycookie` |
+| `headslimegelatin` |
+| `vampireblood` |
+| `unstableblood` |
+| `bearerelixir` |
 
 ### Components
 
-| Item | Aliases |
-|---|---|
-| `starcore` | `star` |
-| `militarycomponent` | `component` |
-| `swordmold` | `mold` |
-| `headslimeheart` | `heart` |
-| `chaosorb` | — |
-| `chaospowder` | — |
-| `chaosfragment` | — |
-| `chaoscore` | — |
-| `condensedchaosorb` | `condensed` |
-| `enderfragment` | `ender` |
-| `frostheart` | `frost` |
-| `magmacore` | `magma` |
-| `obsidianshard` | `shard` |
-| `reaperessence` | `reaper` |
-| `reinforcedbone` | `bone` |
-| `reinforcedboneblock` | — |
-| `bonemarrow` | `marrow` |
-| `ossifiedplate` | `plate` |
-| `moltenmarrow` | — |
-| `shadowcloak` | `cloak` |
-| `stormcrystal` | `storm` |
-| `venomgland` | `venom` |
-| `voidessence` | `void` |
-| `wheelessence` | `whelessence` |
+| Item |
+|---|
+| `starcore` |
+| `militarycomponent` |
+| `swordmold` |
+| `headslimeheart` |
+| `chaosorb` |
+| `chaospowder` |
+| `chaosfragment` |
+| `chaoscore` |
+| `condensedchaosorb` |
+| `enderfragment` |
+| `frostheart` |
+| `magmacore` |
+| `obsidianshard` |
+| `reaperessence` |
+| `reinforcedbone` |
+| `reinforcedboneblock` |
+| `bonemarrow` |
+| `ossifiedplate` |
+| `moltenmarrow` |
+| `shadowcloak` |
+| `stormcrystal` |
+| `venomgland` |
+| `voidessence` |
+| `wheelessence` |
+| `executioneredge` |
 
 ### Boss catalysts & core blocks
 
-| Item | Aliases |
-|---|---|
-| `wheelcore` | — |
-| `moltenwheelcore` | `moltenwheel` |
-| `refinedwheelcore` | `refinedwheel` |
-| `reapercore` | — |
-| `sentinelcore` | `sentinel` |
-| `endercore` | — |
-| `multiversalcore` | `multiverse` |
-| `compressedgoldblock` | `goldblock` |
-| `refinednetherite` | — |
-| `moltennetherite` | `molten` |
-| `executionerwarrant` | `warrant`, `deathwarrant` |
-| `architectkernel` | `kernel`, `architect` |
-
-> Note: some aliases overlap (`bone` = Reinforced Bone component, but `bone` is **also** the spawn alias for Bone Shield). Context (spawn vs give) disambiguates.
-
----
-
-## /msc seal <pattern> [plane]
-
-Renders a particle seal pattern around the executor. The fake spell-casting engine used by the Obsidian Sentinel boss; provided as a creative toy for server admins.
-
-**Patterns:**
-
-```
-pentagram   triangle / runic   celestial   circle   ring
-star        floating / shield  wings       wings2
-vortex      quake              divine      storm
-```
-
-**Planes** (optional):
-
-- `horizontal` (`h` / `xz`) — default, drawn on the ground plane
-- `vertical-north` (`vertical` / `v` / `xy`) — drawn on the X-Y (north-facing) plane
-- `vertical-east` (`ez` / `yz`) — drawn on the Y-Z (east-facing) plane
-
----
-
-## /msc dummy ...
-
-Manipulates an ArmorStand dummy used for posing/content preview. Useful for designing boss animations without running the full boss fight.
-
-| Subcommand | Behaviour |
-|---|---|
-| `spawn` | Spawn a fresh dummy at your location |
-| `remove` | Remove the dummy |
-| `set <part> <x> <y> <z>` | Set pose of a body part |
-| `<part> <axis> <degrees>` | Rotate a body part on an axis |
-
-**Parts:** `rightarm`, `leftarm`, `body`, `head`, `rightleg`, `leftleg`
-**Axes:** `x` / `pitch`, `y` / `yaw`, `z` / `roll`
-
-| Subcommand | Behaviour |
-|---|---|
-| `wings` / `wings2` / `nowings` | Toggle wing-pose presets |
-| `animate <anim>` | Play a named preset animation |
-| `attack <attack\|random>` | Preview a real Sentinel attack on the dummy |
-| `attack list [page]` | List every attack the dummy can perform |
-
-**Animations:** `flyup`, `land`, `airslam`, `shieldseal`, `healingcircle` (`heal`), `rain`, `pentagram`, `trianglecall` (`triangle`)
-
-**Attack preview:** `attack <attack|random>` makes the dummy perform a real Sentinel attack — the same attack object the boss runs, with its choreography, particles and seals — so an animation can be reviewed on a test server without starting a fight. Nothing the dummy lands can damage anyone: every attack damages through one helper, and a performing dummy is refused there. Effects and knockback still play, so watch from a step back. `attack list [page]` lists every name, and tab completion offers them too.
+| Item |
+|---|
+| `wheelcore` |
+| `moltenwheelcore` |
+| `refinedwheelcore` |
+| `reapercore` |
+| `sentinelcore` |
+| `endercore` |
+| `multiversalcore` |
+| `compressedgoldblock` |
+| `refinednetherite` |
+| `moltennetherite` |
+| `executionerwarrant` |
+| `architectkernel` |
+| `garoucosmiccore` |
 
 ---
 
 ## /msc attack <name> [range]
 
-Triggers an ArmorStandBoss attack, defense, or phase-transition mechanic by name. Finds the nearest boss within `range` blocks (default `aggro-range` = 50) and executes.
+Forces an attack or mechanic of the nearest Obsidian Sentinel within `range` blocks (default 100). Every attack and mechanic has **one name** — the ones below, which `/msc attack help [1-7]` lists and tab completion offers.
 
-### Ground attacks (21)
+The command skips the AI's distance, cooldown and repetition rules, but keeps the ones that protect the boss: nothing starts while another attack is still running, an aerial attack needs the boss in the air (`flyup` first) and a ground one on the floor (`land` first), and a seal, healing circle, defence or full minion cap that is already up is not stacked. When it refuses, it says why.
 
-`groundslam`, `groundshatter`, `shieldbash`, `lancestorm`, `earthpillar`, `chaingrapple`, `warstomp`, `armorspikes`, `vortexpull`, `mirrorimage`, `doombeam`, `lanceflurry`, `whirlwindslash`, `executionsweep`, `obsidianspire`, `earthmaw`, `shadowstep`, `runeward`, `sunderingcharge`, `spearcyclone`, `cataclysm`
+### Ground attacks (24)
 
-### Aerial attacks (18)
+`groundslam`, `groundshatter`, `shieldbash`, `lancestorm`, `earthpillar`, `chaingrapple`, `warstomp`, `armorspikes`, `vortexpull`, `mirrorimage`, `doombeam`, `lanceflurry`, `whirlwindslash`, `executionsweep`, `obsidianspire`, `earthmaw`, `shadowstep`, `runeward`, `sunderingcharge`, `spearcyclone`, `cataclysm`, `tremorlance`, `aegisrush`, `gravecleaver`
 
-`starfall`, `aerialrush`, `sonicboom`, `lightningstorm`, `gravitywell`, `crossslash`, `novaburst`, `darkorb`, `windcutter`, `heavenlyjudgment`, `rainoflances`, `airslam`, `hoverbarrage` (alias `crossbarrage`), `eclipsefall`, `bladering`, `obsidianwings`, `voidmeteor`, `phantomlegion`
+### Aerial attacks (20)
 
-### Ranged attacks (16)
+`starfall`, `aerialrush`, `sonicboom`, `lightningstorm`, `gravitywell`, `crossslash`, `novaburst`, `darkorb`, `windcutter`, `heavenlyjudgment`, `rainoflances`, `airslam`, `hoverbarrage`, `eclipsefall`, `bladering`, `obsidianwings`, `voidmeteor`, `phantomlegion`, `spiralstorm`, `chainhook`
 
-`lancesnipe`, `meteorstorm`, `voidbeam`, `frostlance`, `lightningspear`, `shadowvolley`, `chainlightning`, `crystalbarrage`, `arcaneorb`, `voidrift`, `arcanemissiles`, `spiritbeam`, `soultethers`, `plaguebrand`, `runemines`, `obsidianprison`
+### Ranged & magic attacks (20)
 
-### Phase transitions
+`lancesnipe`, `meteorstorm`, `voidbeam`, `frostlance`, `lightningspear`, `shadowvolley`, `chainlightning`, `crystalbarrage`, `arcaneorb`, `voidrift`, `arcanemissiles`, `spiritbeam`, `soultethers`, `plaguebrand`, `runemines`, `obsidianprison`, `shardburst`, `gravityorb`, `javelinvolley`, `sweepinglaser`
 
-`phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`
+### Defences, seals & heals (12)
 
-### Defensive states
+`stoneskin`, `reflectbarrier`, `absorbshield`, `shieldseal`, `healingcircle`, `trianglecall`, `regeneration`, `soulsiphon`, `obsidiancocoon`, `bulwark`, `thornaura`, `afterimage`
 
-`stoneskin`, `reflectbarrier`, `absorbshield`
+### Summoning rites (10)
 
-### Mechanics & misc
+`lancesquires`, `obsidianmender`, `emberhounds`, `voidwisps`, `obsidianbrute`, `elementalconclave`, `shadowambush`, `necropolisrite`, `arcanecovenant`, `championcall`
 
-`trianglecall`, `flyup`, `land`, `shieldseal`, `heal`, `reset`
+### Destructive cataclysms (10)
+
+`orbitalstrike`, `meteorimpact`, `supernova`, `judgmentpillars`, `earthsplitter`, `voidcollapse`, `obsidiantsunami`, `solarlance`, `worldbreaker`, `apocalypserain`
+
+### Mechanics & phase transitions (7)
+
+`flyup`, `land`, `reset`, `phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`
 
 The full list and details are on the [Bosses wiki page](./Bosses.md).
 
@@ -293,18 +254,6 @@ Replaying kinger's walk in front of you for 10 s: hitbox (red), joints (cyan), b
 
 ---
 
-## /msc tps
-
-Prints the TPS, tick time, heap use, entity count and freezes caught in chat and, for a player, sends a **private link** to a performance report: TPS and tick-time charts, memory and garbage-collection pauses, entities per world and per custom tag, boss particle load, a diagnosis in plain sentences and every **freeze** the server suffered, with the main thread's stack while it lasted and the plugin and method it points to.
-
-**`monitor.mode: upload` (default, works on any hosting).** The report is a snapshot of that moment (with the last `history-seconds` of history). It is gzipped and **encrypted with AES-256-GCM on the server**, uploaded to `monitor.upload-url` (a bytebin service, `https://bytebin.lucko.me` by default, the one Spark uses) and opened on `monitor.viewer-url`, the `monitor/` page of the project's site. The key only travels in the link after the `#`, which browsers never send to any server: the storage holds bytes it cannot read and the page is empty without the link. No port has to be open; the server makes one outgoing HTTPS request, off the main thread. Run `/msc tps` again for a newer snapshot. The snapshot has no player names, IPs or coordinates; it does carry world names and the class names in freeze stacks.
-
-**`monitor.mode: local`.** The plugin serves a live page itself (refreshing every 2 s) on `monitor.port` (8765). If that port is taken it tries the next 20 and then any free one, and says which in chat. The link uses `monitor.public-host`, else the address you joined with, else `server-ip`. The port must be reachable from your browser. Links expire after `link-minutes` (30) and the next `/msc tps` from the same admin cancels the previous one.
-
-Same permission as the rest of `/msc` (`msc.admin` or OP). `monitor.enabled: false` turns the sampling off; `freeze-threshold-ms` (150) is how long a tick must take to count as a freeze. While nobody is online (when Paper pauses an empty server) no freezes are recorded.
-
----
-
 ## /msc music <play|stop|list|disc> [song] [loop]
 
 Plays any `.nbs` file from `plugins/MultiverseCreatures/music/`. Songs are played via the `MusicManager` (note-block-stub protocol packets) to all nearby players within a configurable radius.
@@ -323,12 +272,6 @@ Plays any `.nbs` file from `plugins/MultiverseCreatures/music/`. Songs are playe
 ## /msc dimtp <world>
 
 Teleports the executor across worlds/dimensions. Used for testing the boss dimension scaffolding and for quickly jumping between overworld/nether/the_end.
-
----
-
-## /msc cleanstands
-
-Iterates all worlds and removes every ArmorStand whose scoreboard tag starts with `MSC_`. Useful to clean up after a boss fight or a crash during a battle. **Cleans up the boss's Stand companions, summoned ItemDisplays, dead or stale air-boss templates.**
 
 ---
 

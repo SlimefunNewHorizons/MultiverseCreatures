@@ -126,7 +126,7 @@ P . . . P
    - Ominous chain rattling sounds echo periodically while dark smoke rises from the anvil.
    - If you break the structure or the candles go out, the ritual **cancels** and you must start over.
 5. **The Sacrificial Offering**: drop the item onto the central anvil (within **3 blocks** of it, at floor height):
-   - An **`Executioner's Warrant`** (via `/msc give warrant` or a crafting recipe).
+   - An **`Executioner's Warrant`** (via `/msc give executionerwarrant` or a crafting recipe).
    - *(Alternative offerings accepted: a `Netherite Axe` or a `Wither Skeleton Skull`)*.
 6. **Awakening**:
    - The sacrifice is consumed.

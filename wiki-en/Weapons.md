@@ -24,7 +24,7 @@ Use **`/msc give <item>`** (OP-only) to obtain any weapon during testing. See [C
 | Particles | FLAME, SOUL_FIRE_FLAME, END_ROD, ELECTRIC_SPARK |
 | Sounds | ENTITY_LIGHTNING_BOLT_THUNDER, BLOCK_BEACON_POWER_SELECT |
 
-- **Give:** `/msc give excalibur` (alias `sword`)
+- **Give:** `/msc give excalibur`
 - **Trade:** from the Multiverse Merchant for 16 Star Cores + 32 Netherite Ingots
 - **Theme:** Avalon (Arthurian)
 
@@ -47,7 +47,7 @@ A two-handed netherite blade forged from the heart of a Flame Elemental.
 | Slam cooldown | `SLAM_COOLDOWN_MS` (10 s) |
 | Particles | EXPLOSION, FLAME, LAVA |
 
-- **Give:** `/msc give cindergreatsword` (alias `greatsword`)
+- **Give:** `/msc give cindergreatsword`
 - **Theme:** Multiverse (Flame Elemental drop chain via Magma Core)
 
 ---
@@ -68,7 +68,7 @@ A blade that cuts the seam between the world and the nothing behind it.
 | Blink cooldown | 20 s |
 | Particles | PORTAL at both ends |
 
-- **Give:** `/msc give nullshearedge` (alias `nullshear`)
+- **Give:** `/msc give nullshearedge`
 - **Config:** `nullshear-edge.darkness-chance`, `darkness-duration-ticks`, `void-fraction`, `void-blink-cooldown-ms`, `void-blink-range` (read once at startup)
 - **Theme:** Multiverse (Void Crawler chain via Void Essence)
 
@@ -91,7 +91,7 @@ A curved void-steel scythe humming with the lament of the unreaped.
 | Reap effects | 2× damage, improved lifesteal, soul aura (Strength I + REAP_DAMAGE_MULTIPLIER = 2.0) |
 | Sounds | ENTITY_WITHER_SPAWN on activation |
 
-- **Give:** `/msc give soulreapscythe` (alias `scythe`)
+- **Give:** `/msc give soulreapscythe`
 - **Theme:** Multiverse (Soul Reaper chain via Reaper Essence)
 
 ---
@@ -109,7 +109,7 @@ A dagger distilled from the corrosive venom of a Venom Witch.
 | Particles / Sound | ITEM_SLIME, ENTITY_SPIDER_AMBIENT |
 | Unbreakable | Yes |
 
-- **Give:** `/msc give venomfang` (alias `dagger`)
+- **Give:** `/msc give venomfang`
 - **Craft:** from **Venom Gland** (dropped by Venom Witch) + Gold Block + Sword Mold + Stick
 - **Theme:** Multiverse (Venom Witch chain via Venom Gland)
 
@@ -136,7 +136,7 @@ A trident forged from an Ender Fragment, strung with a leash of threadbare space
 | Cooldown | 30 s |
 | Particles | PORTAL (initial), EXPLOSION (final) |
 
-- **Give:** `/msc give aetherpullshot` (alias `pullshot`)
+- **Give:** `/msc give aetherpullshot`
 - **Theme:** Multiverse (Ender Knight chain via Ender Fragment)
 
 ---
@@ -160,7 +160,7 @@ A copper amulet humming with the lingering rage of a Storm Caller.
 | Passive | Wielder is **immune to lightning damage** while held |
 | Particles / Sound | FLASH, ENTITY_LIGHTNING_BOLT_THUNDER |
 
-- **Give:** `/msc give skyfiretalisman` (alias `talisman`)
+- **Give:** `/msc give skyfiretalisman`
 - **Theme:** Multiverse (Storm Caller chain via Storm Crystal)
 
 ---
@@ -201,6 +201,6 @@ A forbidden tome bound with the leather of a fallen Sentinel. It holds 8 spell p
 | 7 | 🛡️ Celestial Bulwark | Celestial seal · Absorption (4 hearts) + Resistance | 20 s |
 | 8 | ✨ Sentinel Aura | Invulnerability aura · immune to damage for 3.5 s | 45 s |
 
-- **Give:** `/msc give sentinelgrimoire` (alias `grimoire`)
+- **Give:** `/msc give sentinelgrimoire`
 - **Recipe:** BOOK ×4 + Multiversal Core ×2 + Sentinel Core (see Recipes.md)
 - **Config:** damages/cooldowns under `grimoire:` in config.yml

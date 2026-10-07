@@ -126,7 +126,7 @@ P . . . P
    - Suenan cadenas pesadas a intervalos mientras una densa humareda oscura brota del yunque.
    - Si rompes la estructura o las velas se apagan, el ritual se **cancela** y debes empezar de nuevo.
 5. **La Ofrenda de Sangre**: suelta el objeto sobre el yunque central (a menos de **3 bloques** de él y a la altura del suelo):
-   - Una **`Sentencia de Muerte`** (`Executioner's Warrant`, con `/msc give warrant` o crafteable).
+   - Una **`Sentencia de Muerte`** (`Executioner's Warrant`, con `/msc give executionerwarrant` o crafteable).
    - *(También se aceptan como ofrendas alternativas un `Hacha de Netherita` o una `Calavera de Wither Skeleton`)*.
 6. **Aparición**:
    - El sacrificio es consumido al instante.

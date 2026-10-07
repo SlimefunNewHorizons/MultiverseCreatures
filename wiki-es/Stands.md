@@ -23,7 +23,7 @@ Un esqueleto con corona de oro y abrigo morado que reemplaza esqueletos naturale
 | Arco | Poder III; la corona y el abrigo no caen |
 | La Flecha | `stand-arrow-chance` **0.02**: 2 de cada 100 disparos |
 | Muerte | `death-chance` **0.7** |
-| Spawn manual | `/msc spawn arrowskeleton` (alias `archer`, `standarrow`) |
+| Spawn manual | `/msc spawn arrowskeleton` |
 
 La Flecha brilla en dorado, deja una estela, suena una campana al dispararla y no se puede
 recoger. Al atravesar a un jugador:

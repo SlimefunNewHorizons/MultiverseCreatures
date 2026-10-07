@@ -59,7 +59,7 @@ A rare Full-Moon trap. During `MoonPhase.FULL_MOON`, 0.1% of natural zombie spaw
 | **Sniper Skeleton** (rearguard) | `MSC_Sniper` | Wither Skeleton 40 HP, full green leather armor, "Sniper Bow" (Power V / Infinity). **Predicts player movement** (velocity + gravity arc) and fires crit arrows every 30 ticks at up to 50 blocks. Arrows apply Wither I (100t) + Weakness I (100t). |
 
 **Commands:**
-- Full army: `/msc spawn zombietrap` (alias `army`)
+- Full army: `/msc spawn zombietrap`
 - Individual units: `/msc spawn tank`, `duelist`, `lancer`, `camel`, `sniper`
 
 **Drops:** each of Tank/Duelist/Lancer/CamelZombie/CamelSkeleton/Sniper has a 30% chance (`zombie-horse-trap.military-component-drop-chance`) to drop a **Military Component**.
@@ -86,7 +86,7 @@ Full-netherite heavy tank zombie.
 
 - **Natural spawn:** `obsidian-guard.spawn-chance` (2%) of Zombie spawns
 - **Drops:** 85% chance **Obsidian Shard** + 100 XP
-- **Command:** `/msc spawn obsidianguard` (alias `obsidian`)
+- **Command:** `/msc spawn obsidianguard`
 
 ---
 
@@ -109,7 +109,7 @@ Enderman-themed knight with a "Ender Blade" Diamond Sword (Sharp V, Knock II).
 
 - **Natural spawn:** `ender-knight.spawn-chance` (4%) of Enderman spawns
 - **Drops:** 55% **Ender Fragment** + 70 XP
-- **Command:** `/msc spawn enderknight` (alias `ender`)
+- **Command:** `/msc spawn enderknight`
 
 ---
 
@@ -134,7 +134,7 @@ Iron Golem reimagined as a winter guardian. Wears aqua leather chestplate.
 
 - **Natural spawn:** `frost-golem.spawn-chance` (8%) of Iron Golem spawns
 - **Drops:** 75% **Frost Heart** + 80 XP
-- **Command:** `/msc spawn frostgolem` (alias `frost`)
+- **Command:** `/msc spawn frostgolem`
 
 ---
 
@@ -154,7 +154,7 @@ A blaze with homing meteor projectiles.
 
 - **Natural spawn:** `flame-elemental.spawn-chance` (10%) of Blaze spawns
 - **Drops:** 60% **Magma Core** + 40 XP
-- **Command:** `/msc spawn flameelemental` (alias `flame`)
+- **Command:** `/msc spawn flameelemental`
 
 ---
 
@@ -176,7 +176,7 @@ Roll priority: **Storm Caller rolls first** when a natural Witch spawns; if it f
 
 - **Natural spawn:** `storm-caller.spawn-chance` (4%) of Witch spawns
 - **Drops:** 60% **Storm Crystal** + 50 XP
-- **Command:** `/msc spawn stormcaller` (alias `storm`)
+- **Command:** `/msc spawn stormcaller`
 
 ---
 
@@ -196,7 +196,7 @@ A poison-specialist witch.
 
 - **Natural spawn:** `venom-witch.spawn-chance` (5%) of Witch spawns (only if Storm Caller roll fails)
 - **Drops:** 60% **Venom Gland** + 30 XP
-- **Command:** `/msc spawn venomwitch` (alias `venom`)
+- **Command:** `/msc spawn venomwitch`
 
 ---
 
@@ -218,7 +218,7 @@ A wither-skeleton scythe wielder with lifesteal.
 
 - **Natural spawn:** `soul-reaper.spawn-chance` (5%) of Wither Skeleton spawns
 - **Drops:** 60% **Reaper Essence** + 60 XP
-- **Command:** `/msc spawn soulreaper` (alias `reaper`)
+- **Command:** `/msc spawn soulreaper`
 
 ---
 
@@ -242,7 +242,7 @@ An evoker that casts one of 6 random chaotic spells every 50+ ticks.
 
 - **Natural spawn:** `chaos-mage.spawn-chance` (6%) of Evoker spawns
 - **Drops:** 60% **Chaos Orb** + 50 XP
-- **Command:** `/msc spawn chaosmage` (alias `chaos`)
+- **Command:** `/msc spawn chaosmage`
 
 ---
 
@@ -263,7 +263,7 @@ A phase-shifting ambush spider.
 
 - **Natural spawn:** `void-crawler.spawn-chance` (7%) of Spider spawns
 - **Drops:** 50% **Void Essence** + 35 XP
-- **Command:** `/msc spawn voidcrawler` (alias `void`)
+- **Command:** `/msc spawn voidcrawler`
 
 ---
 
@@ -284,7 +284,7 @@ A fast skeleton assassin.
 
 - **Natural spawn:** `shadow-rogue.spawn-chance` (5%) of Skeleton spawns
 - **Drops:** 50% **Shadow Cloak Fragment** + 30 XP
-- **Command:** `/msc spawn shadowrogue` (alias `rogue`)
+- **Command:** `/msc spawn shadowrogue`
 
 ---
 
@@ -307,7 +307,7 @@ A defensive skeleton with a recharging bone wall.
 
 - **Natural spawn:** `bone-shield.spawn-chance` (6%) of Skeleton spawns (rolled alongside Shadow Rogue)
 - **Drops:** 80% **Reinforced Bone** + 40 XP
-- **Command:** `/msc spawn boneshield` (alias `bone`)
+- **Command:** `/msc spawn boneshield`
 
 ---
 

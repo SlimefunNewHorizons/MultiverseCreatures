@@ -24,7 +24,7 @@ Usa **`/msc give <objeto>`** (solo OP) para obtener cualquier arma durante las p
 | Partículas | FLAME, SOUL_FIRE_FLAME, END_ROD, ELECTRIC_SPARK |
 | Sonidos | ENTITY_LIGHTNING_BOLT_THUNDER, BLOCK_BEACON_POWER_SELECT |
 
-- **Give:** `/msc give excalibur` (alias `sword`)
+- **Give:** `/msc give excalibur`
 - **Intercambio:** del Comerciante Multiversal por 16 Núcleos Estelares + 32 Lingotes de Netherita
 - **Tema:** Avalon (artúrico)
 
@@ -47,7 +47,7 @@ Una hoja de netherita a dos manos forjada con el corazón de un Elemental de Lla
 | Cooldown del golpe | `SLAM_COOLDOWN_MS` (10 s) |
 | Partículas | EXPLOSION, FLAME, LAVA |
 
-- **Give:** `/msc give cindergreatsword` (alias `greatsword`)
+- **Give:** `/msc give cindergreatsword`
 - **Tema:** Multiverso (cadena de drop del Elemental de Llama vía Núcleo de Magma)
 
 ---
@@ -68,7 +68,7 @@ Una hoja que corta la costura entre el mundo y la nada que hay detrás.
 | Cooldown del parpadeo | 20 s |
 | Partículas | PORTAL en ambos extremos |
 
-- **Give:** `/msc give nullshearedge` (alias `nullshear`)
+- **Give:** `/msc give nullshearedge`
 - **Config:** `nullshear-edge.darkness-chance`, `darkness-duration-ticks`, `void-fraction`, `void-blink-cooldown-ms`, `void-blink-range` (se leen una vez al arrancar)
 - **Tema:** Multiverso (cadena del Void Crawler vía Esencia del Vacío)
 
@@ -91,7 +91,7 @@ Una guadaña curva de acero del vacío que zumba con el lamento de los no segado
 | Efectos de Cosecha | Daño ×2, mejor robo de vida, aura de almas (Fuerza I + REAP_DAMAGE_MULTIPLIER = 2.0) |
 | Sonidos | ENTITY_WITHER_SPAWN al activarse |
 
-- **Give:** `/msc give soulreapscythe` (alias `scythe`)
+- **Give:** `/msc give soulreapscythe`
 - **Tema:** Multiverso (cadena del Segador de Almas vía Esencia de Segador)
 
 ---
@@ -109,7 +109,7 @@ Una daga destilada del veneno corrosivo de una Bruja de Veneno.
 | Partículas / Sonido | ITEM_SLIME, ENTITY_SPIDER_AMBIENT |
 | Irrompible | Sí |
 
-- **Give:** `/msc give venomfang` (alias `dagger`)
+- **Give:** `/msc give venomfang`
 - **Crafteo:** de **Glándula de Veneno** (dropeada por la Bruja de Veneno) + Bloque de Oro + Molde de Espada + Palo
 - **Tema:** Multiverso (cadena de la Bruja de Veneno vía Glándula de Veneno)
 
@@ -136,7 +136,7 @@ Un tridente forjado con un Fragmento Ender, encordado con una correa de espacio 
 | Cooldown | 30 s |
 | Partículas | PORTAL (inicial), EXPLOSION (final) |
 
-- **Give:** `/msc give aetherpullshot` (alias `pullshot`)
+- **Give:** `/msc give aetherpullshot`
 - **Tema:** Multiverso (cadena del Caballero Ender vía Fragmento Ender)
 
 ---
@@ -160,7 +160,7 @@ Un amuleto de cobre que zumba con la ira latente de un Invocador de Tormentas.
 | Pasiva | El portador es **inmune al daño de rayos** mientras lo sostiene |
 | Partículas / Sonido | FLASH, ENTITY_LIGHTNING_BOLT_THUNDER |
 
-- **Give:** `/msc give skyfiretalisman` (alias `talisman`)
+- **Give:** `/msc give skyfiretalisman`
 - **Tema:** Multiverso (cadena del Invocador de Tormentas vía Cristal de Tormenta)
 
 ---
@@ -201,6 +201,6 @@ Un tomo prohibido encuadernado con el cuero de un Centinela caído. Contiene 8 p
 | 7 | 🛡️ Baluarte Celestial | Sello celestial · Absorción (4 corazones) + Resistencia | 20 s |
 | 8 | ✨ Aura Centinela | Aura de invulnerabilidad · inmune al daño durante 3.5 s | 45 s |
 
-- **Give:** `/msc give sentinelgrimoire` (alias `grimoire`)
+- **Give:** `/msc give sentinelgrimoire`
 - **Receta:** LIBRO ×4 + Núcleo Multiversal ×2 + Núcleo Centinela (ver Recipes.md)
 - **Config:** daños/cooldowns bajo `grimoire:` en config.yml

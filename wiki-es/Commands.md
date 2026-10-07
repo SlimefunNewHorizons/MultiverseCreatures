@@ -6,28 +6,24 @@ Todos los comandos usan la raíz **`/msc`**. **Permiso:** `msc.admin` (OP del se
 /msc                           Muestra el menú de ayuda estructurado y categorizado
 /msc spawn <tipo>              Invoca un mob, jefe, strike force militar, etc. (/msc spawn help [1-3])
 /msc give <objeto> [cantidad] [jugador]  Entrega armas legendarias, armaduras o componentes (/msc give help [1-4])
-/msc seal <patrón> [plano]     Renderiza un patrón de sello de partículas
-/msc dummy ...                 Invoca / posa / anima dummies y previsualiza ataques
-/msc attack <nombre> [rango]   Dispara un ataque o mecánica del ArmorStandBoss (/msc attack help [1-4])
+/msc attack <nombre> [rango]   Dispara un ataque o mecánica del ArmorStandBoss (/msc attack help [1-7])
 /msc music <play|stop|list|disc>  Reproduce / detiene canciones NBS, obtén un disco de jukebox
 /msc dimtp <mundo>             Teletransporta entre mundos
-/msc cleanstands [mundo]       Elimina todos los armor stands relacionados con MSC
 /msc kill [tipo|all] [radio]   Purga criaturas de MSC de forma segura
 /msc debug [jugador]           Desglosa el daño de cada jefe hacia y desde un jugador
 /msc debug geometry [jefe]     Dibuja la hitbox y las articulaciones de un jefe, o reproduce su caminar
-/msc tps                       Monitor del servidor: TPS en el chat y un enlace privado al reporte completo
 /msc reload                    Recarga config.yml, fusiona los defaults nuevos y sincroniza entidades y jefes
 ```
 
 Cada comando se detalla abajo.
 
-Los alias que aceptan `spawn`, `give` y `attack` — y los que ofrece el autocompletado — se declaran en una sola tabla por comando (`SpawnCatalogue`, `GiveCatalogue` y `AttackCatalogue`): la misma tabla alimenta el ejecutor, el menú de ayuda y el tab-complete.
+`spawn` y `give` aceptan un único nombre por entidad u objeto: el de las tablas de abajo, que es también lo que ofrece el autocompletado. Los nombres que aceptan `spawn`, `give` y `attack` se declaran en una sola tabla por comando (`SpawnCatalogue`, `GiveCatalogue` y `AttackCatalogue`): la misma tabla alimenta el ejecutor, el menú de ayuda y el tab-complete.
 
 ---
 
 ## /msc spawn <tipo>
 
-Invoca una sola entidad (o una formación táctica) en la ubicación del ejecutor. Los siguientes tipos son compatibles (alias entre paréntesis):
+Invoca una sola entidad (o una formación táctica) en la ubicación del ejecutor. Los siguientes tipos son compatibles:
 
 | Tipo | Entidad |
 |---|---|
@@ -35,31 +31,32 @@ Invoca una sola entidad (o una formación táctica) en la ubicación del ejecuto
 | `mahoraga` | Minijefe Mahoraga |
 | `kinger` | Minijefe Kinger |
 | `garou` | Minijefe Garou [Hero Hunter] |
-| `nix` (`executioner`, `nixelverdugo`) | NIX - El Verdugo (jefe con modelo custom de 27 piezas) |
-| `dio` (`diobrando`, `theworld`) | DIO con su Stand The World (jefe de JoJo's Bizarre Adventure) |
-| `witherstorm` (`tormentawither`) | WITHER STORM, nacido de su vórtice en su primera forma (Cracker's Wither Storm Mod) |
+| `nix` | NIX - El Verdugo (jefe con modelo custom de 27 piezas) |
+| `dio` | DIO con su Stand The World (jefe de JoJo's Bizarre Adventure) |
+| `witherstorm` | WITHER STORM, nacido de su vórtice en su primera forma (Cracker's Wither Storm Mod) |
 | `witherstorm2` … `witherstorm5` | WITHER STORM ya crecido: Joroba Creciente, Joroba Hinchada, Destructor, Devorador |
-| `armorstand` (`armorstandboss`) | EL CENTINELA DE OBSIDIANA, jefe final |
+| `armorstand` | EL CENTINELA DE OBSIDIANA, jefe final |
 | `jack` | JACK STAR — El Arquitecto del Sistema (5 fases, 3 vidas) |
 | `creeperjr` | Creeper Jr. (×3 — aparece en trío) |
 | `headslime` | Head Slime |
-| `zombietrap` (`army`) | Trampa de Caballo Zombie Militar (emboscada de ejército completo de 5 unidades) |
+| `zombietrap` | Trampa de Caballo Zombie Militar (emboscada de ejército completo de 5 unidades) |
 | `tank` | Zombie Tank (unidad única) |
 | `duelist` | Skeleton Duelist militar |
 | `lancer` | Zombie Lancer + ZombieHorse |
 | `camel` | Camel del Ejército con jinetes |
 | `sniper` | Skeleton Sniper |
-| `boneshield` (`bone`) | Bone Shield |
-| `chaosmage` (`chaos`) | Mago del Caos |
-| `enderknight` (`ender`) | Caballero Ender |
-| `flameelemental` (`flame`) | Elemental de Llama |
-| `frostgolem` (`frost`) | Gólem de Escarcha |
-| `obsidianguard` (`obsidian`) | Guardia de Obsidiana |
-| `shadowrogue` (`rogue`) | Shadow Rogue |
-| `soulreaper` (`reaper`) | Segador de Almas |
-| `stormcaller` (`storm`) | Invocador de Tormentas |
-| `venomwitch` (`venom`) | Bruja de Veneno |
-| `voidcrawler` (`void`) | Void Crawler |
+| `boneshield` | Bone Shield |
+| `chaosmage` | Mago del Caos |
+| `enderknight` | Caballero Ender |
+| `flameelemental` | Elemental de Llama |
+| `frostgolem` | Gólem de Escarcha |
+| `obsidianguard` | Guardia de Obsidiana |
+| `shadowrogue` | Shadow Rogue |
+| `soulreaper` | Segador de Almas |
+| `stormcaller` | Invocador de Tormentas |
+| `venomwitch` | Bruja de Veneno |
+| `voidcrawler` | Void Crawler |
+| `arrowskeleton` | Arquero de la Flecha (Flecha de Stand) |
 | `warlord` | Orcish Warlord (furia berserker) |
 | `disctrader` | Disc Trader — aldeano bibliotecario que vende discos de música |
 
@@ -73,166 +70,130 @@ La cantidad por defecto es 1 y puede ser de 1 a 64. Sin destino el objeto va al 
 
 ### Armas
 
-| Objeto | Alias |
-|---|---|
-| `excalibur` | `sword` |
-| `cindergreatsword` | `greatsword` |
-| `nullshearedge` | `nullshear` |
-| `soulreapscythe` | `scythe` |
-| `venomfang` | `dagger` |
-| `aetherpullshot` | `pullshot` |
-| `skyfiretalisman` | `talisman` |
-| `sentinelgrimoire` | `grimoire` |
-| `chaosforge` | — |
+| Objeto |
+|---|
+| `excalibur` |
+| `cindergreatsword` |
+| `nullshearedge` |
+| `soulreapscythe` |
+| `venomfang` |
+| `aetherpullshot` |
+| `skyfiretalisman` |
+| `sentinelgrimoire` |
+| `chaosforge` |
+| `executionerguillotine` |
+| `architectdeployer` |
 
 ### Armaduras y reliquias
 
-| Objeto | Alias |
-|---|---|
-| `eighthandledwheel` | `wheel` |
-| `obsidianbastionhelmet` | `bastionhelmet` |
-| `obsidianbastionchestplate` | `bastionchestplate` |
-| `obsidianbastionleggings` | `bastionleggings` |
-| `obsidianbastionboots` | `bastionboots` |
-| `marrowaegis` | `aegis` |
-| `veilwalkermantle` | `mantle` |
-| `frostheartoffhand` | `frostoffhand` |
+| Objeto |
+|---|
+| `eighthandledwheel` |
+| `obsidianbastionhelmet` |
+| `obsidianbastionchestplate` |
+| `obsidianbastionleggings` |
+| `obsidianbastionboots` |
+| `marrowaegis` |
+| `veilwalkermantle` |
+| `frostheartoffhand` |
 
 ### Objetos varios
 
-| Objeto | Alias |
-|---|---|
-| `icecrown` | `crown` |
-| `mantisclaws` | `claws` |
-| `wirtslantern` | `lantern` |
-| `militarymine` | `mine` |
-| `scoobycookie` | `cookie` |
-| `headslimegelatin` | `gelatin` |
+| Objeto |
+|---|
+| `icecrown` |
+| `mantisclaws` |
+| `wirtslantern` |
+| `militarymine` |
+| `scoobycookie` |
+| `headslimegelatin` |
+| `vampireblood` |
+| `unstableblood` |
+| `bearerelixir` |
 
 ### Componentes
 
-| Objeto | Alias |
-|---|---|
-| `starcore` | `star` |
-| `militarycomponent` | `component` |
-| `swordmold` | `mold` |
-| `headslimeheart` | `heart` |
-| `chaosorb` | — |
-| `chaospowder` | — |
-| `chaosfragment` | — |
-| `chaoscore` | — |
-| `condensedchaosorb` | `condensed` |
-| `enderfragment` | `ender` |
-| `frostheart` | `frost` |
-| `magmacore` | `magma` |
-| `obsidianshard` | `shard` |
-| `reaperessence` | `reaper` |
-| `reinforcedbone` | `bone` |
-| `reinforcedboneblock` | — |
-| `bonemarrow` | `marrow` |
-| `ossifiedplate` | `plate` |
-| `moltenmarrow` | — |
-| `shadowcloak` | `cloak` |
-| `stormcrystal` | `storm` |
-| `venomgland` | `venom` |
-| `voidessence` | `void` |
-| `wheelessence` | `whelessence` |
+| Objeto |
+|---|
+| `starcore` |
+| `militarycomponent` |
+| `swordmold` |
+| `headslimeheart` |
+| `chaosorb` |
+| `chaospowder` |
+| `chaosfragment` |
+| `chaoscore` |
+| `condensedchaosorb` |
+| `enderfragment` |
+| `frostheart` |
+| `magmacore` |
+| `obsidianshard` |
+| `reaperessence` |
+| `reinforcedbone` |
+| `reinforcedboneblock` |
+| `bonemarrow` |
+| `ossifiedplate` |
+| `moltenmarrow` |
+| `shadowcloak` |
+| `stormcrystal` |
+| `venomgland` |
+| `voidessence` |
+| `wheelessence` |
+| `executioneredge` |
 
 ### Catalizadores de jefe y bloques nucleares
 
-| Objeto | Alias |
-|---|---|
-| `wheelcore` | — |
-| `moltenwheelcore` | `moltenwheel` |
-| `refinedwheelcore` | `refinedwheel` |
-| `reapercore` | — |
-| `sentinelcore` | `sentinel` |
-| `endercore` | — |
-| `multiversalcore` | `multiverse` |
-| `compressedgoldblock` | `goldblock` |
-| `refinednetherite` | — |
-| `moltennetherite` | `molten` |
-| `executionerwarrant` | `warrant`, `deathwarrant` |
-| `architectkernel` | `kernel`, `architect` |
-
-> Nota: algunos alias se solapan (`bone` = componente Hueso Reforzado, pero `bone` **también** es el alias de spawn de Bone Shield). El contexto (spawn vs give) los desambigua.
-
----
-
-## /msc seal <patrón> [plano]
-
-Renderiza un patrón de sello de partículas alrededor del ejecutor. El motor de lanzamiento de hechizos falso usado por el jefe Centinela de Obsidiana; se ofrece como juguete creativo para administradores de servidor.
-
-**Patrones:**
-
-```
-pentagram   triangle / runic   celestial   circle   ring
-star        floating / shield  wings       wings2
-vortex      quake              divine      storm
-```
-
-**Planos** (opcional):
-
-- `horizontal` (`h` / `xz`) — por defecto, dibujado en el plano del suelo
-- `vertical-north` (`vertical` / `v` / `xy`) — dibujado en el plano X-Y (mirando al norte)
-- `vertical-east` (`ez` / `yz`) — dibujado en el plano Y-Z (mirando al este)
-
----
-
-## /msc dummy ...
-
-Manipula un ArmorStand de prueba usado para posar/vista previa de contenido. Útil para diseñar animaciones del jefe sin ejecutar la pelea completa del boss.
-
-| Subcomando | Comportamiento |
-|---|---|
-| `spawn` | Invoca un dummy nuevo en tu ubicación |
-| `remove` | Elimina el dummy |
-| `set <parte> <x> <y> <z>` | Establece la pose de una parte del cuerpo |
-| `<parte> <eje> <grados>` | Rota una parte del cuerpo sobre un eje |
-
-**Partes:** `rightarm`, `leftarm`, `body`, `head`, `rightleg`, `leftleg`
-**Ejes:** `x` / `pitch`, `y` / `yaw`, `z` / `roll`
-
-| Subcomando | Comportamiento |
-|---|---|
-| `wings` / `wings2` / `nowings` | Alterna presets de poses de alas |
-| `animate <anim>` | Reproduce una animación preset con nombre |
-| `attack <ataque\|random>` | Previsualiza un ataque real del Centinela en el dummy |
-| `attack list [page]` | Lista cada ataque que el dummy puede hacer |
-
-**Animaciones:** `flyup`, `land`, `airslam`, `shieldseal`, `healingcircle` (`heal`), `rain`, `pentagram`, `trianglecall` (`triangle`)
-
-**Previsualización de ataques:** `attack <ataque|random>` hace que el dummy ejecute un ataque real del Centinela — el mismo objeto de ataque que corre el jefe, con su coreografía, partículas y sellos — así se puede revisar una animación en un servidor de pruebas sin armar una pelea. Nada de lo que golpee el dummy puede dañar a nadie: todos los ataques dañan por un único helper, y ahí se rechaza a un dummy en actuación. Los efectos y el empuje siguen ocurriendo, así que mira desde un paso atrás. `attack list [page]` lista todos los nombres, y el autocompletado también los ofrece.
+| Objeto |
+|---|
+| `wheelcore` |
+| `moltenwheelcore` |
+| `refinedwheelcore` |
+| `reapercore` |
+| `sentinelcore` |
+| `endercore` |
+| `multiversalcore` |
+| `compressedgoldblock` |
+| `refinednetherite` |
+| `moltennetherite` |
+| `executionerwarrant` |
+| `architectkernel` |
+| `garoucosmiccore` |
 
 ---
 
 ## /msc attack <nombre> [rango]
 
-Dispara un ataque, defensa o mecánica de transición de fase del ArmorStandBoss por nombre. Encuentra el jefe más cercano dentro de `rango` bloques (por defecto `aggro-range` = 50) y lo ejecuta.
+Fuerza un ataque o mecánica del Centinela de Obsidiana más cercano dentro de `rango` bloques (100 por defecto). Cada ataque y mecánica tiene **un solo nombre** — los de abajo, que lista `/msc attack help [1-7]` y ofrece el autocompletado.
 
-### Ataques de suelo (21)
+El comando se salta las reglas de distancia, enfriamiento y repetición de la IA, pero conserva las que protegen al jefe: nada empieza mientras otro ataque sigue en curso, un ataque aéreo necesita al jefe en el aire (primero `flyup`) y uno de suelo en el piso (primero `land`), y no se apila un sello, círculo de curación, defensa o tope de esbirros que ya esté activo. Cuando se niega, dice por qué.
 
-`groundslam`, `groundshatter`, `shieldbash`, `lancestorm`, `earthpillar`, `chaingrapple`, `warstomp`, `armorspikes`, `vortexpull`, `mirrorimage`, `doombeam`, `lanceflurry`, `whirlwindslash`, `executionsweep`, `obsidianspire`, `earthmaw`, `shadowstep`, `runeward`, `sunderingcharge`, `spearcyclone`, `cataclysm`
+### Ataques de suelo (24)
 
-### Ataques aéreos (18)
+`groundslam`, `groundshatter`, `shieldbash`, `lancestorm`, `earthpillar`, `chaingrapple`, `warstomp`, `armorspikes`, `vortexpull`, `mirrorimage`, `doombeam`, `lanceflurry`, `whirlwindslash`, `executionsweep`, `obsidianspire`, `earthmaw`, `shadowstep`, `runeward`, `sunderingcharge`, `spearcyclone`, `cataclysm`, `tremorlance`, `aegisrush`, `gravecleaver`
 
-`starfall`, `aerialrush`, `sonicboom`, `lightningstorm`, `gravitywell`, `crossslash`, `novaburst`, `darkorb`, `windcutter`, `heavenlyjudgment`, `rainoflances`, `airslam`, `hoverbarrage` (alias `crossbarrage`), `eclipsefall`, `bladering`, `obsidianwings`, `voidmeteor`, `phantomlegion`
+### Ataques aéreos (20)
 
-### Ataques a distancia (16)
+`starfall`, `aerialrush`, `sonicboom`, `lightningstorm`, `gravitywell`, `crossslash`, `novaburst`, `darkorb`, `windcutter`, `heavenlyjudgment`, `rainoflances`, `airslam`, `hoverbarrage`, `eclipsefall`, `bladering`, `obsidianwings`, `voidmeteor`, `phantomlegion`, `spiralstorm`, `chainhook`
 
-`lancesnipe`, `meteorstorm`, `voidbeam`, `frostlance`, `lightningspear`, `shadowvolley`, `chainlightning`, `crystalbarrage`, `arcaneorb`, `voidrift`, `arcanemissiles`, `spiritbeam`, `soultethers`, `plaguebrand`, `runemines`, `obsidianprison`
+### Ataques a distancia y mágicos (20)
 
-### Transiciones de fase
+`lancesnipe`, `meteorstorm`, `voidbeam`, `frostlance`, `lightningspear`, `shadowvolley`, `chainlightning`, `crystalbarrage`, `arcaneorb`, `voidrift`, `arcanemissiles`, `spiritbeam`, `soultethers`, `plaguebrand`, `runemines`, `obsidianprison`, `shardburst`, `gravityorb`, `javelinvolley`, `sweepinglaser`
 
-`phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`
+### Defensas, sellos y curas (12)
 
-### Estados defensivos
+`stoneskin`, `reflectbarrier`, `absorbshield`, `shieldseal`, `healingcircle`, `trianglecall`, `regeneration`, `soulsiphon`, `obsidiancocoon`, `bulwark`, `thornaura`, `afterimage`
 
-`stoneskin`, `reflectbarrier`, `absorbshield`
+### Ritos de invocación (10)
 
-### Mecánicas y varios
+`lancesquires`, `obsidianmender`, `emberhounds`, `voidwisps`, `obsidianbrute`, `elementalconclave`, `shadowambush`, `necropolisrite`, `arcanecovenant`, `championcall`
 
-`trianglecall`, `flyup`, `land`, `shieldseal`, `heal`, `reset`
+### Cataclismos destructivos (10)
+
+`orbitalstrike`, `meteorimpact`, `supernova`, `judgmentpillars`, `earthsplitter`, `voidcollapse`, `obsidiantsunami`, `solarlance`, `worldbreaker`, `apocalypserain`
+
+### Mecánicas y transiciones de fase (7)
+
+`flyup`, `land`, `reset`, `phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`
 
 La lista completa y los detalles están en la [página de Jefes](./Bosses.md).
 
@@ -293,18 +254,6 @@ Replaying kinger's walk in front of you for 10 s: hitbox (red), joints (cyan), b
 
 ---
 
-## /msc tps
-
-Muestra en el chat los TPS, el tiempo de tick, la memoria, las entidades y los congelamientos detectados y, a un jugador, le envía un **enlace privado** a un reporte de rendimiento: gráficos de TPS y tiempo de tick, memoria y pausas del recolector de basura, entidades por mundo y por etiqueta custom, carga de partículas de los jefes, un diagnóstico en frases simples y cada **congelamiento** con la pila del hilo principal mientras duró y el plugin y método al que apunta.
-
-**`monitor.mode: upload` (por defecto, funciona en cualquier hosting).** El reporte es un snapshot de ese momento (con los últimos `history-seconds` de historial). Se comprime y se **cifra con AES-256-GCM en el servidor**, se sube a `monitor.upload-url` (un servicio bytebin, `https://bytebin.lucko.me` por defecto, el mismo que usa Spark) y se abre en `monitor.viewer-url`, la página `monitor/` del sitio del proyecto. La clave solo viaja en el enlace, después del `#`, que el navegador nunca envía a ningún servidor: el almacenamiento guarda bytes que no puede leer y la página está vacía sin el enlace. No hay que abrir ningún puerto; el servidor hace una sola petición HTTPS saliente, fuera del hilo principal. Ejecuta `/msc tps` otra vez para un snapshot más nuevo. No incluye nombres de jugadores, IPs ni coordenadas; sí incluye los nombres de los mundos y los nombres de clases de las pilas de congelamientos.
-
-**`monitor.mode: local`.** El plugin sirve una página en vivo (se actualiza cada 2 s) en `monitor.port` (8765). Si ese puerto está ocupado prueba los 20 siguientes y luego cualquiera libre, y avisa cuál en el chat. El enlace usa `monitor.public-host`, si no la dirección con la que entraste, si no `server-ip`. El puerto debe ser alcanzable desde tu navegador. Los enlaces caducan a los `link-minutes` (30) y el siguiente `/msc tps` del mismo admin anula el anterior.
-
-Mismo permiso que el resto de `/msc` (`msc.admin` u OP). `monitor.enabled: false` apaga el muestreo; `freeze-threshold-ms` (150) es lo que debe tardar un tick para contar como congelamiento. Mientras no hay nadie conectado (cuando Paper pausa un servidor vacío) no se registran congelamientos.
-
----
-
 ## /msc music <play|stop|list|disc> [canción] [loop]
 
 Reproduce cualquier archivo `.nbs` de `plugins/MultiverseCreatures/music/`. Las canciones se reproducen vía el `MusicManager` (paquetes de protocolo note-block-stub) para todos los jugadores cercanos dentro de un radio configurable.
@@ -323,12 +272,6 @@ Reproduce cualquier archivo `.nbs` de `plugins/MultiverseCreatures/music/`. Las 
 ## /msc dimtp <mundo>
 
 Teletransporta al ejecutor entre mundos/dimensiones. Se usa para probar el andamiaje de la dimensión del jefe y para saltar rápidamente entre overworld/nether/the_end.
-
----
-
-## /msc cleanstands
-
-Itera todos los mundos y elimina cada ArmorStand cuya etiqueta de scoreboard empiece por `MSC_`. Útil para limpiar después de una pelea de jefe o un crash durante una batalla. **Limpia los compañeros Stand del jefe, los ItemDisplays invocados y las plantillas de jefe aéreo muertas u obsoletas.**
 
 ---
 

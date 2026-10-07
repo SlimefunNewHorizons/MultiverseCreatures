@@ -14,11 +14,9 @@ src/main/java/com/Chagui68/
 ├── commands/                          /msc command executor + tab completer
 │   ├── MSCCommand.java                 Dispatcher: permission gate, sub-command routing, tab completion
 │   ├── CommandMenu.java                Every rendered menu + the pagination maths
-│   ├── SpawnCatalogue.java             Spawnable entities: aliases, messages, help pages
-│   ├── GiveCatalogue.java              Givable items: aliases, item factories, help pages
+│   ├── SpawnCatalogue.java             Spawnable entities: one name each, messages, help pages
+│   ├── GiveCatalogue.java              Givable items: one name each, item factories, help pages
 │   ├── AttackCatalogue.java            Attack names + help pages
-│   ├── DummyStudio.java                Pose-dummy subsystem (spawn, poses, wings, animations, attack preview)
-│   ├── SealStudio.java                 Particle-seal patterns, planes and hand-drawn shapes
 │   └── MscKillFilter.java              Pure "is this one of ours?" predicates for /msc kill
 ├── entities/
 │   ├── boss/                          ArmorStandBoss + attack framework (THE OBSIDIAN SENTINEL)
@@ -30,7 +28,6 @@ src/main/java/com/Chagui68/
 │   │   │   ├── WingGeometry.java            The two wing profiles as a function of pose and frame
 │   │   │   └── SealPoint.java / WingPoint.java  Plane and world points
 │   │   ├── BossInstance.java           Per-instance boss state struct
-│   │   ├── AttackPreview.java          Marker that lets a dummy act out attacks without damaging
 │   │   └── attack/
 │   │       ├── BossAttack.java              Interface: execute(BossInstance), getName()
 │   │       ├── BossAttackBase.java          Abstract base: boss/plugin/random/sealDamage helpers
@@ -194,7 +191,7 @@ Every repeating task is one of two shapes, and `SchedulerHandleGuardTest` fails 
 | **New mob** | 1. Create a class under `entities/<...>/` implementing `Listener`. Use `MscEntityUtils.spawnTagged/setAttribute/handleDeath`.<br>2. Self-register in the constructor.<br>3. Instantiate it once in `MultiverseCreatures.onEnable()` so it's alive to receive events.<br>4. (Optional) Register a spawn replacement route inside `MobHandler`. |
 | **New boss attack** | 1. Create a class extending `ChoreographedAttack.Ground`, `.Aerial` or `.Ranged` under `entities/boss/attack/<aerial\|ground\|ranged>/` returning a unique `getName()`, and write its `choreograph(Stage)`.<br>2. Register it in `ArmorStandBoss.initAttacks()` with `registerAttack(new XxxAttack(this))`, add it to a `SentinelAttackPool` table and the aerial/ground name set. `ChoreographyTest` picks it up on its own and plays it offline. |
 | **New tool/weapon handler** | 1. Create `listener/XxxHandler implements Listener`.<br>2. Use `MscEntityUtils.isCreativeOrSpectator` for game-mode guards.<br>3. Register it in `MultiverseCreatures.onEnable()` via `getServer().getPluginManager().registerEvents(new XxxHandler(this), this)`. |
-| **New `/msc` alias, item or attack** | 1. Add one entry to `commands/SpawnCatalogue`, `commands/GiveCatalogue` or `commands/AttackCatalogue`: the executor, the help pages and the tab completer all read that single table.<br>2. An attack still needs its class registered in `ArmorStandBoss.initAttacks()` and its `getName()` copied into the catalogue entry, plus into the aerial/ground name sets that gate when it is allowed to fire. |
+| **New `/msc` entity, item or attack** | 1. Add one entry to `commands/SpawnCatalogue`, `commands/GiveCatalogue` or `commands/AttackCatalogue`: the executor, the help pages and the tab completer all read that single table.<br>2. An attack still needs its class registered in `ArmorStandBoss.initAttacks()` and its `getName()` copied into the catalogue entry, plus into the aerial/ground name sets that gate when it is allowed to fire.<br>3. Every entry has exactly one name; `CommandCatalogueTest` fails on a duplicate or a retired alias. `/msc attack` runs attacks through `ArmorStandBoss.forceAttack`, which skips the AI's distance and cooldown rules but refuses to start while another attack owns the body or a state is already up. |
 | **New config option** | 1. Read it with a default (`config.getInt("path.to.key", fallback)`) so existing configs keep working.<br>2. Declare it in `config.yml` — `ConfigFilesGuardTest` fails the build when a key is read by the code but missing from the file. |
 
 ---

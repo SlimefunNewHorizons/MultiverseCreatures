@@ -59,7 +59,7 @@ Una trampa rara de Luna Llena. Durante `MoonPhase.FULL_MOON`, el 0.1% de los spa
 | **Skeleton Sniper** (retaguardia) | `MSC_Sniper` | Wither Skeleton 40 HP, armadura de cuero verde completa, "Arco del Francotirador" (Poder V / Infinito). **Predice el movimiento del jugador** (velocidad + arco de gravedad) y dispara flechas críticas cada 30 ticks hasta a 50 bloques. Las flechas aplican Wither I (100t) + Debilidad I (100t). |
 
 **Comandos:**
-- Ejército completo: `/msc spawn zombietrap` (alias `army`)
+- Ejército completo: `/msc spawn zombietrap`
 - Unidades individuales: `/msc spawn tank`, `duelist`, `lancer`, `camel`, `sniper`
 
 **Drops:** cada uno de Tank/Duelist/Lancer/CamelZombie/CamelSkeleton/Sniper tiene un 30% de probabilidad (`zombie-horse-trap.military-component-drop-chance`) de dropear un **Componente Militar**.
@@ -86,7 +86,7 @@ Zombie tanque pesado de netherita completa.
 
 - **Spawn natural:** `obsidian-guard.spawn-chance` (2%) de los spawns de Zombie
 - **Drops:** 85% de probabilidad de **Fragmento de Obsidiana** + 100 XP
-- **Comando:** `/msc spawn obsidianguard` (alias `obsidian`)
+- **Comando:** `/msc spawn obsidianguard`
 
 ---
 
@@ -109,7 +109,7 @@ Caballero temático de enderman con una "Hoja Ender" de Espada de Diamante (Niti
 
 - **Spawn natural:** `ender-knight.spawn-chance` (4%) de los spawns de Enderman
 - **Drops:** 55% de **Fragmento Ender** + 70 XP
-- **Comando:** `/msc spawn enderknight` (alias `ender`)
+- **Comando:** `/msc spawn enderknight`
 
 ---
 
@@ -134,7 +134,7 @@ Gólem de Hierro reimaginado como guardián invernal. Lleva peto de cuero aguama
 
 - **Spawn natural:** `frost-golem.spawn-chance` (8%) de los spawns de Gólem de Hierro
 - **Drops:** 75% de **Corazón de Escarcha** + 80 XP
-- **Comando:** `/msc spawn frostgolem` (alias `frost`)
+- **Comando:** `/msc spawn frostgolem`
 
 ---
 
@@ -154,7 +154,7 @@ Un blaze con proyectiles meteoro buscadores.
 
 - **Spawn natural:** `flame-elemental.spawn-chance` (10%) de los spawns de Blaze
 - **Drops:** 60% de **Núcleo de Magma** + 40 XP
-- **Comando:** `/msc spawn flameelemental` (alias `flame`)
+- **Comando:** `/msc spawn flameelemental`
 
 ---
 
@@ -176,7 +176,7 @@ Prioridad de tirada: **el Invocador de Tormentas tira primero** cuando aparece u
 
 - **Spawn natural:** `storm-caller.spawn-chance` (4%) de los spawns de Bruja
 - **Drops:** 60% de **Cristal de Tormenta** + 50 XP
-- **Comando:** `/msc spawn stormcaller` (alias `storm`)
+- **Comando:** `/msc spawn stormcaller`
 
 ---
 
@@ -196,7 +196,7 @@ Una bruja especialista en veneno.
 
 - **Spawn natural:** `venom-witch.spawn-chance` (5%) de los spawns de Bruja (solo si falla la tirada del Invocador de Tormentas)
 - **Drops:** 60% de **Glándula de Veneno** + 30 XP
-- **Comando:** `/msc spawn venomwitch` (alias `venom`)
+- **Comando:** `/msc spawn venomwitch`
 
 ---
 
@@ -218,7 +218,7 @@ Un wither skeleton con guadaña y robo de vida.
 
 - **Spawn natural:** `soul-reaper.spawn-chance` (5%) de los spawns de Wither Skeleton
 - **Drops:** 60% de **Esencia de Segador** + 60 XP
-- **Comando:** `/msc spawn soulreaper` (alias `reaper`)
+- **Comando:** `/msc spawn soulreaper`
 
 ---
 
@@ -242,7 +242,7 @@ Un evocador que lanza uno de 6 hechizos caóticos aleatorios cada 50+ ticks.
 
 - **Spawn natural:** `chaos-mage.spawn-chance` (6%) de los spawns de Evocador
 - **Drops:** 60% de **Orbe del Caos** + 50 XP
-- **Comando:** `/msc spawn chaosmage` (alias `chaos`)
+- **Comando:** `/msc spawn chaosmage`
 
 ---
 
@@ -263,7 +263,7 @@ Una araña emboscadora que cambia de fase.
 
 - **Spawn natural:** `void-crawler.spawn-chance` (7%) de los spawns de Araña
 - **Drops:** 50% de **Esencia del Vacío** + 35 XP
-- **Comando:** `/msc spawn voidcrawler` (alias `void`)
+- **Comando:** `/msc spawn voidcrawler`
 
 ---
 
@@ -284,7 +284,7 @@ Un asesino esqueleto rápido.
 
 - **Spawn natural:** `shadow-rogue.spawn-chance` (5%) de los spawns de Esqueleto
 - **Drops:** 50% de **Fragmento de Capa de las Sombras** + 30 XP
-- **Comando:** `/msc spawn shadowrogue` (alias `rogue`)
+- **Comando:** `/msc spawn shadowrogue`
 
 ---
 
@@ -307,7 +307,7 @@ Un esqueleto defensivo con un muro de huesos que se recarga.
 
 - **Spawn natural:** `bone-shield.spawn-chance` (6%) de los spawns de Esqueleto (se tira junto a Shadow Rogue)
 - **Drops:** 80% de **Hueso Reforzado** + 40 XP
-- **Comando:** `/msc spawn boneshield` (alias `bone`)
+- **Comando:** `/msc spawn boneshield`
 
 ---
 

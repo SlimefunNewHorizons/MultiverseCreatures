@@ -21,12 +21,12 @@ mvn clean package -DskipTests  # Compila el JAR saltando los tests
 Para ejecutar una clase concreta:
 
 ```bash
-mvn test -Dtest=NixInvocationStructureTest
+mvn test -Dtest=InvocationStructuresTest
 ```
 
 ## 📋 Inventario de tests
 
-Los 59 archivos viven en `src/test/java/com/Chagui68/` reflejando el paquete de la clase que prueban.
+Las 64 clases de test viven en `src/test/java/com/Chagui68/` reflejando el paquete de la clase que prueban.
 
 ### `utils/MscEntityUtilsHealthTest` — Salud virtual de los jefes
 Cubre la aritmética de salud de `utils/MscEntityUtils`:
@@ -50,7 +50,7 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 
 ### `utils/MscLeftoversTest` — Barrido de sobrantes de ataques al arrancar
 - Los props de un ataque que un reinicio cortó se eliminan al habilitar (escudos orbitando, el portador de escudo plantado, el anillo de lanzas, los paneles de alas, el sello triangular, las copias espejo, las balas de Kinger), porque su ataque ya no existe y nada más los quitaría.
-- La lista se prueba también desde el otro lado: **criaturas** (`MSC_FrostGolem`, las invocaciones), **piezas del traje** (cada jefe adopta las suyas) y **marcadores colocados a mano** (`MSC_Dummy`, `MSC_SealMarker`) no se barren nunca.
+- La lista se prueba también desde el otro lado: **criaturas** (`MSC_FrostGolem`, las invocaciones), **piezas del traje** (cada jefe adopta las suyas) y no se barren nunca. Los marcadores de los retirados `/msc dummy` y `/msc seal` (`MSC_Dummy`, `MSC_SealMarker`) sí se barren, porque ya nadie los posee.
 - El barrido solo toca las entidades que reconoce — no descarga el mundo alrededor — y un mundo ausente se ignora en vez de lanzar excepción.
 
 ### `utils/MscBossBarTest` — Quién ve una barra de jefe
@@ -74,43 +74,18 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 - La lava nunca sube de su nivel y siempre toca lava o roca a los lados y debajo; toda columna tiene bedrock en y=0 y es sólida hasta su superficie; hay cordillera a lo largo de todo el borde.
 - Todos los peligros y estructuras (lava, magma, ambos fuegos, agujas, huesos, ruinas, los tres suelos) aparecen en el campo de batalla, la misma semilla reconstruye las mismas columnas, y otra semilla genera un páramo distinto alrededor de la misma arena.
 
-### `ritual/JackInvocationStructureTest` — La terminal de JACKSTAR (5×5)
-- Los materiales del núcleo, las velas y la base aceptan lo que documenta el ritual y rechazan todo lo demás; cuatro velas junto al núcleo, cuatro pilares en las esquinas, y solo las casillas de vela cuentan como velas.
+### `ritual/InvocationStructuresTest` — Todas las estructuras de invocación
+- Los cuatro altares de 5×5 (el cadalso de NIX, el trono de DIO, la terminal de JACKSTAR y el altar del panteón) comparten un mismo diseño, comprobado una sola vez para los cuatro: cuatro velas en la capa del suelo a **distancia Manhattan 1** del centro y cuatro pilares en las esquinas.
+- Cada estructura pone su centro y sus marcas donde el ritual los espera: el yunque de NIX en `origin + (2.5, 0.5, 2.5)` y el brillo de sus horcas a `Y + 1.8`, el trono de DIO y el altar del panteón un bloque más arriba, la luz de los pilares de DIO a `Y + 2.6`, el centro del ritual del overworld en `(3, 0, 3)` con radio 5 y el del círculo del Centinela en `(2, 0, 2)`.
+- Solo los huecos de vela cuentan como velas — nunca el centro, un pilar ni nada de fuera — en NIX, JACKSTAR y el anillo de 12 velas del Centinela; el ritual del overworld tiene exactamente 12 velas en la capa `Y=1`, ninguna en el centro.
+- El núcleo, las velas y la base de JACKSTAR aceptan lo que documenta el ritual y nada más, y cualquier cráneo o cabeza corona un pilar de DIO.
 
-### `ritual/RitualStructureTest` — Ritual de entrada (overworld, 7×7)
-- Centro del ritual en `(3, 0, 3)` con radio 5.
-- **Exactamente 12 velas** en la capa `Y=1`, ninguna en el centro.
-
-### `ritual/NixInvocationStructureTest` — El Cadalso del Verdugo (5×5)
-- 4 velas rojas, cada una a **distancia Manhattan 1** del yunque `(2, 0, 2)` y en el suelo (`Y=0`).
-- 4 postes de cadalso formando el cuadrado 5×5 en las esquinas.
-- `getAnvilLocation` → `origen + (2.5, 0.5, 2.5)`.
-- Partículas de las horcas elevadas a `Y + 1.8` (altura de calavera).
-- `containsCandle` acepta solo las 4 posiciones de vela y rechaza centro, esquinas y fuera de la estructura.
-
-### `ritual/BossInvocationStructureTest` — Círculo de invocación del Centinela (5×5)
-- Centro en `(2, 0, 2)` (donde se suelta el Fragmento de Eco).
-- `containsCandle` valida el anillo de 12 velas rojas y rechaza el centro y el exterior.
-
-### `commands/CommandHelpPaginationTest` — Paginación de `/msc`
-- Ejercita los helpers reales de `commands/CommandMenu` (ya no una copia local): `clampPage` estrecha cualquier página pedida al rango `[1, totalPages]` (entradas negativas, `0`, y por encima del máximo), `pageCount` siempre cubre todas las líneas con al menos una página, y `pageSlice` devuelve exactamente una ventana por página, sin solapes.
-- Los prefijos de categoría conservan el formato legacy `&6&lLabel&8:` / `   &e• &fitem`.
-- Los títulos y líneas de `spawn`, `give` y `attack` existen para todas las páginas válidas (1–3, 1–4 y 1–4 respectivamente), y los menús autopaginados `dummy` y `seal` siguen cabiendo en dos páginas de 12 líneas.
-
-### `commands/SpawnCatalogueTest` — Tabla de datos de `/msc spawn`
-- Las tres páginas de ayuda son, byte a byte, el texto que imprimía el comando antes de extraer la tabla.
-- Cada alias resuelve a su propio tipo, los alias son únicos, en minúsculas y sin vacíos, y los atajos legacy (`army`, `rogue`, `flame`, …) se ofrecen en el autocompletado.
-- Los mensajes de éxito/fallo conservan el texto de cada rama antigua (`Spawned Military Zombie Horse trap!` / `Failed to spawn trap.`).
-- Los tipos spawneables pero indocumentados (JackStar) quedan fuera del menú de ayuda, y el jefe Jack responde a **un único alias** (`jack`): los atajos retirados `jackstar`/`arquitecto`/`systemarchitect` ya no se resuelven por comandos ni aparecen en el autocompletado.
-
-### `commands/GiveCatalogueTest` — Tabla de datos de `/msc give`
-- Las cuatro páginas de ayuda son, byte a byte, el texto que imprimía el comando antes.
-- Todo ítem nombrado en la ayuda es un alias real entregable (incluidas las líneas agrupadas como `reaperessence &8/ &evoidessence`), y un alias desconocido devuelve `null` en lugar de lanzar.
-- Los alias son únicos y en minúsculas, y cada entrada declara su fábrica de ítem.
-
-### `commands/AttackCatalogueTest` — Tabla de datos de `/msc attack`
-- Las cuatro páginas de ayuda son, byte a byte, el texto que imprimía el comando antes.
-- Los nombres del autocompletado son los ataques documentados, únicos y en minúsculas; cada entrada está en una página existente y comparte el color de cuerpo `&7`.
+### `commands/CommandCatalogueTest` — Tablas de `/msc spawn`, `give` y `attack` y sus páginas de ayuda
+- Cada tabla es la única fuente que leen el ejecutor, la ayuda y el autocompletado, así que el test comprueba que coinciden: **un nombre en minúsculas por entidad, objeto o ataque**, buscado sin importar mayúsculas, y los atajos retirados (`army`, `sword`, `warrant`, `slam`, `heal`, `crossbarrage`, …) ya no existen.
+- `spawn`: cada tipo documentado aparece exactamente una vez, Jack queda fuera de la ayuda y cada tipo arma sus mensajes de éxito y fallo.
+- `give`: cada nombre que muestra la ayuda (incluidas las líneas agrupadas como `reaperessence &8/ &evoidessence`) es un objeto entregable con su fábrica.
+- `attack`: la ayuda lista cada ataque registrado más las siete mecánicas (`flyup`, `land`, `reset`, `phase*`), la misma lista que ejecuta `ArmorStandBoss.COMMAND_MECHANICS`.
+- La aritmética de páginas del `CommandMenu` real: las páginas se limitan a `[1, total]`, el conteo cubre cada línea con al menos una página, cada línea sale en exactamente una página, y cada página de cada menú tiene título y líneas.
 
 ### `commands/AttackRegistryCoherenceTest` — las cinco listas de ataques siguen de acuerdo
 - Lee las fuentes de los ataques y `ArmorStandBoss` y comprueba que cada clase de ataque está registrada en `initAttacks()` y responde al nombre derivado de su clase (con las excepciones documentadas `executionsweep`, `soultethers`, `runemines`).
@@ -121,11 +96,6 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 - Las etiquetas de scoreboard con prefijo `MSC_` identifican a una entidad del plugin; los nombres legacy sin etiqueta (Mahoraga, Garou, Bone Shield, …) siguen contando; los mobs vanilla quedan intactos.
 - El filtro por tipo compara etiquetas con `-`/`_` eliminados y cae al nombre como subcadena; un tipo `null` o vacío nunca coincide.
 
-### `commands/DummyAttackPreviewTest` — Previsualización de ataques en el dummy
-- Cada ataque documentado en `AttackCatalogue` es uno que el dummy acepta, en cualquier caso, y un nombre desconocido se rechaza en vez de ejecutar otra cosa en silencio; `random` elige de esa misma lista, de forma reproducible.
-- El autocompletado y la ayuda del dummy ofrecen la previsualización, y cada página de la vista previa renderiza exactamente los ataques documentados en ella, ejecutada por el `CommandMenu` real con un sender que graba.
-- La promesa en sí: `MscEntityUtils.damageBy` rechaza un golpe de una entidad marcada como dummy en actuación — comprobado con una víctima proxy que graba las llamadas a `damage` — mientras que un atacante sin marca no cuenta como previsualización. La dirección contraria no puede correr headless, porque `DamageType.GENERIC` solo resuelve contra un registro vivo.
-
 ### `entities/boss/NixDamageCapTest` — Cap de daño de NIX
 - Nix nunca puede perder más de `entities.nix-executioner.max-damage-per-hit` (por defecto **100**) en un solo golpe: lo que supera el cap se recorta, lo que queda por debajo pasa intacto y el cap nunca *infla* un golpe.
 - `0` (o cualquier valor no positivo) desactiva el límite, que es la forma documentada de volver al comportamiento sin tope.
@@ -135,10 +105,7 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 - **La armadura se devuelve**: el motor ya ha aplicado `ARMOR`, `MAGIC` (encantamientos de Protección) y `RESISTANCE` al daño del evento, y `unmitigated` deshace esos tres para que un tajo de 22 sobreviva a netherite completo. El bloqueo con escudo *no* se devuelve a propósito y el resultado nunca es negativo.
 - `penetratingDamage` mantiene la Resistencia parcialmente efectiva: el jefe ignora `penetrating-resistance-pierce` (por defecto **0.2**) de la reducción de la poción, así que Resistencia I bloquea el 16% en lugar del 20% (un golpe de 10 quita 8.4), `0.0` deja la poción totalmente efectiva y `1.0` la ignora por completo. La mitigación es del 20% por nivel y se topa al 100% (Resistencia V).
 - Los valores de perforación fuera de rango se recortan, un golpe nunca puede superar el daño bruto y el cap por golpe (`max-damage-dealt`, 15) se aplica antes de la Resistencia, así que la poción nunca puede subirlo.
-
-### `entities/boss/PenetratingHitTest` — Snapshot de `/msc debug`
-- El record inmutable `PenetratingHit` es el único sitio donde se ejecuta el pipeline completo (devolver armadura/Protección/Resistencia, aplicar el cap y perforar la Resistencia), así que las cifras que imprime `/msc debug` no pueden desviarse del manejador real: un tajo de 22 con netherite completo vuelve como 12.6, el cap se aplica antes de la Resistencia y un golpe absorbido por la armadura termina en 0, no en un negativo ni `NaN`.
-- La Resistencia se reporta como nivel de base uno (amplificador 2 → nivel 3) y la edad del snapshot es tiempo transcurrido recortado a cero, así que un reloj hacia atrás no puede producir una edad negativa.
+- `PenetratingHit` encadena los mismos pasos que el handler en vivo (devolver, topar, perforar) y es lo que imprime `/msc debug`: un tajo de 22 contra netherite completo queda en 12.6, un golpe absorbido por la armadura acaba en 0 en vez de negativo o `NaN`, la Resistencia se muestra como nivel desde 1 y la antigüedad nunca es negativa.
 
 ### `entities/boss/SentinelDefenseTest` — Daño entrante del Centinela
 - Fija todo el stack defensivo del jefe, ahora extraído de su manejador de eventos a `SentinelDefense`: sello de escudo ×0.5, círculo de curación ×0.8, piel de piedra ×0.5, barrera reflectante ×0.7, el escudo de absorción gastando su vida y el cap `max-damage-per-hit` aplicado **al final**.
@@ -161,21 +128,19 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 - La forma comprimida (degradada) sube la probabilidad configurada a 0.45, y el valor límite conserva la configurada.
 
 ### `entities/boss/JackModelTest` — Geometría del modelo de Jack Star
-- Las once piezas quedan fijadas contra el **modelo de referencia del juego**: la altura y la profundidad de cada pieza coinciden al milímetro y las once comparten un único eje X, así que el cuerpo no puede descolocarse pieza a pieza.
-- El modelo queda **centrado en la hitbox** (columna y `CENTER.x` a cero) en vez de arrastrar el desplazamiento global en X de la referencia, con la cabeza por encima del torso y este por encima de las piernas, la coronilla cerca de los dos bloques y los pies separados del suelo.
-- Las extremidades izquierda y derecha están espejadas, cada **articulación está del mismo lado que la extremidad que mueve** (una cadera intercambiada hacía girar una pierna sobre la cadera opuesta), y una extremidad que gira conserva su X y nunca se desprende de su articulación.
-- Un barrido demuestra que no hay dos piezas en el mismo sitio, que el cambio de escala escala a la vez traslaciones y escalas de pieza, y que cada pieza cabe dentro de la hitbox del stand.
-- Los dos brazos y las dos piernas se exportaron en dos segmentos, así que el modelo los pliega: cada **codo y rodilla queda donde el export deja el hueco mayor entre los dos segmentos** (la articulación del código se compara con esa otra derivada de forma independiente), solo la mitad inferior de la extremidad sigue esa articulación mientras la superior queda rígida, y **todo el ciclo de caminar cabe dentro de la hitbox del stand**.
-- La **pose de caminar** que dibuja la repetición se comprueba como esqueleto: cuatro extremidades que se pliegan exactamente en esas articulaciones, huesos rígidos y pivote fijo en cada fase, las piernas dentro de la caja del stand en todo momento (los brazos quedan fuera por diseño), la rodilla plegando el pie detrás de la pierna recta y el codo la mano delante — cada extremo más cerca de su articulación de lo que llega la extremidad recta. Un chequeo de fuentes mantiene al jefe avanzando a `JackModel.WALK_RATE`.
+- Las once piezas coinciden con el **modelo de referencia del juego** salvo un desplazamiento en X común, y el modelo queda **re-centrado en la hitbox**; cabeza sobre torso sobre piernas, coronilla cerca de los dos bloques.
+- El tajo dobla codos y rodillas, el cambio de forma escala traslaciones y tamaños a la vez, y la hitbox del soporte cubre cabeza, torso y piernas (los brazos quedan fuera a propósito).
+
+### `entities/boss/HumanoidRigTest` — Lo que comparten NIX y Jack Star
+- Un mismo contrato sobre los dos modelos. **Pose de reposo**: extremidades izquierda y derecha simétricas, ninguna pieza en el sitio de otra, cada pieza del lado y en el eje de su articulación, una extremidad que gira conserva su X y nunca se separa de su articulación, y cada **codo y rodilla donde el export deja el mayor hueco** entre los segmentos (sacado de la geometría, nunca del código).
+- **Caminar**: solo se dobla la mitad inferior de cada extremidad, con el ángulo de su propia extremidad; todas las piezas quedan sobre la hitbox del soporte (salvo los brazos de Jack, a propósito); el esqueleto de la repetición mantiene huesos rígidos y pivotes fijos, se dobla justo en las articulaciones de las piezas, deja el pie atrás en la mitad trasera del paso y la mano delante en la delantera; y el jefe avanza al `WALK_RATE` de su modelo.
 
 ### `entities/boss/NixModelTest` — Geometría del modelo de NIX
-- Las 27 piezas quedan fijadas contra el **modelo exportado**: cada traslación coincide y todo el cuerpo comparte un único eje X, así que ninguna pieza puede desviarse por su cuenta.
-- El modelo queda **centrado en la hitbox** (`NixModel.baseTranslation` deja la columna en cero en vez del `+0.066` del export), y `CENTER` es el **punto medio de los extremos exportados** y no la media de las 27 piezas, que cualquier pieza añadida o quitada arrastraría.
-- Las extremidades izquierda y derecha están espejadas, cada **articulación está del mismo lado que la extremidad que mueve** y sobre su propio eje, y una extremidad que gira conserva su X y nunca se desprende de su articulación.
-- Un barrido demuestra que no hay dos piezas en el mismo sitio, y el **test de la hitbox** mantiene `MODEL_HITBOX_SCALE` cubriendo toda la pose de reposo (0.95 de ancho, 3.75 de alto) sin alejarse más de 0.05 de la escala mínima que el modelo necesita — el literal `2.0` anterior dejaba 1.8 bloques de caja vacía sobre la cabeza.
-- Una guardia de fuentes impide que las piezas vuelvan a retrasarse (`setTeleportDuration`/`setInterpolationDuration`/`setDisplayWidth`/`setDisplayHeight` a cero, configurados en un solo sitio) y exige que un recargue **adopte** las piezas que ya tiene en vez de crear un segundo cuerpo superpuesto.
-- Las piezas numeradas **no** están en orden de apilado, así que cada **codo y rodilla se compara con el corte que el export muestra de verdad**: la única pieza `_4` queda por encima de la articulación, las otras cinco se pliegan por debajo, y la articulación está donde está el hueco — la respuesta del código nunca se da por buena. Después, todo el ciclo de caminar, con codos incluidos, tiene que caber dentro de la hitbox del stand.
-- La **pose de caminar** que dibuja la repetición se comprueba como esqueleto: cuatro extremidades que se pliegan exactamente en esas articulaciones, huesos rígidos y pivote fijo en cada fase, las cuatro dentro de la caja del stand en cada paso, la rodilla plegando el pie detrás de la pierna recta y el codo la mano delante — cada extremo más cerca de su articulación de lo que llega la extremidad recta. Un chequeo de fuentes mantiene al jefe avanzando a `NixModel.WALK_RATE`.
+- Las 27 piezas quedan fijadas contra el **modelo exportado**: cada traslación coincide y todo el cuerpo comparte un único eje X. El modelo queda **centrado en la hitbox** (`NixModel.baseTranslation` deja la columna en cero en vez del `+0.066` del export), y `CENTER` es el **punto medio de los extremos exportados**, que ninguna pieza añadida puede arrastrar.
+- Cabeza sobre torso sobre piernas, coronilla cerca de los dos bloques, pies separados del suelo; brazos y piernas de seis piezas cada uno.
+- El **test de la hitbox** mantiene `MODEL_HITBOX_SCALE` cubriendo toda la pose de reposo sin pasarse en más de 0.05 de la escala mínima que necesita el modelo.
+- El tajo dobla los codos al cargar, los estira al golpear y flexiona las rodillas.
+- Una guarda de código impide que las piezas se retrasen (`setTeleportDuration`/`setInterpolationDuration`/`setDisplayWidth`/`setDisplayHeight` a cero, configurados en un solo sitio) y exige que una recarga **adopte** las piezas que ya tiene en vez de crear un segundo cuerpo.
 
 ### `entities/LimbArticulationGuardTest` — Cada segmento exportado está articulado
 - Guardia cruzada sobre los tres jefes vestidos: recorre **todas** las agrupaciones de extremidad del enum de piezas de cada modelo — no la lista escrita a mano que usan los tests de cada modelo — y le pregunta la respuesta al export. Donde está el hueco más grande entre dos piezas apiladas, ahí va una articulación, y el código tiene que plegar exactamente las piezas de debajo, ni una más ni una menos.
@@ -271,10 +236,10 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 - Verifica que `commands.subcommand-permissions` exista como **mapa vacío** por defecto: la puerta documentada no debe desaparecer en silencio, y la config que se envía no debe restringir nada por sorpresa.
 - Verifica que **todos** los jefes envíen la escala de hitbox que su test de geometría demuestra correcta (`kinger.hitbox-scale` 1.0, `nix-executioner.hitbox-scale` 1.9, `jackstar-architect.hitbox-scale` 1.2, `armor-stand-boss.hitbox-scale` 7.5 — el propio cuerpo del Centinela), dentro del rango 0.25–8 al que se acota un valor editado a mano — el ajuste y los tests de geometría deben coincidir de fábrica.
 
-### `utils/LegacyNameApiGuardTest` — Guardia de la migración
-- Lee `src/main/java` y falla si algún archivo vuelve a las APIs String deprecadas de nombre (`setDisplayName`, `setLore`, `setItemName`, `setCustomName`, `getDisplayName`, `getCustomName`). Esos métodos siguen compilando y funcionando, así que un item escrito a la vieja usanza solo se notaría como un tooltip sutilmente mal.
-- Las coincidencias dentro de comentarios se ignoran, y el escaneo verifica que recorrió todo el sourceset para no pasar de forma vacua.
-- Un segundo test le da al detector una muestra con las seis APIs más una comentada, probando que la guardia detecta exactamente lo que busca.
+### `utils/SourceGuardsTest` — Reglas leídas del código
+- **FLASH necesita color**: cada `spawnParticle(Particle.FLASH, …)` lleva un `Color`, porque desde 1.21 sin él lanza una excepción (un reinicio de JackStar lo hacía en cada golpe).
+- **Ningún catch silencioso**: se quitan comentarios, strings y chars (conservando los números de línea) y cada `catch` de `src/main/java` tiene que hacer algo; lista de permitidos vacía y un mínimo de 40 catches para que el escaneo no pase en vacío.
+- **Los nombres son Components**: ningún archivo vuelve a las APIs de nombre con String obsoletas (`setDisplayName`, `setLore`, `setItemName`, `setCustomName`, `getDisplayName`, `getCustomName`); se ignoran las coincidencias en comentarios, el escaneo cubre todo el código y una muestra con las seis APIs prueba que el detector las encuentra.
 
 ### `utils/MscLogTest` — Fallos reportados
 - Los veintiún bloques `catch` que se tragaban su excepción (`catch (Exception ignored) { }`) ahora reportan por `utils/MscLog`; esta suite lo maneja con un `Handler` capturador y comprueba que de verdad se pide al logger del plugin que imprima.
@@ -286,10 +251,6 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 - Lee `config.yml` y exige que declare el mismo `config-version` que `MscConfigMigration.CONFIG_VERSION`, así una release no puede enviar un archivo con el que el código no está de acuerdo, ni un salto de versión que nunca ocurrió.
 - Lee `MultiverseCreatures.onEnable` y demuestra que la migración corre **después de `saveDefaultConfig()` y antes de la primera lectura de `getConfig()`**: `saveDefaultConfig()` solo escribe el config cuando no existe, así que una clave añadida por una actualización se quedaría invisible en todos los servidores que ya existen.
 - Lee `MSCCommand.handleReload` y demuestra que `/msc reload` relee el archivo, fusiona los defaults del jar y solo después recarga los handlers — un servidor que actualizó el plugin obtiene las claves nuevas con una recarga, no solo tras reiniciar.
-
-### `utils/SilentCatchGuardTest` — Sin bloques catch silenciosos
-- Guardia de fuentes: recorta comentarios, strings y chars (conservando las líneas), localiza cada cláusula `catch` bajo `src/main/java` y **falla si algún cuerpo queda en blanco**, con una lista de permitidos vacía y un suelo de 40 catches para que el escáner no pase de forma vacua.
-- Es lo que impide deshacer el cambio de logging bloque a bloque: una excepción tragada es invisible en una revisión, pero un cuerpo de `catch` vacío no.
 
 ### `utils/SchedulerHandleGuardTest` — Toda tarea en bucle se puede parar
 - Guardia de fuentes: recorta comentarios, encuentra cada `.runTaskTimer(` / `.scheduleSyncRepeatingTask(` bajo `src/main/java` y exige que cada sitio sea una de dos formas — un runnable cuyo propio cuerpo llama a `cancel()`, o una tarea cuyo handle sobrevive al enunciado (una llamada sobre un nombre: `task`, `instance.flyTask`; o una asignación `x = new BukkitRunnable() { … }.runTaskTimer(…)`). Un suelo de 100 sitios mantiene el escaneo sobre todo el proyecto.

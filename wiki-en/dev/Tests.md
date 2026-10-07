@@ -21,12 +21,12 @@ mvn clean package -DskipTests  # Builds the JAR skipping tests
 To run one class:
 
 ```bash
-mvn test -Dtest=NixInvocationStructureTest
+mvn test -Dtest=InvocationStructuresTest
 ```
 
 ## 📋 Test inventory
 
-All 59 files live in `src/test/java/com/Chagui68/`, mirroring the package of the class they exercise.
+All 64 test classes live in `src/test/java/com/Chagui68/`, mirroring the package of the class they exercise.
 
 ### `utils/MscEntityUtilsHealthTest` — Boss virtual health
 Covers the health math in `utils/MscEntityUtils`:
@@ -50,7 +50,7 @@ Covers the health math in `utils/MscEntityUtils`:
 
 ### `utils/MscLeftoversTest` — Startup sweep of attack props
 - The props of an attack that a restart cut short are removed at enable (orbiting shields, the planted shield holder, the lance ring, the wing panels, the triangle seal, the mirror copies, Kinger's bullets), because their attack object is gone and nothing else would ever remove them.
-- The list is tested from the other side too: **creatures** (`MSC_FrostGolem`, the summons), **suit pieces** (each boss adopts its own) and **hand-placed markers** (`MSC_Dummy`, `MSC_SealMarker`) are never swept.
+- The list is tested from the other side too: **creatures** (`MSC_FrostGolem`, the summons), **suit pieces** (each boss adopts its own) and never swept. The markers of the retired `/msc dummy` and `/msc seal` (`MSC_Dummy`, `MSC_SealMarker`) are swept, since nothing owns them any more.
 - The sweep only touches the entities it recognises — it does not unload the world around them — and a missing world is ignored instead of throwing.
 
 ### `utils/MscBossBarTest` — Who sees a boss bar
@@ -74,43 +74,18 @@ Covers the health math in `utils/MscEntityUtils`:
 - Lava never rises above its level and always meets lava or rock sideways and below; every column has bedrock at y=0 and is solid up to its surface; a mountain range stands all along the edge.
 - Every hazard and structure (lava, magma, both fires, spikes, bones, ruins, all three grounds) appears on the battlefield, the same seed rebuilds the same columns, and another seed grows a different wasteland around the same arena.
 
-### `ritual/JackInvocationStructureTest` — JACKSTAR's terminal (5×5)
-- The core, candle and base materials accept what the ritual documents and reject anything else; four candles sit next to the core, four pillars mark the corners, and only the candle spots count as candles.
+### `ritual/InvocationStructuresTest` — Every summoning structure
+- The four 5×5 altars (NIX's scaffold, DIO's throne, JACKSTAR's terminal and the pantheon altar) share one layout, checked once for all four: four candles on the ground layer at **Manhattan distance 1** from the centre, four pillars on the corners.
+- Each structure puts its centre and markers where the ritual expects them: NIX's anvil at `origin + (2.5, 0.5, 2.5)` and its gallows glow at `Y + 1.8`, DIO's throne and the pantheon altar one block up, DIO's pillar light at `Y + 2.6`, the overworld ritual's centre at `(3, 0, 3)` with radius 5 and the Sentinel circle's at `(2, 0, 2)`.
+- Only the candle spots count as candles — never the centre, a pillar or anything outside — for NIX, JACKSTAR and the Sentinel's 12-candle ring; the overworld ritual has exactly 12 candles on layer `Y=1`, none on the centre.
+- JACKSTAR's core, candle and base blocks accept what the ritual documents and nothing else, and any skull or head crowns one of DIO's pillars.
 
-### `ritual/RitualStructureTest` — Entry ritual (overworld, 7×7)
-- Ritual center at `(3, 0, 3)` with radius 5.
-- **Exactly 12 candles** on layer `Y=1`, none at the center.
-
-### `ritual/NixInvocationStructureTest` — The Executioner's Scaffold (5×5)
-- 4 red candles, each at **Manhattan distance 1** from the anvil at `(2, 0, 2)` and on the ground layer (`Y=0`).
-- 4 corner gallows forming the 5×5 bounding square at the corners.
-- `getAnvilLocation` → `origin + (2.5, 0.5, 2.5)`.
-- Gallows particles elevated to `Y + 1.8` (skull height).
-- `containsCandle` accepts only the 4 candle positions and rejects the center, the corners, and anything outside the structure.
-
-### `ritual/BossInvocationStructureTest` — Sentinel invocation circle (5×5)
-- Center at `(2, 0, 2)` (where the Echo Shard is dropped).
-- `containsCandle` validates the 12-candle ring and rejects the center and the outside.
-
-### `commands/CommandHelpPaginationTest` — `/msc` pagination
-- Drives the real `commands/CommandMenu` helpers (not a local copy): `clampPage` clamps any requested page into `[1, totalPages]` (negative inputs, `0`, and above the maximum), `pageCount` always covers every line with at least one page, and `pageSlice` returns exactly one non-overlapping window per page.
-- Category prefixes keep the legacy `&6&lLabel&8:` / `   &e• &fitem` formatting.
-- The `spawn`, `give`, and `attack` titles and help lines exist for every valid page (1–3, 1–4 and 1–4 respectively), and the self-paginated `dummy` and `seal` menus still fit in two pages of 12 lines.
-
-### `commands/SpawnCatalogueTest` — `/msc spawn` data table
-- The three help pages are byte-for-byte the text the command printed before the table was extracted.
-- Every alias resolves back to its own type, aliases are unique, lowercase and free of blanks, and the legacy shortcuts (`army`, `rogue`, `flame`, …) are all offered by tab completion.
-- Success/failure messages match the old per-branch wording (`Spawned Military Zombie Horse trap!` / `Failed to spawn trap.`).
-- Spawnable-but-undocumented kinds (JackStar) stay out of the help menu, and the Jack boss answers to **exactly one alias** (`jack`): the retired `jackstar`/`arquitecto`/`systemarchitect` shortcuts no longer resolve from commands nor appear in tab completion.
-
-### `commands/GiveCatalogueTest` — `/msc give` data table
-- The four help pages are byte-for-byte the text the command printed before.
-- Every item named in the help text is a real, givable alias (grouped lines like `reaperessence &8/ &evoidessence` included), and unknown aliases return `null` instead of throwing.
-- Aliases are unique and lowercase, and every entry declares an item factory.
-
-### `commands/AttackCatalogueTest` — `/msc attack` data table
-- The four help pages are byte-for-byte the text the command printed before.
-- Tab completion names are the documented attacks, unique and lowercase; every entry sits on a page that exists and shares the `&7` body colour.
+### `commands/CommandCatalogueTest` — `/msc spawn`, `give` and `attack` tables and their help pages
+- Each table is the one source the executor, the help and tab completion read, so the test checks they agree: **one lowercase name per entity, item or attack**, looked up in any case, and the retired shortcuts (`army`, `sword`, `warrant`, `slam`, `heal`, `crossbarrage`, …) are gone.
+- `spawn`: every documented kind is listed exactly once, Jack stays out of the help, and every kind builds its success and failure message.
+- `give`: every name the help shows (grouped lines like `reaperessence &8/ &evoidessence` included) is a givable item with a factory.
+- `attack`: the help lists every registered attack plus the seven mechanics (`flyup`, `land`, `reset`, `phase*`), the same list `ArmorStandBoss.COMMAND_MECHANICS` runs.
+- The page maths of the real `CommandMenu`: pages clamp into `[1, total]`, the count covers every line with at least one page, every line shows on exactly one page, and every page of every menu has a title and lines.
 
 ### `commands/AttackRegistryCoherenceTest` — the five attack lists stay in agreement
 - Reads the attack sources and `ArmorStandBoss` and checks that every attack class is registered in `initAttacks()` and answers to the name derived from its class (with the documented exceptions `executionsweep`, `soultethers`, `runemines`).
@@ -121,11 +96,6 @@ Covers the health math in `utils/MscEntityUtils`:
 - `MSC_`-prefixed scoreboard tags identify a plugin entity; the legacy untagged names (Mahoraga, Garou, Bone Shield, …) still count; vanilla mobs are left alone.
 - The type filter matches tags with `-`/`_` stripped and falls back to a name substring; `null`/blank types never match.
 
-### `commands/DummyAttackPreviewTest` — Dummy attack preview
-- Every attack documented in `AttackCatalogue` is one the dummy accepts, in any case, and an unknown name is refused instead of quietly running something else; `random` picks from that same list, reproducibly.
-- Tab completion and the dummy help both offer the preview, and every preview page renders exactly the attacks documented on it, driven through the real `CommandMenu` with a recording sender.
-- The promise itself: `MscEntityUtils.damageBy` refuses a hit from an entity tagged as a performing dummy — checked with a proxy victim that records the `damage` calls it receives — while an untagged attacker is not treated as a preview. The opposite direction cannot run headless, because `DamageType.GENERIC` only resolves against a live registry.
-
 ### `entities/boss/NixDamageCapTest` — NIX damage cap
 - Nix can never lose more than `entities.nix-executioner.max-damage-per-hit` (default **100**) from a single hit: anything above is clamped, anything below passes through untouched, and the cap never *inflates* a hit.
 - `0` (or any non-positive value) disables the limit, which is the documented way back to the old unbounded behaviour.
@@ -135,10 +105,7 @@ Covers the health math in `utils/MscEntityUtils`:
 - **Armour is credited back**: the engine folds `ARMOR`, `MAGIC` (Protection enchantments) and `RESISTANCE` into the event damage, and `unmitigated` undoes those three so a 22-damage cleave survives full netherite. Shield blocking is deliberately *not* credited back, and the result never goes negative.
 - `penetratingDamage` keeps Resistance partially effective: the boss ignores `penetrating-resistance-pierce` (default **0.2**) of the potion's reduction, so Resistance I blocks 16% instead of 20% (a 10 hit deals 8.4), `0.0` leaves the potion fully effective and `1.0` ignores it entirely. Mitigation is 20% per level and caps at 100% (Resistance V).
 - Out-of-range pierce values are clamped, a hit can never grow past the raw damage, and the per-hit cap (`max-damage-dealt`, 15) is applied before Resistance so the potion can never raise it.
-
-### `entities/boss/PenetratingHitTest` — `/msc debug` snapshot
-- The immutable `PenetratingHit` record is the single place the whole pipeline runs (credit armour/Protection/Resistance back, cap, pierce Resistance), so the figures `/msc debug` prints cannot drift from the live handler: a full-netherite 22-damage cleave comes back as 12.6, the cap is applied before Resistance, and a hit absorbed by armour ends at 0 instead of a negative or `NaN`.
-- Resistance is reported as a one-based level (amplifier 2 → level 3), and the snapshotted age is elapsed time clamped at zero, so a backwards clock cannot produce a negative age.
+- `PenetratingHit` chains the same steps the live handler runs (credit back, cap, pierce) and is what `/msc debug` prints: a full-netherite 22-damage cleave comes back as 12.6, a hit absorbed by armour ends at 0 instead of a negative or `NaN`, Resistance is reported as a one-based level and the age never goes negative.
 
 ### `entities/boss/SentinelDefenseTest` — Sentinel incoming damage
 - Pins the boss's whole defensive stack, now extracted from its event handler into `SentinelDefense`: shield seal ×0.5, healing circle ×0.8, stone skin ×0.5, reflect barrier ×0.7, the absorb shield spending its health, and the `max-damage-per-hit` cap applied **last**.
@@ -161,21 +128,19 @@ Covers the health math in `utils/MscEntityUtils`:
 - The compressed (demoted) form raises the configured chance to 0.45, and the boundary value keeps the configured one.
 
 ### `entities/boss/JackModelTest` — Jack Star model geometry
-- The eleven parts are pinned against the **in-game reference model**: every part's height and depth match within a millimetre and all eleven sit on one shared X axis, so the body cannot drift apart one part at a time.
-- The model is **centred on the hitbox** (spine and `CENTER.x` at zero) instead of carrying the reference's whole-body X offset, with the head above the torso above the legs, the head top near two blocks and the feet off the ground.
-- Left and right limbs are mirrored, each **joint sits on the same side as the limb it drives** (a swapped hip used to swing a leg around the opposite hip), and a swinging limb keeps its X and never detaches from its joint.
-- A sweep proves no two parts share a place, that shape shifting scales translations and part scales together, and that every part stays inside the stand's hitbox.
-- Both arms and both legs were exported in two segments, so the model folds them: each **elbow and knee sits where the export leaves the biggest gap between the two segments** (the code's joint is compared against that independently derived one), only the lower half of a limb follows that joint while the upper half stays rigid, and the **whole walk stays inside the stand's hitbox**.
-- The **walk pose** the replay draws is checked as a skeleton: four limbs folding at exactly those joints, rigid bones and a fixed pivot at every phase, the legs inside the stand's box throughout (the arms sit outside it by design), the knee folding the foot behind the straight leg and the elbow the hand in front — each end closer to its joint than the straight limb reaches. A source check keeps the boss stepping at `JackModel.WALK_RATE`.
+- The eleven parts match the **in-game reference model** up to one shared X offset, and the model is **re-centred on the hitbox**; head above torso above legs, the head top near two blocks.
+- The slash bends elbows and knees, shape shifting scales translations and part scales together, and the stand's hitbox covers the head, torso and legs (the arms sit outside it by design).
+
+### `entities/boss/HumanoidRigTest` — What NIX and Jack Star share
+- One contract run over both rigs. **Rest pose**: left and right limbs mirrored, no two parts in one place, each part on its joint's side and axis, a swinging limb keeping its X and never leaving its joint, and each **elbow and knee where the export leaves the biggest gap** between a limb's segments (derived from the geometry, never taken from the code).
+- **Walk**: only the lower half of a limb folds, by the angle its own limb walks with; every part stays over the stand's hitbox (Jack's arms excepted by design); the replay's skeleton keeps rigid bones and fixed pivots, folds at exactly the display pieces' joints, puts the foot behind on the back half of the step and the hand in front on the forward half; and the boss steps at its model's `WALK_RATE`.
 
 ### `entities/boss/NixModelTest` — NIX model geometry
-- The 27 parts are pinned against the **exported model**: every translation matches and the whole body shares one X axis, so no part can drift on its own.
-- The model is **centred on the hitbox** (`NixModel.baseTranslation` puts the spine at zero instead of the export's `+0.066`), and `CENTER` is the **midpoint of the exported extents** rather than the mean of the 27 parts, which any part added or removed would pull around.
-- Left and right limbs are mirrored, each **joint sits on the same side as the limb it drives** and on that limb's own axis, and a swinging limb keeps its X and never detaches from its joint.
-- A sweep proves no two parts share a place, and the **hitbox test** keeps `MODEL_HITBOX_SCALE` covering the whole rest pose (0.95 wide, 3.75 tall) while staying within 0.05 of the smallest scale the model needs — the old literal `2.0` kept 1.8 blocks of empty box above the head.
-- A source guard keeps the parts from lagging again (`setTeleportDuration`/`setInterpolationDuration`/`setDisplayWidth`/`setDisplayHeight` all zero, configured in one place) and requires a reload to **adopt** the parts it already has instead of spawning a second, overlapping body.
-- The numbered pieces are **not** in stacking order, so each **elbow and knee is compared against the split the export actually shows**: the single `_4` piece sits above the joint, the other five fold below it, and the joint itself is where the gap is — the code's answer is never taken on trust. The whole walk, elbows bending included, then has to stay inside the stand's hitbox.
-- The **walk pose** the replay draws is checked as a skeleton: four limbs folding at exactly those joints, rigid bones and a fixed pivot at every phase, all four inside the stand's box at every step, the knee folding the foot behind the straight leg and the elbow the hand in front — each end closer to its joint than the straight limb reaches. A source check keeps the boss stepping at `NixModel.WALK_RATE`.
+- The 27 parts are pinned against the **exported model**: every translation matches and the whole body shares one X axis. The model is **centred on the hitbox** (`NixModel.baseTranslation` puts the spine at zero instead of the export's `+0.066`), and `CENTER` is the **midpoint of the exported extents**, which no added part can pull around.
+- Head above torso above legs, the head top near two blocks, the feet off the ground; arms and legs of six pieces each.
+- The **hitbox test** keeps `MODEL_HITBOX_SCALE` covering the whole rest pose while staying within 0.05 of the smallest scale the model needs.
+- The cleave folds the elbows on the wind-up, straightens them on the chop and flexes the knees.
+- A source guard keeps the parts from lagging (`setTeleportDuration`/`setInterpolationDuration`/`setDisplayWidth`/`setDisplayHeight` all zero, configured in one place) and requires a reload to **adopt** the parts it already has instead of spawning a second body.
 
 ### `entities/LimbArticulationGuardTest` — Every exported segment is articulated
 - Cross-model guard over the three dressed bosses: it walks **every** limb group of every model's part enum — not the hand-written list the per-model tests use — and asks the export for its answer. Wherever the biggest gap between two stacked pieces is, a joint belongs there, and the code must fold exactly the pieces below it, no more and no fewer.
@@ -271,10 +236,10 @@ Covers the health math in `utils/MscEntityUtils`:
 - Asserts `commands.subcommand-permissions` exists as an **empty map** by default: the documented escape hatch must not disappear silently, and the shipped config must not restrict anything by surprise.
 - Asserts **every** boss ships the hitbox scale its geometry test proves is right (`kinger.hitbox-scale` 1.0, `nix-executioner.hitbox-scale` 1.9, `jackstar-architect.hitbox-scale` 1.2, `armor-stand-boss.hitbox-scale` 7.5 — the Sentinel's own body), inside the 0.25–8 range a hand-edited value gets clamped to — the knob and the geometry tests have to agree out of the box.
 
-### `utils/LegacyNameApiGuardTest` — Migration guard
-- Reads `src/main/java` and fails if any file goes back to the deprecated String name APIs (`setDisplayName`, `setLore`, `setItemName`, `setCustomName`, `getDisplayName`, `getCustomName`). Those methods still compile and still work, so an item written the old way would otherwise only show up as a subtly wrong tooltip.
-- Matches inside comments are ignored, and the scan asserts it walked the whole source set so it cannot pass vacuously.
-- A second test feeds the detector a sample with all six APIs plus a commented-out one, proving the guard catches exactly what it is looking for.
+### `utils/SourceGuardsTest` — Rules read off the sources
+- **FLASH needs a colour**: every `spawnParticle(Particle.FLASH, …)` carries a `Color`, since 1.21 throws without one (a JackStar reboot did, on every hit).
+- **No silent catch**: comments, strings and chars are stripped (line numbers kept) and every `catch` body under `src/main/java` must do something; empty allow-list, floor of 40 catches so the scan cannot pass vacuously.
+- **Names are Components**: no file goes back to the deprecated String name APIs (`setDisplayName`, `setLore`, `setItemName`, `setCustomName`, `getDisplayName`, `getCustomName`); matches inside comments are ignored, the scan covers the whole source set, and a sample with all six APIs proves the detector catches them.
 
 ### `utils/MscLogTest` — Reported failures
 - The twenty-one catch blocks that used to swallow their exception (`catch (Exception ignored) { }`) now report through `utils/MscLog`; this suite drives it with a capturing `Handler` and asserts the plugin logger is actually asked to print.
@@ -286,10 +251,6 @@ Covers the health math in `utils/MscEntityUtils`:
 - Reads `config.yml` and asserts it declares the same `config-version` as `MscConfigMigration.CONFIG_VERSION`, so a release cannot ship a file the code disagrees with, nor a version bump that never happened.
 - Reads `MultiverseCreatures.onEnable` and proves the migration runs **after `saveDefaultConfig()` and before the first `getConfig()`**: `saveDefaultConfig()` only writes a config when there is none, so a key added by an update would otherwise stay invisible on every server that already exists.
 - Reads `MSCCommand.handleReload` and proves `/msc reload` re-reads the file, merges the shipped defaults and only then reloads the handlers — a server that updated the plugin picks up the new keys from a reload, not only from the next restart.
-
-### `utils/SilentCatchGuardTest` — No silent catch blocks
-- A source guard: it strips comments, strings and chars (keeping line numbers), finds every `catch` clause under `src/main/java` and **fails if any body is left blank**, with an empty allow-list and a floor of 40 catches so the scanner cannot pass vacuously.
-- It is what keeps the logging change from being undone one block at a time: a swallowed exception is invisible in review, a blank catch body is not.
 
 ### `utils/SchedulerHandleGuardTest` — Every looping task can be stopped
 - A source guard: it strips comments, finds every `.runTaskTimer(` / `.scheduleSyncRepeatingTask(` under `src/main/java`, and demands each site be one of two shapes — a runnable whose own body calls `cancel()`, or a task whose handle survives the statement (a call made on a name: `task`, `instance.flyTask`; or an `x = new BukkitRunnable() { … }.runTaskTimer(…)` assignment). A floor of 100 sites keeps the scan on the whole project.

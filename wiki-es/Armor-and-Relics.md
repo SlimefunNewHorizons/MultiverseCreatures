@@ -24,7 +24,7 @@ Una corona tallada de un fragmento de la Rueda de Ocho Manos que una vez giró c
 
 La rueda **aprende el tipo de daño que recibes** y luego se adapta. Las diferentes causas de daño tienen cooldowns independientes.
 
-- **Give:** `/msc give eighthandledwheel` (alias `wheel`)
+- **Give:** `/msc give eighthandledwheel`
 - **Crafteo:** Núcleo de Rueda Refinado (Esencia de Rueda → Núcleo de Rueda → *Alto Horno* → Núcleo de Rueda Fundido + Netherita Fundida → Núcleo de Rueda Refinado) + 4 Bloques de Netherita (ver [Recetas](./Recipes.md))
 - **Tema:** Jujutsu Kaisen (drop de Mahoraga → Esencia de Rueda)
 
@@ -54,7 +54,7 @@ Las 4 piezas vienen pre-encantadas con **Protección IV · Protección contra Ex
 
 El bono de set se re-comprueba al entrar/salir/romper el objeto y transmite mensajes de chat "set bonus activated/lost". Implementación de referencia para modificadores de set: comprobación idempotente `getModifier(key)` antes de añadir, `removeModifier(key)` al limpiar — sin necesidad de mapas por jugador.
 
-- **Give:** `/msc give obsidianbastionhelmet` (y `chestplate` / `leggings` / `boots`) — alias `bastionhelmet` etc.
+- **Give:** `/msc give obsidianbastionhelmet` (y `obsidianbastionchestplate` / `obsidianbastionleggings` / `obsidianbastionboots`)
 - **Tema:** Multiverso (cadena del Guardia de Obsidiana vía Fragmento de Obsidiana)
 
 ---
@@ -78,7 +78,7 @@ Un escudo tallado de hueso reforzado.
 | Partículas | ITEM_SHIELD_BLOCK, CRIT |
 | Irrompible | Sí |
 
-- **Give:** `/msc give marrowaegis` (alias `aegis`)
+- **Give:** `/msc give marrowaegis`
 - **Crafteo:** cadena de 3 componentes — 8× Hueso Reforzado → **Médula de Hueso** → 4× Médula + Calcita + Diamante → **Placa Osificada** → *Alto Horno (solo)* → **Médula Fundida** → Marrow Aegis (ver [Recetas](./Recipes.md))
 - **Tema:** Multiverso (cadena del Bone Shield vía Hueso Reforzado)
 
@@ -101,7 +101,7 @@ Un reloj de bolsillo cronomántico arrancado de la sombra de un Rogue. Su tic-ta
 | Etiquetas PDC | `msc_veilwalker_mantle`, etiqueta de sigilo `MSC_VeilMantle_Stealth` |
 | Irrompible | Sí |
 
-- **Give:** `/msc give veilwalkermantle` (alias `mantle`)
+- **Give:** `/msc give veilwalkermantle`
 - **Tema:** Multiverso (cadena del Shadow Rogue vía Fragmento de Capa de las Sombras)
 
 ---
@@ -121,5 +121,5 @@ Un núcleo congelado pulsante del pecho de un Gólem de Escarcha. Solo la mano s
 | Partículas / Sonido | SNOWFLAKE, ENTITY_PLAYER_HURT_FREEZE |
 | Irrompible | Sí |
 
-- **Give:** `/msc give frostheartoffhand` (alias `frostoffhand`)
+- **Give:** `/msc give frostheartoffhand`
 - **Tema:** Multiverso (cadena del Gólem de Escarcha vía componente Corazón de Escarcha)

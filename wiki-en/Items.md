@@ -32,7 +32,7 @@ A crown of eternal winter, granting mastery over ice and snow.
 
 Sounds: BLOCK_SNOW_STEP, BLOCK_NOTE_BLOCK_CHIME, ENTITY_SNOW_GOLEM_SHOOT, BLOCK_GLASS_BREAK, ENTITY_ELDER_GUARDIAN_CURSE, ENTITY_GENERIC_EXTINGUISH_FIRE, WEATHER_RAIN_ABOVE, CLOUD.
 
-- **Give:** `/msc give icecrown` (alias `crown`)
+- **Give:** `/msc give icecrown`
 - **Trade:** from the Multiverse Merchant for 48 Nether Stars + 64 Blue Ice
 - **Theme:** Adventure Time (Ice King, Gunter)
 
@@ -54,7 +54,7 @@ Claws forged from the silk and iron of Deepnest.
 | Custom model data | 1002 |
 | Wall-jump implementation | Custom Netty packet handler intercepts `ServerboundPlayerInputPacket` to detect rising-edge jump inputs. |
 
-- **Give:** `/msc give mantisclaws` (alias `claws`)
+- **Give:** `/msc give mantisclaws`
 - **Trade:** from the Multiverse Merchant for 16 Iron Ingots + 8 String
 - **Theme:** Hollow Knight (Deepnest, Mantis Lords)
 
@@ -74,7 +74,7 @@ A lantern that holds a lost soul.
 | PDC tag | `msc_wirts_lantern` |
 | Events | `EntityTargetEvent` cancelled if target is holder · `EntityDamageEvent` cancelled unless damager is a player (holder immune to non-player damage) · `EntityDamageByEntityEvent` cancelled if victim is non-player (holder can't harm mobs) · Right-click + armor-stand manipulation cancelled (the lamp is purely protective) |
 
-- **Give:** `/msc give wirtslantern` (alias `lantern`)
+- **Give:** `/msc give wirtslantern`
 - **Trade:** from the Multiverse Merchant for 32 Soul Sand + 16 Soul Soil
 - **Theme:** Khand (Diablo Tristram-style protective lantern)
 
@@ -94,7 +94,7 @@ A crafted explosive device auto-camouflaged to look like surrounding terrain.
 | Explosion power | 4.0 (block-breaking) |
 | PDC tag | `msc_military_mine` |
 
-- **Give:** `/msc give militarymine` (alias `mine`)
+- **Give:** `/msc give militarymine`
 - **Craft:** requires **Military Component** (dropped by ZombieHorseTrap units)
 - **Theme:** Military (ZombieHorseTrap chain)
 
@@ -115,7 +115,7 @@ A crafted explosive device auto-camouflaged to look like surrounding terrain.
 
 **Lore:** *"A mysterious cookie pulsating with otherworldly energy."*
 
-- **Give:** `/msc give scoobycookie` (alias `cookie`)
+- **Give:** `/msc give scoobycookie`
 - **Trade:** from the Multiverse Merchant (5 for 20 Diamonds)
 - **Theme:** Mystery Inc. (Scooby-Doo)
 
@@ -134,6 +134,6 @@ A bouncy, wobbly, strangely tasty gelatin.
 | **Right-click effect** | Adds the user's UUID to `HeadSlime.immunePlayers` set for **10 seconds** (200 ticks). Witch particle ring renders around the immune player; any Head Slime attached auto-detaches from them. |
 | PDC tag | `msc_head_slime_gelatin` |
 
-- **Give:** `/msc give headslimegelatin` (alias `gelatin`)
+- **Give:** `/msc give headslimegelatin`
 - **Craft:** from **Head Slime Heart** (dropped by Head Slime)
 - **Theme:** Slime Kingdom

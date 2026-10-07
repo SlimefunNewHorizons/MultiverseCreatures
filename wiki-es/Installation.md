@@ -148,7 +148,7 @@ Usa **formato NBS 5+**; las muestras de note-block de supervivencia de un solo i
 
 - La mayoría de mobs añaden una tarea de IA por tick limitada a sí mismos. Mientras mantengas recuentos de mobs razonables, el coste es similar al vanilla (el plugin usa `BukkitRunnable` y `PersistentDataContainer` de Bukkit en lugar de NMS).
 - El Centinela de Obsidiana tiene la IA más costosa; si ejecutas más de uno a la vez en un servidor de bajas especificaciones puedes ver subir el coste por tick — solo ejecuta el jefe cuando sea necesario.
-- Todos los ArmorStands `MSC_*` se limpian con `/msc cleanstands` si una pelea falla o el servidor se reinicia a mitad.
+- Todas las entidades `MSC_*` se limpian con `/msc kill all` si una pelea falla o el servidor se reinicia a mitad.
 
 ---
 
@@ -172,7 +172,7 @@ Aún no existe un permiso por objeto o por spawn — todo el comando `/msc` est�
 | Los mobs no aparecen | Ten en cuenta las razones de `CreatureSpawnEvent`: el plugin solo reemplaza spawns `NATURAL`, `SPAWNER_EGG`, `REINFORCEMENTS` y `SPAWNER`. Los spawns de granjas de mobs se ven afectados; los spawns personalizados con huevos pueden no verse afectados. |
 | Los objetos no funcionan | Asegúrate de tener el objeto MSC real (con etiquetas PDC `msc_*`). Los objetos renombrados o clonados en creativo pueden no estar etiquetados. Usa `/msc give <objeto>` para obtener copias válidas. |
 | El jefe es invencible | Si el jefe está en plena transición de fase (Barrera/Desesperación), es brevemente invulnerable — espera unos segundos. |
-| Los Stands no desaparecen tras un crash | Ejecuta `/msc cleanstands` una vez. Esto limpia todos los ArmorStands etiquetados `MSC_*` en todos los mundos. |
+| Los Stands no desaparecen tras un crash | Ejecuta `/msc kill all` una vez. Esto elimina todas las entidades etiquetadas `MSC_*` en todos los mundos. |
 | La música personalizada no suena | Confirma que el archivo `.nbs` está en `plugins/MultiverseCreatures/music/` y que la extensión es `.nbs` en minúsculas. |
 
 ---

@@ -32,7 +32,7 @@ Una corona de invierno eterno que otorga dominio sobre el hielo y la nieve.
 
 Sonidos: BLOCK_SNOW_STEP, BLOCK_NOTE_BLOCK_CHIME, ENTITY_SNOW_GOLEM_SHOOT, BLOCK_GLASS_BREAK, ENTITY_ELDER_GUARDIAN_CURSE, ENTITY_GENERIC_EXTINGUISH_FIRE, WEATHER_RAIN_ABOVE, CLOUD.
 
-- **Give:** `/msc give icecrown` (alias `crown`)
+- **Give:** `/msc give icecrown`
 - **Intercambio:** del Comerciante Multiversal por 48 Estrellas del Nether + 64 Hielo Azul
 - **Tema:** Hora de Aventura (Rey Helado, Gunter)
 
@@ -54,7 +54,7 @@ Garras forjadas con la seda y el hierro de Deepnest.
 | Modelo personalizado | 1002 |
 | Implementación del salto de pared | Un manejador de paquetes Netty personalizado intercepta `ServerboundPlayerInputPacket` para detectar entradas de salto de flanco ascendente. |
 
-- **Give:** `/msc give mantisclaws` (alias `claws`)
+- **Give:** `/msc give mantisclaws`
 - **Intercambio:** del Comerciante Multiversal por 16 Lingotes de Hierro + 8 Cuerdas
 - **Tema:** Hollow Knight (Deepnest, Señores Mantis)
 
@@ -74,7 +74,7 @@ Una linterna que guarda un alma perdida.
 | Etiqueta PDC | `msc_wirts_lantern` |
 | Eventos | `EntityTargetEvent` cancelado si el objetivo es el portador · `EntityDamageEvent` cancelado a menos que el atacante sea un jugador (el portador es inmune al daño de no jugadores) · `EntityDamageByEntityEvent` cancelado si la víctima es un no jugador (el portador no puede dañar mobs) · click derecho + manipulación de armorstand cancelados (la lámpara es puramente protectora) |
 
-- **Give:** `/msc give wirtslantern` (alias `lantern`)
+- **Give:** `/msc give wirtslantern`
 - **Intercambio:** del Comerciante Multiversal por 32 Arena de Almas + 16 Tierra de Almas
 - **Tema:** Khand (linterna protectora estilo Diablo Tristram)
 
@@ -94,7 +94,7 @@ Un explosivo crafteado auto-camuflado para parecer el terreno circundante.
 | Potencia de explosión | 4.0 (rompe bloques) |
 | Etiqueta PDC | `msc_military_mine` |
 
-- **Give:** `/msc give militarymine` (alias `mine`)
+- **Give:** `/msc give militarymine`
 - **Crafteo:** requiere **Componente Militar** (dropeado por las unidades de ZombieHorseTrap)
 - **Tema:** Military (cadena de ZombieHorseTrap)
 
@@ -115,7 +115,7 @@ Un explosivo crafteado auto-camuflado para parecer el terreno circundante.
 
 **Lore:** *"Una galleta misteriosa que pulsa con energía de otro mundo."*
 
-- **Give:** `/msc give scoobycookie` (alias `cookie`)
+- **Give:** `/msc give scoobycookie`
 - **Intercambio:** del Comerciante Multiversal (5 por 20 Diamantes)
 - **Tema:** Mystery Inc. (Scooby-Doo)
 
@@ -134,6 +134,6 @@ Una gelatina elástica, temblorosa y extrañamente sabrosa.
 | **Efecto de click derecho** | Añade el UUID del usuario al conjunto `HeadSlime.immunePlayers` durante **10 segundos** (200 ticks). Se renderiza un anillo de partículas de bruja alrededor del jugador inmune; cualquier Head Slime adherido se desprende automáticamente. |
 | Etiqueta PDC | `msc_head_slime_gelatin` |
 
-- **Give:** `/msc give headslimegelatin` (alias `gelatin`)
+- **Give:** `/msc give headslimegelatin`
 - **Crafteo:** de **Corazón de Head Slime** (dropeado por Head Slime)
 - **Tema:** Reino Slime

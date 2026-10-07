@@ -17,7 +17,7 @@ Un ArmorStand animado gigante de escala 7.5×. El clímax del plugin. A diferenc
 | Barra de jefe | `SEGMENTED_6`, roja → azul a lo largo de las fases (ver `phase-thresholds`) |
 | Música | `Undertale — Megalovania` (radio de 60 bloques, se detiene al morir) |
 | Equipamiento | Netherita completa (trim Amatista/Silencio) + Lanza de Netherita + Escudo irrompible |
-| Invocación | `/msc spawn armorstand` (alias `armorstandboss`) |
+| Invocación | `/msc spawn armorstand` |
 
 ### Fases (las transiciones ocurren según el umbral de HP)
 
@@ -92,7 +92,7 @@ Todos los ataques son clases que extienden `ChoreographedAttack` bajo `entities/
 /msc attack <nombre-del-ataque> [rango]
 ```
 
-Los 96 nombres los lista `/msc attack help` (seis páginas, una por categoría) y los ofrece el autocompletado. `/msc attack` también acepta las mecánicas de arriba (`flyup`, `land`, `heal`, `reset`, las cuatro transiciones `phase*`) y el alias heredado `crossbarrage` de `hoverbarrage`.
+Los 96 nombres los lista `/msc attack help` (seis páginas, una por categoría) y los ofrece el autocompletado; una séptima página lista las mecánicas (`flyup`, `land`, `reset`, las cuatro transiciones `phase*`). Cada uno tiene un solo nombre.
 
 | Suelo (24) | Aéreos (20) | A distancia (20) | Defensivos (12) |
 |---|---|---|---|
@@ -121,7 +121,7 @@ Los 96 nombres los lista `/msc attack help` (seis páginas, una por categoría) 
 | aegisrush |  | sweepinglaser |  |
 | gravecleaver |  |  |  |
 
-Objetivos adicionales de `/msc attack` para **mecánicas y transiciones de fase**: `flyup`, `land`, `heal`, `reset`, `phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`.
+Objetivos adicionales de `/msc attack` para **mecánicas y transiciones de fase**: `flyup`, `land`, `reset`, `phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`.
 
 ### Segunda tanda — diez ataques más y cómo reconocerlos
 
@@ -388,6 +388,8 @@ Como en el mod: **la primera forma no tiene rayo**, en las dos jorobas siguiente
 4. **Descansa** `beam.rest-ticks` (100) y también al morder.
 
 Mientras el rayo está encendido la cabeza gira **más despacio que un jugador corriendo**: cruza el cono corriendo de lado y te sueltas. Las jorobas solo arrastran a la víctima que fijaron; el Destructor y el Devorador arrastran todo lo que entre en el cono. El rayo se ve como un cono translúcido de cristal morado, igual que en el mod.
+
+El cono se dibuja estable: sigue a su cabeza entre los fotogramas de la animación, su largo no se deja llevar por el suelo que arranca debajo (los cambios de menos de un bloque se ignoran y los mayores se suavizan), y mientras sujeta a una víctima la cabeza no persigue cada pequeño vaivén de la víctima dentro del cono (3 grados de margen): solo sigue, con suavidad, a una víctima que se está saliendo.
 
 ### Ataques
 

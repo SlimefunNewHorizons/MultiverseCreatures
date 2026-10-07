@@ -148,7 +148,7 @@ Use **NBS format 5+**, single-instrument survival note-block samples work best f
 
 - Most mobs add a per-tick AI task scoped to themselves. As long as you keep mob counts reasonable, the cost is similar to vanilla (the plugin uses Bukkit's `BukkitRunnable` and `PersistentDataContainer` rather than NMS).
 - The Obsidian Sentinel has the most expensive AI; if you run more than one at a time on a low-spec server you may see tick cost climb — only run the boss when needed.
-- All `MSC_*` ArmorStands are cleaned up by `/msc cleanstands` if a fight crashes or the server restarts midway.
+- All `MSC_*` entities are cleaned up by `/msc kill all` if a fight crashes or the server restarts midway.
 
 ---
 
@@ -172,7 +172,7 @@ There is no per-item or per-spawn permission yet — the entire `/msc` command i
 | Mobs don't spawn | Keep `CreatureSpawnEvent` reasons in mind: the plugin only replaces `NATURAL`, `SPAWNER_EGG`, `REINFORCEMENTS`, and `SPAWNER` spawns. Mob-farm spawner spawns are affected; egg-based custom spawns may not be. |
 | Items don't work | Make sure you're holding the actual MSC item (with `msc_*` PDC tags). Items renamed or cloned in creative may not be tagged. Use `/msc give <item>` to obtain valid copies. |
 | Boss is invincible | If the boss is mid-phase-transition (Barrier/Despair), it is briefly invulnerable — wait a few seconds. |
-| Stands won't despawn after a crash | Run `/msc cleanstands` once. This scrubs every `MSC_*`-tagged ArmorStand in all worlds. |
+| Stands won't despawn after a crash | Run `/msc kill all` once. This removes every `MSC_*`-tagged entity in all worlds. |
 | Custom music won't play | Confirm the `.nbs` file is in `plugins/MultiverseCreatures/music/` and the file extension is lowercase `.nbs`. |
 
 ---

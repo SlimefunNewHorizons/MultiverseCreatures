@@ -17,7 +17,7 @@ A gigantic 7.5×-scale animated ArmorStand. The climax of the plugin. Unlike the
 | Boss bar | `SEGMENTED_6`, red → blue across the phases (see `phase-thresholds`) |
 | Music | `Undertale — Megalovania` (60-block range, stops on death) |
 | Equipment | Full Netherite (Amethyst/Silence trim) + Netherite Lance + unbreakable Shield |
-| Summon | `/msc spawn armorstand` (alias `armorstandboss`) |
+| Summon | `/msc spawn armorstand` |
 
 ### Phases (transitions happen at HP thresholds)
 
@@ -92,7 +92,7 @@ All attacks are classes extending `ChoreographedAttack` under `entities/boss/att
 /msc attack <attack-name> [range]
 ```
 
-All 96 names are listed by `/msc attack help` (six pages, one per category) and offered by tab completion. `/msc attack` also accepts the mechanics above (`flyup`, `land`, `heal`, `reset`, the four `phase*` transitions) plus `hoverbarrage`'s legacy alias `crossbarrage`.
+All 96 names are listed by `/msc attack help` (six pages, one per category) and offered by tab completion; a seventh page lists the mechanics (`flyup`, `land`, `reset`, the four `phase*` transitions). Each one has a single name.
 
 | Ground (24) | Aerial (20) | Ranged (20) | Defensive (12) |
 |---|---|---|---|
@@ -121,7 +121,7 @@ All 96 names are listed by `/msc attack help` (six pages, one per category) and 
 | aegisrush |  | sweepinglaser |  |
 | gravecleaver |  |  |  |
 
-Additional `/msc attack` targets for **mechanics & phase transitions**: `flyup`, `land`, `heal`, `reset`, `phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`.
+Additional `/msc attack` targets for **mechanics & phase transitions**: `flyup`, `land`, `reset`, `phaserage`, `phasebarrier`, `phasestorm`, `phasedespair`.
 
 ### Second wave — ten more attacks and how to read them
 
@@ -387,6 +387,8 @@ As in the mod: **the first form has no beam**, in the next two hunchbacks only t
 4. It **rests** for `beam.rest-ticks` (100), and after a bite.
 
 While its beam is on a head turns **slower than a player sprints**: run sideways across the cone and you break free. The hunchbacks only drag the victim they locked onto; the Destroyer and the Devourer drag anything inside the cone. The beam is a translucent cone of purple glass, as in the mod.
+
+The cone is drawn steady: it follows its head between animation frames, its length ignores the ground it tears up underneath (changes under a block are ignored, bigger ones are eased in), and while it holds a victim the head does not chase every small bob of the victim inside the cone (3 degrees of slack) — it only follows, smoothly, a victim that is leaving it.
 
 ### Attacks
 

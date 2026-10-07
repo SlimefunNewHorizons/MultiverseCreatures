@@ -24,7 +24,7 @@ A crown carved from a fragment of the Eight-Handled Wheel that once turned again
 
 The wheel **learns the type of damage you take**, then adapts. Different damage causes have independent cooldowns.
 
-- **Give:** `/msc give eighthandledwheel` (alias `wheel`)
+- **Give:** `/msc give eighthandledwheel`
 - **Craft:** Refined Wheel Core (Wheel Essence → Wheel Core → *Blast Furnace* → Molten Wheel Core + Molten Netherite → Refined Wheel Core) + 4 Netherite Blocks (see [Recipes](./Recipes.md))
 - **Theme:** Jujutsu Kaisen (Mahoraga drop → Wheel Essence)
 
@@ -54,7 +54,7 @@ All 4 pieces ship pre-enchanted with **Protection IV · Blast Protection IV · T
 
 The set bonus is re-checked on join/quit/item-break and broadcasts "set bonus activated/lost" chat messages. Reference implementation for armor-set modifiers: idempotent `getModifier(key)` check before adding, `removeModifier(key)` on cleanup — no per-player maps needed.
 
-- **Give:** `/msc give obsidianbastionhelmet` (and `chestplate` / `leggings` / `boots`) — aliases `bastionhelmet` etc.
+- **Give:** `/msc give obsidianbastionhelmet` (and `obsidianbastionchestplate` / `obsidianbastionleggings` / `obsidianbastionboots`)
 - **Theme:** Multiverse (Obsidian Guard chain via Obsidian Shard)
 
 ---
@@ -78,7 +78,7 @@ A shield carved from reinforced bone.
 | Particles | ITEM_SHIELD_BLOCK, CRIT |
 | Unbreakable | Yes |
 
-- **Give:** `/msc give marrowaegis` (alias `aegis`)
+- **Give:** `/msc give marrowaegis`
 - **Crafting:** 3-component chain — 8× Reinforced Bone → **Bone Marrow** → 4× Marrow + Calcite + Diamond → **Ossified Plate** → *Blast Furnace (only)* → **Molten Marrow** → Marrow Aegis (see [Recipes](./Recipes.md))
 - **Theme:** Multiverse (Bone Shield chain via Reinforced Bone)
 
@@ -101,7 +101,7 @@ A chronomantic pocket-watch torn from the shadow of a Rogue. Its ticking bends l
 | PDC tags | `msc_veilwalker_mantle`, stealth tag `MSC_VeilMantle_Stealth` |
 | Unbreakable | Yes |
 
-- **Give:** `/msc give veilwalkermantle` (alias `mantle`)
+- **Give:** `/msc give veilwalkermantle`
 - **Theme:** Multiverse (Shadow Rogue chain via Shadow Cloak Fragment)
 
 ---
@@ -121,5 +121,5 @@ A frozen core pulsed from a Frost Golem's chest. Only the off-hand can steady it
 | Particles / Sound | SNOWFLAKE, ENTITY_PLAYER_HURT_FREEZE |
 | Unbreakable | Yes |
 
-- **Give:** `/msc give frostheartoffhand` (alias `frostoffhand`)
+- **Give:** `/msc give frostheartoffhand`
 - **Theme:** Multiverse (Frost Golem chain via Frost Heart component)

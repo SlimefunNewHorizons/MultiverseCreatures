@@ -68,27 +68,27 @@ You can hand yourself any component directly for testing:
 
 ```
 /msc give chaosorb
-/msc give enderfragment    (alias: ender)
-/msc give frostheart        (alias: frost)
-/msc give magmacore         (alias: magma)
-/msc give obsidianshard     (alias: shard)
-/msc give reaperessence     (alias: reaper)
-/msc give reinforcedbone    (alias: bone)
-/msc give bonemarrow        (alias: marrow)
-/msc give ossifiedplate     (alias: plate)
+/msc give enderfragment
+/msc give frostheart
+/msc give magmacore
+/msc give obsidianshard
+/msc give reaperessence
+/msc give reinforcedbone
+/msc give bonemarrow
+/msc give ossifiedplate
 /msc give moltenmarrow
-/msc give shadowcloak       (alias: cloak)
-/msc give stormcrystal      (alias: storm)
-/msc give venomgland        (alias: venom)
-/msc give voidessence       (alias: void)
-/msc give wheelessence      (alias: whelessence)
-/msc give headslimeheart    (alias: heart)
-/msc give militarycomponent (alias: component)
-/msc give starcore          (alias: star)
+/msc give shadowcloak
+/msc give stormcrystal
+/msc give venomgland
+/msc give voidessence
+/msc give wheelessence
+/msc give headslimeheart
+/msc give militarycomponent
+/msc give starcore
 /msc give wheelcore
-/msc give moltenwheelcore   (alias: moltenwheel)
-/msc give moltennetherite   (alias: molten)
-/msc give refinedwheelcore  (alias: refinedwheel)
+/msc give moltenwheelcore
+/msc give moltennetherite
+/msc give refinedwheelcore
 /msc give reapercore
 /msc give refinednetherite
 ```

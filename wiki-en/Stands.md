@@ -23,7 +23,7 @@ A skeleton in a golden crown and a purple coat that replaces natural skeletons.
 | Bow | Power III; crown and coat never drop |
 | The Arrow | `stand-arrow-chance` **0.02**: 2 shots in 100 |
 | Death | `death-chance` **0.7** |
-| Manual spawn | `/msc spawn arrowskeleton` (aliases `archer`, `standarrow`) |
+| Manual spawn | `/msc spawn arrowskeleton` |
 
 The Arrow glows gold, leaves a trail, rings a bell when fired and cannot be picked up. When it
 pierces a player:

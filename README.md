@@ -77,7 +77,7 @@ The project has a complete documentation site built into the repository. It cove
 | [Armor-and-Relics](wiki-en/Armor-and-Relics.md) | Eight-Handled Wheel, Obsidian Bastion set, off-hand relics (Marrow Aegis, Veilwalker Mantle, Frost Heart) |
 | [Items](wiki-en/Items.md) | Ice King's Crown, Mantis Claws, Wirt's Lantern, Military Mine, Scooby Cookie, Head Slime Gelatin |
 | [Components](wiki-en/Components.md) | The 16 mob-drop crafting ingredients + the loot → item chains |
-| [Commands](wiki-en/Commands.md) | Full `/msc` reference (spawn, give, seal, dummy, attack, music, dimtp, cleanstands) |
+| [Commands](wiki-en/Commands.md) | Full `/msc` reference (spawn, give, attack, music, dimtp, kill, debug) |
 | [Architecture](wiki-en/dev/Architecture.md) | Code structure, conventions and how to extend the plugin |
 | [Tests](wiki-en/dev/Tests.md) | The JUnit suite: how to run it and what every test class pins down |
 | [Installation](wiki-en/Installation.md) | Step-by-step install, config.yml guide, troubleshooting |
@@ -123,7 +123,7 @@ filters, structure validators), so it runs in plain JUnit 5.
 
 ```bash
 mvn verify                          # compile + tests + shaded jar
-mvn test -Dtest=SpawnCatalogueTest  # one class only
+mvn test -Dtest=CommandCatalogueTest  # one class only
 ```
 
 CI runs `mvn verify` on every push and pull request
@@ -166,17 +166,14 @@ All interactions use the `/msc` command. **Permission:** `msc.admin` (server OP 
 ```
 /msc spawn <type>              Summon a mob/boss/merchant at your location (/msc spawn help)
 /msc give <item> [n] [who]     Obtain an item (amount 1–64, target a player or @a) (/msc give help)
-/msc seal <pattern> [plane]    Render a particle seal pattern
-/msc dummy ...                 Spawn, pose, add wings or animate preview ArmorStands (/msc dummy help)
-/msc attack <name> [range]     Trigger one of the 45 boss attacks or mechanics (/msc attack help)
+/msc attack <name> [range]     Force one of the 96 Sentinel attacks or a mechanic (/msc attack help)
 /msc music <play|stop|list|disc>  Play or stop NBS songs, or get a music disc
 /msc dimtp <world>             Teleport across worlds
-/msc cleanstands [world]       Remove all MSC-related armor stands
 /msc kill [type|all] [radius]  Purge MSC custom creatures safely
 /msc reload                    Reload config.yml and re-sync entities and bosses
 ```
 
-Full breakdown (alias tables, all spawn types, giveable items, attack names, seal patterns, dummy animations) is in the [Commands wiki page](wiki-en/Commands.md).
+Full breakdown (all spawn types, giveable items and attack names) is in the [Commands wiki page](wiki-en/Commands.md).
 
 ---
 
@@ -188,11 +185,9 @@ src/main/java/com/Chagui68/
 ├── commands/                     /msc dispatcher + data tables + menus
 │   ├── MSCCommand.java           permission gate, routing, tab completion
 │   ├── CommandMenu.java          every help menu + pagination maths
-│   ├── SpawnCatalogue.java       spawn aliases, messages and help pages
-│   ├── GiveCatalogue.java        item aliases + help pages
+│   ├── SpawnCatalogue.java       spawn names, messages and help pages
+│   ├── GiveCatalogue.java        item names + help pages
 │   ├── AttackCatalogue.java      attack names + help pages
-│   ├── DummyStudio.java          pose-dummy subsystem
-│   ├── SealStudio.java           particle seals
 │   └── MscKillFilter.java        "is this one of ours?" predicates
 ├── entities/
 │   ├── boss/                    
