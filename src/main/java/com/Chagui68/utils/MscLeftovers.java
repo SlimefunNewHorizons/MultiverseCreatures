@@ -24,8 +24,7 @@ import java.util.Set;
  *
  * What is deliberately NOT in the list: the mob tags ({@code MSC_FrostGolem} and friends), which are
  * creatures with a life of their own; the suit pieces ({@code MSC_KingerPart}, {@code MSC_NixPart},
- * {@code MSC_JackPart}), which each boss adopts or removes on enable; and the things a player places
- * by hand ({@code MSC_Dummy}, {@code MSC_SealMarker}), which are supposed to survive a restart.
+ * {@code MSC_JackPart}), which each boss adopts or removes on enable.
  */
 public final class MscLeftovers {
 
@@ -38,7 +37,10 @@ public final class MscLeftovers {
             "MSC_TriangleSeal",
             "MSC_BossMirror",
             "MSC_KingerBullet",
-            com.Chagui68.entities.boss.fx.LiveStage.PROP_TAG);
+            com.Chagui68.entities.boss.fx.LiveStage.PROP_TAG,
+            // Placed by the retired /msc dummy and /msc seal: nothing owns them any more.
+            "MSC_Dummy",
+            "MSC_SealMarker");
 
     private MscLeftovers() {
     }

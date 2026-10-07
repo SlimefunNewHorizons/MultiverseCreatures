@@ -76,8 +76,6 @@ public class BossInstance {
     public int championPhase = -1;
     /** The {@link #clock} tick before which no destructive attack may start. */
     public long destructiveReadyAt = 0;
-    /** A {@code /msc dummy} preview: attacks animate, but summoning rites call nobody. */
-    public boolean preview = false;
     /** A ground attack has lifted the boss off the floor on purpose; the ground check leaves it be. */
     public boolean airborneAttack = false;
 

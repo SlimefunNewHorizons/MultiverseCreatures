@@ -81,8 +81,7 @@ public interface BossHost {
      * Shockwave from a point. Shared by several ground attacks.
      *
      * <p>{@code source} is the body that landed it, and the shockwave attributes its damage there:
-     * with more than one boss in a world the hit has to belong to the one that actually caused it,
-     * and a preview dummy acting out an attack must not hurt anyone.
+     * with more than one boss in a world the hit has to belong to the one that actually caused it.
      */
     void spawnShockwaveWave(LivingEntity source, World world, Location center, double maxRadius);
 

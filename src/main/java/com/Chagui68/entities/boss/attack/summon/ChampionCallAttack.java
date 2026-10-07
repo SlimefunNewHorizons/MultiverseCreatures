@@ -105,7 +105,6 @@ public class ChampionCallAttack extends SummoningAttack {
             stage.lightning(gate.clone().subtract(new Vector(0, GATE, 0)));
             fx.sound(gate, Sfx.WITHER_SPAWN, 2f, 0.7f);
             stage.onServer(world -> {
-                if (instance != null && instance.preview) return;
                 for (LivingEntity champion : summon(world, stage, stage.onGround(points(stage).get(0)), 0)) {
                     bind(instance, champion);
                     champions.add(champion);

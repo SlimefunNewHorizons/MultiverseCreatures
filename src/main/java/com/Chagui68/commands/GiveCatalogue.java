@@ -65,11 +65,11 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Data behind {@code /msc give}: which aliases map to which custom item, plus the text of the help
+ * Data behind {@code /msc give}: the one name each custom item answers to, plus the text of the help
  * pages.
  *
  * <p>The command used to hold a ~60 case switch, a separate 20 line tab-completion list and four
- * pages of help lines, all describing the same items. The alias table is now the single source of
+ * pages of help lines, all describing the same items. The name table is now the single source of
  * truth for giving and for tab completion, and a unit test checks that every item named in the help
  * text actually resolves.
  */
@@ -78,11 +78,11 @@ final class GiveCatalogue {
     /**
      * One custom item.
      *
-     * @param aliases  every accepted alias; the first one is the canonical name used in the help
+     * @param name     the only name the command accepts, as the help shows it
      * @param template item factory — kept lazy so loading this catalogue never initialises item
      *                 classes (they read Bukkit's item meta) until an item is really requested
      */
-    record Entry(List<String> aliases, Supplier<ItemStack> template) {}
+    record Entry(String name, Supplier<ItemStack> template) {}
 
     static final List<String> PAGE_TITLES = List.of(
             "LEGENDARY WEAPONS & MAGIC",
@@ -148,113 +148,110 @@ final class GiveCatalogue {
 
     private static final List<Entry> ENTRIES = List.of(
             // Food & cosmetic
-            new Entry(List.of("scoobycookie", "cookie"), () -> ScoobyCookie.SCOOBY_COOKIE),
-            new Entry(List.of("icecrown", "crown"), () -> IceCrown.ICE_CROWN),
-            new Entry(List.of("wirtslantern", "lantern"), () -> WirtsLantern.WIRTS_LANTERN),
-            new Entry(List.of("starcore", "star"), () -> StarCore.STAR_CORE),
+            new Entry("scoobycookie", () -> ScoobyCookie.SCOOBY_COOKIE),
+            new Entry("icecrown", () -> IceCrown.ICE_CROWN),
+            new Entry("wirtslantern", () -> WirtsLantern.WIRTS_LANTERN),
+            new Entry("starcore", () -> StarCore.STAR_CORE),
             // Stand Arrow arc: DIO, NIX and Jack Star
-            new Entry(List.of("vampireblood", "blood"),
+            new Entry("vampireblood",
                     () -> com.Chagui68.items.components.VampireBlood.VAMPIRE_BLOOD),
-            new Entry(List.of("unstableblood"), () -> com.Chagui68.items.potions.VampirePotions.UNSTABLE_BLOOD),
-            new Entry(List.of("bearerelixir", "elixir"),
+            new Entry("unstableblood", () -> com.Chagui68.items.potions.VampirePotions.UNSTABLE_BLOOD),
+            new Entry("bearerelixir",
                     () -> com.Chagui68.items.potions.VampirePotions.BEARER_ELIXIR),
-            new Entry(List.of("executioneredge", "edge"),
+            new Entry("executioneredge",
                     () -> com.Chagui68.items.components.ExecutionerEdge.EXECUTIONER_EDGE),
-            new Entry(List.of("executionerguillotine", "guillotine"),
+            new Entry("executionerguillotine",
                     () -> com.Chagui68.items.weapons.melee.ExecutionerGuillotine.EXECUTIONER_GUILLOTINE),
-            new Entry(List.of("architectdeployer", "deployer"),
+            new Entry("architectdeployer",
                     () -> com.Chagui68.items.weapons.ranged.ArchitectDeployer.ARCHITECT_DEPLOYER),
             // Weapons
-            new Entry(List.of("excalibur", "sword"), () -> Excalibur.EXCALIBUR_SWORD),
-            new Entry(List.of("aetherpullshot", "pullshot"), () -> AetherPullshot.AETHER_PULLSHOT),
-            new Entry(List.of("chaosforge"), () -> ChaosForge.CHAOS_FORGE),
-            new Entry(List.of("cindergreatsword", "greatsword"), () -> CinderGreatsword.CINDER_GREATSWORD),
-            new Entry(List.of("nullshearedge", "nullshear"), () -> NullshearEdge.NULLSHEAR_EDGE),
-            new Entry(List.of("soulreapscythe", "scythe"), () -> SoulreapScythe.SOULREAP_SCYTHE),
-            new Entry(List.of("venomfang", "dagger"), () -> Venomfang.VENOMFANG),
-            new Entry(List.of("skyfiretalisman", "talisman"), () -> SkyfireTalisman.SKYFIRE_TALISMAN),
-            new Entry(List.of("sentinelgrimoire", "grimoire"), () -> SentinelGrimoire.GRIMOIRE),
-            new Entry(List.of("swordmold", "mold"), () -> SwordMold.SWORD_MOLD),
-            new Entry(List.of("mantisclaws", "claws"), () -> MantisClaws.MANTIS_CLAWS_ITEM),
-            new Entry(List.of("militarymine", "mine"), () -> MilitaryMine.MILITARY_MINE),
+            new Entry("excalibur", () -> Excalibur.EXCALIBUR_SWORD),
+            new Entry("aetherpullshot", () -> AetherPullshot.AETHER_PULLSHOT),
+            new Entry("chaosforge", () -> ChaosForge.CHAOS_FORGE),
+            new Entry("cindergreatsword", () -> CinderGreatsword.CINDER_GREATSWORD),
+            new Entry("nullshearedge", () -> NullshearEdge.NULLSHEAR_EDGE),
+            new Entry("soulreapscythe", () -> SoulreapScythe.SOULREAP_SCYTHE),
+            new Entry("venomfang", () -> Venomfang.VENOMFANG),
+            new Entry("skyfiretalisman", () -> SkyfireTalisman.SKYFIRE_TALISMAN),
+            new Entry("sentinelgrimoire", () -> SentinelGrimoire.GRIMOIRE),
+            new Entry("swordmold", () -> SwordMold.SWORD_MOLD),
+            new Entry("mantisclaws", () -> MantisClaws.MANTIS_CLAWS_ITEM),
+            new Entry("militarymine", () -> MilitaryMine.MILITARY_MINE),
             // Armor
-            new Entry(List.of("eighthandledwheel", "wheel"), () -> EightHandledWheel.EIGHT_HANDLED_WHEEL),
-            new Entry(List.of("obsidianbastionhelmet", "bastionhelmet"), () -> ObsidianBastion.HELMET),
-            new Entry(List.of("obsidianbastionchestplate", "bastionchestplate"), () -> ObsidianBastion.CHESTPLATE),
-            new Entry(List.of("obsidianbastionleggings", "bastionleggings"), () -> ObsidianBastion.LEGGINGS),
-            new Entry(List.of("obsidianbastionboots", "bastionboots"), () -> ObsidianBastion.BOOTS),
+            new Entry("eighthandledwheel", () -> EightHandledWheel.EIGHT_HANDLED_WHEEL),
+            new Entry("obsidianbastionhelmet", () -> ObsidianBastion.HELMET),
+            new Entry("obsidianbastionchestplate", () -> ObsidianBastion.CHESTPLATE),
+            new Entry("obsidianbastionleggings", () -> ObsidianBastion.LEGGINGS),
+            new Entry("obsidianbastionboots", () -> ObsidianBastion.BOOTS),
             // Off-hand misc
-            new Entry(List.of("frostheartoffhand", "frostoffhand"), () -> FrostHeartOffhand.FROST_HEART_OFFHAND),
-            new Entry(List.of("marrowaegis", "aegis"), () -> MarrowAegis.MARROW_AEGIS),
-            new Entry(List.of("veilwalkermantle", "mantle"), () -> VeilwalkerMantle.VEILWALKER_MANTLE),
-            new Entry(List.of("militarycomponent", "component"), () -> MilitaryComponent.MILITARY_COMPONENT),
-            new Entry(List.of("shadowcloak", "cloak"), () -> ShadowCloak.SHADOW_CLOAK),
+            new Entry("frostheartoffhand", () -> FrostHeartOffhand.FROST_HEART_OFFHAND),
+            new Entry("marrowaegis", () -> MarrowAegis.MARROW_AEGIS),
+            new Entry("veilwalkermantle", () -> VeilwalkerMantle.VEILWALKER_MANTLE),
+            new Entry("militarycomponent", () -> MilitaryComponent.MILITARY_COMPONENT),
+            new Entry("shadowcloak", () -> ShadowCloak.SHADOW_CLOAK),
             // Boss catalysts & apex components
-            new Entry(List.of("executionerwarrant", "warrant", "deathwarrant"),
+            new Entry("executionerwarrant",
                     () -> ExecutionerWarrant.EXECUTIONER_WARRANT),
-            new Entry(List.of("architectkernel", "kernel", "architect"), () -> ArchitectKernel.ARCHITECT_KERNEL),
-            new Entry(List.of("garoucosmiccore", "garoucore"),
+            new Entry("architectkernel", () -> ArchitectKernel.ARCHITECT_KERNEL),
+            new Entry("garoucosmiccore",
                     () -> com.Chagui68.items.components.GarouCosmicCore.GAROU_COSMIC_CORE),
-            new Entry(List.of("multiversalcore", "multiverse"), () -> MultiversalCore.MULTIVERSAL_CORE),
-            new Entry(List.of("compressedgoldblock", "goldblock"), () -> CompressedGoldBlock.COMPRESSED_GOLD_BLOCK),
-            new Entry(List.of("wheelcore"), () -> WheelCore.WHEEL_CORE),
-            new Entry(List.of("moltenwheelcore", "moltenwheel"), () -> MoltenWheelCore.MOLTEN_WHEEL_CORE),
-            new Entry(List.of("refinedwheelcore", "refinedwheel"), () -> RefinedWheelCore.REFINED_WHEEL_CORE),
-            new Entry(List.of("reapercore"), () -> ReaperCore.REAPER_CORE),
-            new Entry(List.of("sentinelcore", "sentinel"), () -> SentinelCore.SENTINEL_CORE),
-            new Entry(List.of("endercore"), () -> EnderCore.ENDER_CORE),
-            new Entry(List.of("chaoscore"), () -> ChaosCore.CHAOS_CORE),
+            new Entry("multiversalcore", () -> MultiversalCore.MULTIVERSAL_CORE),
+            new Entry("compressedgoldblock", () -> CompressedGoldBlock.COMPRESSED_GOLD_BLOCK),
+            new Entry("wheelcore", () -> WheelCore.WHEEL_CORE),
+            new Entry("moltenwheelcore", () -> MoltenWheelCore.MOLTEN_WHEEL_CORE),
+            new Entry("refinedwheelcore", () -> RefinedWheelCore.REFINED_WHEEL_CORE),
+            new Entry("reapercore", () -> ReaperCore.REAPER_CORE),
+            new Entry("sentinelcore", () -> SentinelCore.SENTINEL_CORE),
+            new Entry("endercore", () -> EnderCore.ENDER_CORE),
+            new Entry("chaoscore", () -> ChaosCore.CHAOS_CORE),
             // Crafting materials & essences
-            new Entry(List.of("headslimeheart", "heart"), () -> HeadSlimeHeart.HEAD_SLIME_HEART),
-            new Entry(List.of("headslimegelatin", "gelatin"), () -> HeadSlimeGelatin.HEAD_SLIME_GELATIN),
-            new Entry(List.of("chaosorb"), () -> ChaosOrb.CHAOS_ORB),
-            new Entry(List.of("chaospowder"), () -> ChaosPowder.CHAOS_POWDER),
-            new Entry(List.of("chaosfragment"), () -> ChaosFragment.CHAOS_FRAGMENT),
-            new Entry(List.of("condensedchaosorb", "condensed"), () -> CondensedChaosOrb.CONDENSED_CHAOS_ORB),
-            new Entry(List.of("enderfragment", "ender"), () -> EnderFragment.ENDER_FRAGMENT),
-            new Entry(List.of("frostheart", "frost"), () -> FrostHeart.FROST_HEART),
-            new Entry(List.of("magmacore", "magma"), () -> MagmaCore.MAGMA_CORE),
-            new Entry(List.of("obsidianshard", "shard"), () -> ObsidianShard.OBSIDIAN_SHARD),
-            new Entry(List.of("reaperessence", "reaper"), () -> ReaperEssence.REAPER_ESSENCE),
-            new Entry(List.of("reinforcedbone", "bone"), () -> ReinforcedBone.REINFORCED_BONE),
-            new Entry(List.of("reinforcedboneblock"), () -> ReinforcedBoneBlock.REINFORCED_BONE_BLOCK),
-            new Entry(List.of("bonemarrow", "marrow"), () -> BoneMarrow.BONE_MARROW),
-            new Entry(List.of("ossifiedplate", "plate"), () -> OssifiedPlate.OSSIFIED_PLATE),
-            new Entry(List.of("moltenmarrow"), () -> MoltenMarrow.MOLTEN_MARROW),
-            new Entry(List.of("stormcrystal", "storm"), () -> StormCrystal.STORM_CRYSTAL),
-            new Entry(List.of("venomgland", "venom"), () -> VenomGland.VENOM_GLAND),
-            new Entry(List.of("voidessence", "void"), () -> VoidEssence.VOID_ESSENCE),
-            new Entry(List.of("wheelessence", "whelessence"), () -> WheelEssence.WHEEL_ESSENCE),
-            new Entry(List.of("refinednetherite"), () -> RefinedNetherite.REFINED_NETHERITE),
-            new Entry(List.of("moltennetherite", "molten"), () -> MoltenNetherite.MOLTEN_NETHERITE));
+            new Entry("headslimeheart", () -> HeadSlimeHeart.HEAD_SLIME_HEART),
+            new Entry("headslimegelatin", () -> HeadSlimeGelatin.HEAD_SLIME_GELATIN),
+            new Entry("chaosorb", () -> ChaosOrb.CHAOS_ORB),
+            new Entry("chaospowder", () -> ChaosPowder.CHAOS_POWDER),
+            new Entry("chaosfragment", () -> ChaosFragment.CHAOS_FRAGMENT),
+            new Entry("condensedchaosorb", () -> CondensedChaosOrb.CONDENSED_CHAOS_ORB),
+            new Entry("enderfragment", () -> EnderFragment.ENDER_FRAGMENT),
+            new Entry("frostheart", () -> FrostHeart.FROST_HEART),
+            new Entry("magmacore", () -> MagmaCore.MAGMA_CORE),
+            new Entry("obsidianshard", () -> ObsidianShard.OBSIDIAN_SHARD),
+            new Entry("reaperessence", () -> ReaperEssence.REAPER_ESSENCE),
+            new Entry("reinforcedbone", () -> ReinforcedBone.REINFORCED_BONE),
+            new Entry("reinforcedboneblock", () -> ReinforcedBoneBlock.REINFORCED_BONE_BLOCK),
+            new Entry("bonemarrow", () -> BoneMarrow.BONE_MARROW),
+            new Entry("ossifiedplate", () -> OssifiedPlate.OSSIFIED_PLATE),
+            new Entry("moltenmarrow", () -> MoltenMarrow.MOLTEN_MARROW),
+            new Entry("stormcrystal", () -> StormCrystal.STORM_CRYSTAL),
+            new Entry("venomgland", () -> VenomGland.VENOM_GLAND),
+            new Entry("voidessence", () -> VoidEssence.VOID_ESSENCE),
+            new Entry("wheelessence", () -> WheelEssence.WHEEL_ESSENCE),
+            new Entry("refinednetherite", () -> RefinedNetherite.REFINED_NETHERITE),
+            new Entry("moltennetherite", () -> MoltenNetherite.MOLTEN_NETHERITE));
 
-    private static final Map<String, Entry> BY_ALIAS = buildAliasIndex();
+    private static final Map<String, Entry> BY_NAME = buildIndex();
 
     private GiveCatalogue() {}
 
-    private static Map<String, Entry> buildAliasIndex() {
+    private static Map<String, Entry> buildIndex() {
         Map<String, Entry> index = new LinkedHashMap<>();
         for (Entry entry : ENTRIES) {
-            for (String alias : entry.aliases()) {
-                if (alias == null || alias.isBlank()) {
-                    throw new IllegalStateException("Give catalogue alias must not be blank");
-                }
-                Entry previous = index.put(alias.toLowerCase(), entry);
-                if (previous != null) {
-                    throw new IllegalStateException("Duplicate give alias '" + alias + "'");
-                }
+            if (entry.name() == null || entry.name().isBlank()) {
+                throw new IllegalStateException("Give catalogue name must not be blank");
+            }
+            if (index.put(entry.name().toLowerCase(), entry) != null) {
+                throw new IllegalStateException("Duplicate give name '" + entry.name() + "'");
             }
         }
         return Map.copyOf(index);
     }
 
     /**
-     * Builds a fresh copy of the item registered under {@code alias}, or {@code null} when the
-     * alias is unknown. Callers own the returned stack.
+     * Builds a fresh copy of the item registered under {@code name}, or {@code null} when the
+     * name is unknown. Callers own the returned stack.
      */
-    static ItemStack find(String alias) {
-        if (alias == null) return null;
-        Entry entry = BY_ALIAS.get(alias.toLowerCase());
+    static ItemStack find(String name) {
+        if (name == null) return null;
+        Entry entry = BY_NAME.get(name.toLowerCase());
         return entry == null ? null : entry.template().get().clone();
     }
 
@@ -275,11 +272,11 @@ final class GiveCatalogue {
         return PAGES.get(page - 1);
     }
 
-    /** Every alias of every entry, in declaration order — the source of tab completion. */
-    static List<String> aliases() {
+    /** The name of every entry, in declaration order — the source of tab completion. */
+    static List<String> names() {
         List<String> all = new ArrayList<>();
         for (Entry entry : ENTRIES) {
-            all.addAll(entry.aliases());
+            all.add(entry.name());
         }
         return all;
     }

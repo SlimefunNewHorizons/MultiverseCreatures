@@ -29,13 +29,12 @@ class MscLeftoversTest {
     }
 
     @Test
-    @DisplayName("Creatures, suit pieces and hand-placed markers are never swept")
+    @DisplayName("Creatures and suit pieces are never swept")
     void thingsWithALifeOfTheirOwnAreKept() {
         for (String tag : List.of("MSC_FrostGolem", "MSC_HeadSlime", "MSC_Warlord", "MSC_ArmorBossSummoned",
-                "MSC_KingerPart", "MSC_NixPart", "MSC_JackPart", "MSC_Kinger", "MSC_ArmorStandBoss",
-                "MSC_Dummy", "MSC_SealMarker")) {
+                "MSC_KingerPart", "MSC_NixPart", "MSC_JackPart", "MSC_Kinger", "MSC_ArmorStandBoss")) {
             assertFalse(MscLeftovers.isAttackLeftover(Set.of(tag)),
-                    tag + " has an owner or was placed by hand and must survive a restart");
+                    tag + " has an owner and must survive a restart");
             assertFalse(MscLeftovers.ATTACK_TAGS.contains(tag), tag + " must not be on the sweep list");
         }
         assertFalse(MscLeftovers.isAttackLeftover(Set.of()));
@@ -51,12 +50,13 @@ class MscLeftoversTest {
         entities.add(entity(removed, "MSC_KingerPart", "MSC_KingerOwner_abc"));
         entities.add(entity(removed, "MSC_BladeRing", "another_tag"));
         entities.add(entity(removed, "MSC_Dummy"));
+        entities.add(entity(removed, "MSC_Warlord"));
 
         int swept = MscLeftovers.sweep(world(entities));
 
-        assertEquals(2, swept, "the shield holder and the blade ring are the only leftovers");
-        assertEquals(2, removed.size());
-        assertEquals(5, entities.size(), "the sweep must not unload the world around it");
+        assertEquals(3, swept, "the shield holder, the blade ring and the retired dummy are the only leftovers");
+        assertEquals(3, removed.size());
+        assertEquals(6, entities.size(), "the sweep must not unload the world around it");
     }
 
     @Test

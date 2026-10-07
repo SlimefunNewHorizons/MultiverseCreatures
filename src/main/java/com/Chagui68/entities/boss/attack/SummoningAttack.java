@@ -85,7 +85,6 @@ public abstract class SummoningAttack extends ChoreographedAttack {
 
         rite(t, stage, points, color());
         t.at(RITE, () -> stage.onServer(world -> {
-            if (instance != null && instance.preview) return;
             for (int i = 0; i < points.size(); i++) {
                 for (LivingEntity minion : summon(world, stage, stage.onGround(points.get(i)), i)) {
                     bind(instance, minion);

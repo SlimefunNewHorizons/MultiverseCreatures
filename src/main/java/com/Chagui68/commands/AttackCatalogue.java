@@ -6,7 +6,7 @@ import java.util.List;
  * Data behind {@code /msc attack}: the attacks documented in the help menu and offered by tab
  * completion.
  *
- * <p>The names are the keys accepted by {@code ArmorStandBoss#triggerAttack}, so a new attack is
+ * <p>The names are the keys accepted by {@code ArmorStandBoss#forceAttack}, one per attack, so a new attack is
  * added here once and both the help pages and the tab completion pick it up. Descriptions keep
  * their {@code &} colour codes; {@link CommandMenu} translates them when rendering.
  */
@@ -21,7 +21,8 @@ final class AttackCatalogue {
             "RANGED ARTILLERY & MAGIC PROJECTIONS",
             "DEFENSIVE SHIELDS & MAGIC SEALS",
             "SUMMONING RITES & CHAMPIONS",
-            "DESTRUCTIVE CATACLYSMS");
+            "DESTRUCTIVE CATACLYSMS",
+            "BOSS STATE & PHASES");
 
     private static final List<Entry> ENTRIES = List.of(
             // Ground
@@ -127,6 +128,19 @@ final class AttackCatalogue {
             new Entry("worldbreaker", "&7Leaps into the sky and lands with three shockwaves", 6),
             new Entry("apocalypserain", "&7The sky turns red and meteors rain for five seconds", 6));
 
+    /**
+     * What {@code /msc attack} runs besides the attacks: flight, pose and the phase shifts. Kept apart
+     * from {@link #ENTRIES} because they are not registered attack classes.
+     */
+    private static final List<Entry> MECHANICS = List.of(
+            new Entry("flyup", "&7Takes off: aerial attacks need the boss in the air", 7),
+            new Entry("land", "&7Lands: ground attacks need the boss on the floor", 7),
+            new Entry("reset", "&7Puts the boss back in its resting pose", 7),
+            new Entry("phaserage", "&7Plays the shift into phase 2 (Rage)", 7),
+            new Entry("phasebarrier", "&7Plays the shift into phase 3 (Barrier)", 7),
+            new Entry("phasestorm", "&7Plays the shift into phase 4 (Storm)", 7),
+            new Entry("phasedespair", "&7Plays the shift into phase 5 (Despair)", 7));
+
     private AttackCatalogue() {}
 
     static List<Entry> entries() {
@@ -144,7 +158,7 @@ final class AttackCatalogue {
 
     /** The rendered help lines of one page, in declaration order. */
     static List<String> helpLines(int page) {
-        return ENTRIES.stream()
+        return java.util.stream.Stream.concat(ENTRIES.stream(), MECHANICS.stream())
                 .filter(entry -> entry.page() == page)
                 .map(AttackCatalogue::helpLine)
                 .toList();
@@ -154,8 +168,18 @@ final class AttackCatalogue {
         return " &e• " + entry.name() + " &8- " + entry.description();
     }
 
-    /** Every documented attack name, in help order — the source of tab completion. */
+    /** Every documented attack name, in help order: exactly the registered attack classes. */
     static List<String> names() {
         return ENTRIES.stream().map(Entry::name).toList();
+    }
+
+    /** The mechanics' names, in help order. */
+    static List<String> mechanics() {
+        return MECHANICS.stream().map(Entry::name).toList();
+    }
+
+    /** Everything {@code /msc attack} accepts, one name each — the source of tab completion. */
+    static List<String> commandNames() {
+        return java.util.stream.Stream.concat(names().stream(), mechanics().stream()).toList();
     }
 }

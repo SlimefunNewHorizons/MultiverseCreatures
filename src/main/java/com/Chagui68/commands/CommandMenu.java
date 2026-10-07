@@ -55,16 +55,6 @@ final class CommandMenu {
         line(SEPARATOR);
     }
 
-    /** A "&6&lLabel&8:" heading followed by one "   &e• &fitem" line per entry. */
-    static List<String> category(String label, List<String> items) {
-        List<String> lines = new ArrayList<>();
-        lines.add(" &6&l" + label + "&8:");
-        for (String item : items) {
-            lines.add("   &e• &f" + item);
-        }
-        return lines;
-    }
-
     static int clampPage(int page, int totalPages) {
         return Math.max(1, Math.min(page, totalPages));
     }
@@ -97,25 +87,6 @@ final class CommandMenu {
         return 1;
     }
 
-    /** Header, optional usage line, one page of {@code lines}, footer and the page indicator. */
-    void paginated(String title, String usage, List<String> lines, int page, String navCommand) {
-        int totalPages = pageCount(lines.size(), LINES_PER_PAGE);
-        page = clampPage(page, totalPages);
-        header(title);
-        if (usage != null) {
-            line(" &7Usage: &e" + usage);
-            line("");
-        }
-        for (String line : pageSlice(lines, page, LINES_PER_PAGE)) {
-            line(line);
-        }
-        footer();
-        if (totalPages > 1) {
-            String next = page < totalPages ? " &8· &7Use &e/msc " + navCommand + " help " + (page + 1) : "";
-            line(" &7Page &e" + page + "&7/&e" + totalPages + next);
-        }
-    }
-
     /** Closes a fixed-size menu with its own "Next: /msc &lt;cmd&gt; help N" hint. */
     private void pageIndicator(int page, int totalPages, String navCommand) {
         String next = page < totalPages ? " &8· &7Next: &e/msc " + navCommand + " help " + (page + 1) : "";
@@ -136,16 +107,12 @@ final class CommandMenu {
         line("");
         line(" &d&l🌌 DIMENSIONS & RITUALS&8:");
         line("   &e/msc dimtp <world> &8- &7Teleport to multiverse dimensions.");
-        line("   &e/msc cleanstands [world] &8- &7Purge plugin armor stands.");
         line("");
-        line(" &b&l🎵 AUDIO & VISUALS&8:");
+        line(" &b&l🎵 AUDIO&8:");
         line("   &e/msc music <play|stop|list|disc> &8- &7Play .nbs music or get discs.");
-        line("   &e/msc seal <pattern> [plane] &8- &7Summon magic particle seals.");
         line("");
         line(" &a&l🛠 TESTING & SYSTEM&8:");
-        line("   &e/msc dummy [action] &8- &7Spawn & pose test dummies.");
         line("   &e/msc debug [player] &8- &7Break down the Sentinel's last penetrating hit.");
-        line("   &e/msc tps &8- &7Server monitor: TPS, freezes and what causes them.");
         line("   &e/msc reload &8- &7Reload config.yml & sync entities.");
         line("");
         line(" &7&oExplore subcommands: &e/msc <cmd> help &7(e.g. &e/msc spawn help&7)");
@@ -191,35 +158,6 @@ final class CommandMenu {
         pageIndicator(page, totalPages, "attack");
     }
 
-    void sealHelp(int page) {
-        paginated("MSC SEAL", "/msc seal <pattern> [plane]", SealStudio.helpLines(), page, "seal");
-    }
-
-    void dummyHelp(int page) {
-        paginated("MSC DUMMY", "/msc dummy <action> [args]", DummyStudio.helpLines(), page, "dummy");
-    }
-
-    /**
-     * Every attack the dummy can act out, under the dummy's own header: the preview is a dummy
-     * feature, so its names belong here, but the table behind them is the same one {@code /msc attack}
-     * documents, which is what keeps the two lists from drifting apart.
-     */
-    void dummyAttackHelp(int page) {
-        int totalPages = AttackCatalogue.pages();
-        page = clampPage(page, totalPages);
-        header("MSC DUMMY - ATTACK PREVIEW · " + AttackCatalogue.pageTitle(page));
-        line(" &7Usage: &e/msc dummy attack <attack|random>");
-        line("");
-        for (String helpLine : AttackCatalogue.helpLines(page)) {
-            line(helpLine);
-        }
-        footer();
-        if (totalPages > 1) {
-            String next = page < totalPages ? " &8· &7Next: &e/msc dummy attack list " + (page + 1) : "";
-            line(" &7Page &e" + page + "&7/&e" + totalPages + next);
-        }
-    }
-
     void musicHelp() {
         header("MSC MUSIC");
         line(" &7Usage: &e/msc music <play|stop|list|disc> [name] [loop]");
@@ -243,18 +181,6 @@ final class CommandMenu {
         line(" &6&lInfo&8:");
         line("   &e• &fworld");
         line("      &7Teleport to a loaded dimension, keeping coordinates");
-        line("      &7Worlds: &f" + worldList());
-        footer();
-    }
-
-    void cleanStandsHelp() {
-        header("MSC CLEANSTANDS");
-        line(" &7Usage: &e/msc cleanstands [world]");
-        line("");
-        line(" &6&lInfo&8:");
-        line("   &e• &f[world]");
-        line("      &7Remove all custom plugin armor stands only in that dimension.");
-        line("      &7Without a world, removes them from every loaded dimension.");
         line("      &7Worlds: &f" + worldList());
         footer();
     }

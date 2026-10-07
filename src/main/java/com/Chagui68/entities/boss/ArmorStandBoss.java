@@ -1046,10 +1046,6 @@ public class ArmorStandBoss implements Listener, BossHost {
         }
     }
 
-    public void startHoverBarrage(BossInstance instance) {
-        executeAttack("hoverbarrage", instance, true);
-    }
-
     private void flyUp(BossInstance instance) {
         flyUp(instance, true);
     }
@@ -1633,135 +1629,104 @@ public class ArmorStandBoss implements Listener, BossHost {
         return false;
     }
 
+    /** The boss mechanics {@code /msc attack} runs besides the registered attacks. */
+    public static final List<String> COMMAND_MECHANICS = List.of(
+            "flyup", "land", "reset", "phaserage", "phasebarrier", "phasestorm", "phasedespair");
+
     /**
-     * Runs one registered attack on any instance, for the {@code /msc dummy attack} preview.
+     * Runs one attack or mechanic for {@code /msc attack}, by its one name.
      *
-     * <p>The attack is the same object the Sentinel runs, so the animation, particles, sounds and
-     * telegraphs are the real ones; the actor is a pose dummy, so {@link AttackPreview} refuses
-     * every hit it lands, and that is what makes the preview harmless.
+     * <p>The admin chooses what and when, so the AI's distance, cooldown and repetition rules are
+     * skipped. What is kept are the rules that protect the body: nothing starts while another attack
+     * still owns it, an aerial attack needs the boss in the air and a ground one on the floor, and a
+     * state that is already up (a seal, a circle, a defence, a full minion cap) is not stacked.
+     * Without them a forced attack broke the one already running or left the boss stuck.
      *
-     * <p>A fight knows whether the boss is airborne, and over half the attacks read that before they
-     * aim, so the preview stages it here instead of demanding a flying dummy.
-     *
-     * @return true when the attack exists and has been started
+     * @return null when it started, otherwise why it could not
      */
-    public boolean previewAttack(BossInstance instance, String attackName) {
-        if (instance == null || attackName == null) return false;
-        String key = attackName.toLowerCase();
-        BossAttack attack = attackRegistry.get(key);
-        if (attack == null) return false;
-
-        instance.isFlying = isAerialAttackName(key);
-        instance.preview = true;
-        instance.groundY = getGroundY(instance.stand.getLocation(), 80);
-        attack.execute(instance);
-        return true;
-    }
-
-    public boolean triggerAttack(UUID bossId, String attackName) {
+    public String forceAttack(UUID bossId, String attackName) {
         BossInstance instance = activeBosses.get(bossId);
-        if (instance == null) return false;
-        if (instance.stand.isDead() || !instance.stand.isValid()) return false;
-        BossPuppet stand = instance.stand;
-
+        if (instance == null || instance.stand.isDead() || !instance.stand.isValid()) return "The boss is gone.";
         String key = attackName.toLowerCase();
         BossAttack attack = attackRegistry.get(key);
-        if (attack != null) {
-            boolean isAerial = isAerialAttackName(key);
-            boolean isGround = isGroundAttackName(key);
-            if (isAerial && !instance.isFlying) {
-                return false;
+        if (attack == null && !COMMAND_MECHANICS.contains(key)) {
+            return "Unknown attack '" + key + "'. See /msc attack help.";
+        }
+        if (instance.isBusy() || instance.hoverBarrageActive || instance.flyTask != null || instance.airborneAttack) {
+            return "The boss is in the middle of another attack. Try again in a moment.";
+        }
+        BossPuppet stand = instance.stand;
+        switch (key) {
+            case "flyup" -> {
+                if (instance.isFlying) return "The boss is already flying.";
+                if (instance.shieldSealActive || instance.healingCircleActive) {
+                    return "The boss cannot take off behind its seal or inside its healing circle.";
+                }
+                stand.getWorld().playSound(stand.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
+                flyUp(instance, false);
+                return null;
             }
-            if (isGround && instance.isFlying) {
-                return false;
+            case "land" -> {
+                if (!instance.isFlying) return "The boss is already on the ground.";
+                land(instance, false);
+                return null;
             }
-            attack.execute(instance);
-            return true;
+            case "reset" -> {
+                resetBossPose(instance);
+                return null;
+            }
+            case "phaserage" -> {
+                playPhaseShift(instance, 1, () -> phaseTransitionRage(instance));
+                return null;
+            }
+            case "phasebarrier" -> {
+                playPhaseShift(instance, 2, () -> phaseTransitionBarrier(instance));
+                return null;
+            }
+            case "phasestorm" -> {
+                playPhaseShift(instance, 3, () -> phaseTransitionStorm(instance));
+                return null;
+            }
+            case "phasedespair" -> {
+                playPhaseShift(instance, 4, () -> phaseTransitionDespair(instance));
+                return null;
+            }
+            default -> {
+            }
         }
 
-        switch (key) {
-            case "crossbarrage" -> {
-                if (!instance.isFlying) return false;
-                if (instance.shieldSealActive) return false;
-                stand.getWorld().playSound(stand.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
-                startHoverBarrage(instance);
-            }
-            case "groundslam", "slam" -> {
-                if (instance.isFlying || instance.shieldState != ShieldState.NORMAL) return false;
-                attackRegistry.get("groundslam").execute(instance);
-            }
-            case "trianglecall", "call" -> {
-                if (instance.triangleCallActive) return false;
-                attackRegistry.get("trianglecall").execute(instance);
-            }
-            case "rain", "rainoflances" -> {
-                if (!instance.isFlying) return false;
-                executeAttack("rainoflances", instance, false);
-            }
-            case "flyup", "takeoff" -> {
-                if (instance.isFlying || instance.shieldSealActive) return false;
-                flyUp(instance, false);
-            }
-            case "land", "descend" -> {
-                if (!instance.isFlying) return false;
-                land(instance, false);
-            }
-            case "airslam" -> {
-                if (!instance.isFlying) return false;
-                executeAttack("airslam", instance, false);
-            }
-            case "shieldseal", "barrier" -> {
-                if (instance.shieldSealActive || instance.isFlying) return false;
-                attackRegistry.get("shieldseal").execute(instance);
-            }
-            case "heal", "healingcircle" -> {
-                if (instance.healingCircleActive || instance.isFlying) return false;
-                attackRegistry.get("healingcircle").execute(instance);
-            }
-            // Ground attacks — only while NOT flying
-            case "groundshatter", "shieldbash", "lancestorm", "earthpillar", "chaingrapple",
-                 "warstomp", "armorspikes", "vortexpull", "mirrorimage", "doombeamer", "doombeam",
-                 "lanceflurry", "whirlwindslash", "executionsweep" -> {
-                if (instance.isFlying) return false;
-                String lookup = key.equals("doombeamer") ? "doombeam" : key;
-                BossAttack a = attackRegistry.get(lookup);
-                if (a != null) a.execute(instance);
-            }
-            // Aerial attacks — only while flying
-            case "starfall", "aerialrush", "sonicboom", "lightningstorm", "gravitywell",
-                 "crossslash", "novaburst", "darkorb", "windcutter", "heavenlyjudgment" -> {
-                if (!instance.isFlying) return false;
-                BossAttack a = attackRegistry.get(key);
-                if (a != null) a.execute(instance);
-            }
-            // Ranged attacks — usable in both states (ground + air)
-            case "lancesnipe", "meteorstorm", "voidbeam", "frostlance", "lightningspear",
-                 "shadowvolley", "chainlightning", "crystalbarrage", "arcaneorb", "voidrift",
-                 "arcanemissiles", "spiritbeam" -> {
-                BossAttack a = attackRegistry.get(key);
-                if (a != null) a.execute(instance);
-            }
-            case "reset", "resetpose" -> resetBossPose(instance);
-            // Phase-change attacks
-            case "phaserage" -> playPhaseShift(instance, 1, () -> phaseTransitionRage(instance));
-            case "phasebarrier" -> playPhaseShift(instance, 2, () -> phaseTransitionBarrier(instance));
-            case "phasestorm" -> playPhaseShift(instance, 3, () -> phaseTransitionStorm(instance));
-            case "phasedespair" -> playPhaseShift(instance, 4, () -> phaseTransitionDespair(instance));
-            // Defensive moves
-            case "stoneskin" -> {
-                if (instance.activeDefense != DefenseState.NONE) return false;
-                attackRegistry.get("stoneskin").execute(instance);
-            }
-            case "reflectbarrier" -> {
-                if (instance.activeDefense != DefenseState.NONE) return false;
-                attackRegistry.get("reflectbarrier").execute(instance);
-            }
-            case "absorbshield" -> {
-                if (instance.activeDefense != DefenseState.NONE) return false;
-                attackRegistry.get("absorbshield").execute(instance);
-            }
+        if (isAerialAttackName(key) && !instance.isFlying) {
+            return key + " is an aerial attack: run /msc attack flyup first.";
         }
-        return true;
+        if (isGroundAttackName(key) && instance.isFlying) {
+            return key + " is a ground attack: run /msc attack land first.";
+        }
+        if (key.equals(SentinelAttackPool.SHIELD_SEAL) && (instance.shieldSealActive || instance.isFlying)) {
+            return "The shield seal is already up, or the boss is flying.";
+        }
+        if (key.equals(SentinelAttackPool.HOVER_BARRAGE) && instance.shieldSealActive) {
+            return "The boss cannot barrage from behind its shield seal.";
+        }
+        if (key.equals(SentinelAttackPool.AEGIS_JUDGMENT) && instance.shieldState != ShieldState.NORMAL) {
+            return "The boss needs its shield in hand for groundslam.";
+        }
+        if (key.equals(SentinelAttackPool.TRIANGLE_CALL) && instance.triangleCallActive) {
+            return "The triangle call is already running.";
+        }
+        if (SentinelAttackPool.DEFENSE_STATES.contains(key) && instance.activeDefense != DefenseState.NONE) {
+            return "Another defence is active. Wait for it to end.";
+        }
+        if (SentinelAttackPool.DEFENSE_HEALS.contains(key) && (instance.healingCircleActive || instance.regenerating)) {
+            return "The boss is already healing.";
+        }
+        if (SentinelAttackPool.SUMMONINGS.contains(key) && instance.liveSummons() >= maxSummons) {
+            return "The boss already has " + maxSummons + " minions alive (max-summons).";
+        }
+
+        SentinelAttackPool.remember(instance.recentAttacks, key);
+        if (instance.isFlying && isAerialAttackName(key)) instance.aerialAttacksDone.add(key);
+        attack.execute(instance);
+        return null;
     }
 
     /** Runs a registered attack by name; every attack telegraphs itself now, so there is no flag. */

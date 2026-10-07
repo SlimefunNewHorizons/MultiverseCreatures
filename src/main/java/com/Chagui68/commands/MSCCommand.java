@@ -49,9 +49,8 @@ import static org.bukkit.ChatColor.*;
  * drive tab completion. Everything else lives next to it:
  * <ul>
  *   <li>{@link SpawnCatalogue} / {@link GiveCatalogue} / {@link AttackCatalogue} — the data tables
- *       (aliases, items, help text), so the lists are declared once instead of per branch;</li>
+ *       (names, items, help text), so the lists are declared once instead of per branch;</li>
  *   <li>{@link CommandMenu} — every rendered menu and the pagination maths;</li>
- *   <li>{@link DummyStudio} / {@link SealStudio} — the two biggest subsystems;</li>
  *   <li>{@link MscKillFilter} — the pure "is this one of ours?" predicates.</li>
  * </ul>
  */
@@ -62,8 +61,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
 
     /** Sub-commands shown by {@code /msc} and offered by tab completion. */
     private static final List<String> SUB_COMMANDS = List.of(
-            "spawn", "give", "attack", "music", "cleanstands", "kill", "debug", "reload", "seal", "dummy",
-            "dimtp", "tps");
+            "spawn", "give", "attack", "music", "kill", "debug", "reload", "dimtp");
 
     /** How far {@code /msc debug} looks for the player the executor is aiming at. */
     private static final int DEBUG_TARGET_RANGE = 30;
@@ -72,6 +70,9 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
 
     /** Suggested kill radii, cheapest to most destructive. */
     private static final List<String> KILL_RADII = List.of("10", "25", "50", "100", "200");
+
+    /** How far {@code /msc attack} looks for a Sentinel when no range is given. */
+    private static final double DEFAULT_ATTACK_RANGE = 100;
 
     private static final List<String> GIVE_TARGETS = List.of("@a", "@p", "@r", "@s");
 
@@ -88,16 +89,10 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
 
     private final MultiverseCreatures plugin;
     private final MobHandler mobHandler;
-    private final DummyStudio dummyStudio;
-    private final SealStudio sealStudio;
-    private final TpsStudio tpsStudio;
 
     public MSCCommand(MultiverseCreatures plugin, MobHandler mobHandler) {
         this.plugin = plugin;
         this.mobHandler = mobHandler;
-        this.dummyStudio = new DummyStudio(plugin);
-        this.sealStudio = new SealStudio(plugin);
-        this.tpsStudio = new TpsStudio(plugin);
     }
 
     /**
@@ -165,16 +160,12 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
 
         switch (args[0].toLowerCase()) {
             case "spawn" -> handleSpawn(sender, args);
-            case "seal" -> sealStudio.handle(sender, args);
             case "give" -> handleGive(sender, args);
-            case "dummy" -> dummyStudio.handle(sender, args);
             case "dimtp" -> handleDimtp(sender, args);
             case "attack" -> handleAttack(sender, args);
             case "music" -> handleMusic(sender, args);
-            case "cleanstands" -> handleCleanStands(sender, args);
             case "kill" -> handleKill(sender, args);
             case "debug" -> handleDebug(sender, args);
-            case "tps" -> tpsStudio.handle(sender);
             case "reload" -> handleReload(sender);
             default -> {
                 sender.sendMessage(RED + "Unknown command. Use /msc for help.");
@@ -405,27 +396,35 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             menu.attackHelp(Integer.parseInt(attackName));
             return;
         }
-        double range = 100;
+        if (!AttackCatalogue.commandNames().contains(attackName)) {
+            sender.sendMessage(RED + "Unknown attack '" + attackName + "'. See /msc attack help.");
+            return;
+        }
+        double range = DEFAULT_ATTACK_RANGE;
         if (args.length >= 3) {
             try {
                 range = Double.parseDouble(args[2]);
             } catch (NumberFormatException e) {
-                sender.sendMessage(RED + "Invalid range.");
+                range = -1;
+            }
+            if (!(range > 0)) {
+                sender.sendMessage(RED + "Invalid range: use a number of blocks above 0.");
                 return;
             }
         }
 
         var boss = plugin.getArmorStandBoss();
-        UUID bossId = boss.findNearestBoss(player.getLocation(), range);
+        UUID bossId = boss == null ? null : boss.findNearestBoss(player.getLocation(), range);
         if (bossId == null) {
-            sender.sendMessage(RED + "No boss found within " + (int) range + " blocks.");
+            sender.sendMessage(RED + "No Obsidian Sentinel within " + (int) range
+                    + " blocks. Spawn one with /msc spawn armorstand.");
             return;
         }
-        boolean success = boss.triggerAttack(bossId, attackName);
-        if (success) {
+        String refused = boss.forceAttack(bossId, attackName);
+        if (refused == null) {
             sender.sendMessage(GREEN + "Triggered attack: " + attackName);
         } else {
-            sender.sendMessage(RED + "Cannot use " + attackName + " in the boss's current state.");
+            sender.sendMessage(RED + refused);
         }
     }
 
@@ -456,42 +455,6 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
         } else {
             sender.sendMessage(GREEN + "Configuration reloaded. " + added.size()
                     + " new key(s) from the shipped defaults were merged in (your values were kept).");
-        }
-    }
-
-    private void handleCleanStands(CommandSender sender, String[] args) {
-        if (args.length > 1 && args[1].equalsIgnoreCase("help")) {
-            new CommandMenu(sender).cleanStandsHelp();
-            return;
-        }
-
-        World targetWorld = null;
-        if (args.length > 1) {
-            String worldName = args[1];
-            targetWorld = Bukkit.getWorld(worldName);
-            if (targetWorld == null) {
-                sender.sendMessage(RED + "World '" + worldName + "' not found.");
-                return;
-            }
-        }
-
-        int removed = 0;
-        List<World> worldsToScan = targetWorld != null ? List.of(targetWorld) : Bukkit.getWorlds();
-        for (World world : worldsToScan) {
-            for (Entity entity : world.getEntities()) {
-                if (entity instanceof ArmorStand stand) {
-                    if (stand.getScoreboardTags().stream().anyMatch(tag -> tag.startsWith("MSC_"))) {
-                        stand.remove();
-                        removed++;
-                    }
-                }
-            }
-        }
-
-        if (targetWorld != null) {
-            sender.sendMessage(GREEN + "Removed " + YELLOW + removed + GREEN + " MSC armor stands from world " + targetWorld.getName() + ".");
-        } else {
-            sender.sendMessage(GREEN + "Removed " + YELLOW + removed + GREEN + " MSC armor stands from all loaded dimensions.");
         }
     }
 
@@ -844,23 +807,21 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
                 completions.add("help");
             }
             switch (subCommand) {
-                case "spawn" -> addMatching(completions, SpawnCatalogue.aliases(), args[1]);
+                case "spawn" -> addMatching(completions, SpawnCatalogue.names(), args[1]);
                 case "kill" -> {
                     List<String> killTargets = new ArrayList<>();
                     killTargets.add("all");
-                    killTargets.addAll(SpawnCatalogue.aliases());
+                    killTargets.addAll(SpawnCatalogue.names());
                     addMatching(completions, killTargets, args[1]);
                 }
-                case "give" -> addMatching(completions, GiveCatalogue.aliases(), args[1]);
-                case "seal" -> addMatching(completions, SealStudio.PATTERNS, args[1]);
-                case "attack" -> addMatching(completions, AttackCatalogue.names(), args[1]);
+                case "give" -> addMatching(completions, GiveCatalogue.names(), args[1]);
+                case "attack" -> addMatching(completions, AttackCatalogue.commandNames(), args[1]);
                 case "music" -> addMatching(completions, MUSIC_ACTIONS, args[1]);
-                case "dummy" -> addMatching(completions, DummyStudio.actionCompletions(), args[1]);
                 case "debug" -> {
                     addMatching(completions, DEBUG_ACTIONS, args[1]);
                     addMatchingPlayers(completions, args[1]);
                 }
-                case "dimtp", "cleanstands" -> addMatching(completions, worldNames(), args[1]);
+                case "dimtp" -> addMatching(completions, worldNames(), args[1]);
                 default -> {
                 }
             }
@@ -875,17 +836,6 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             } else if (subCommand.equals("music")
                     && (args[1].equalsIgnoreCase("play") || args[1].equalsIgnoreCase("disc"))) {
                 addMatching(completions, plugin.getMusicManager().getSongNames(), args[2]);
-            } else if (subCommand.equals("dummy")) {
-                String action = args[1].toLowerCase();
-                if (action.equals("set")) {
-                    addMatching(completions, DummyStudio.PARTS, args[2]);
-                } else if (action.equals("animate")) {
-                    addMatching(completions, DummyStudio.ANIMATIONS, args[2]);
-                } else if (action.equals("attack")) {
-                    addMatching(completions, DummyStudio.attackCompletions(), args[2]);
-                } else if (DummyStudio.PARTS.contains(action)) {
-                    addMatching(completions, DummyStudio.AXES, args[2]);
-                }
             }
             return completions;
         }

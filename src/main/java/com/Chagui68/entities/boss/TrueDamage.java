@@ -52,7 +52,7 @@ public final class TrueDamage {
      * @return the damage dealt
      */
     public static double apply(Player target, LivingEntity source, double amount, double pierce, double cap, boolean scaled) {
-        if (AttackPreview.isActor(source) || target.isDead()) return 0;
+        if (target.isDead()) return 0;
         PotionEffect resistance = target.getPotionEffect(PotionEffectType.RESISTANCE);
         // The hit and its cap grow with what the player has invested (BossDamageScaling).
         double scale = scaled ? BossDamageScaling.factor(target, true) : 1.0;
