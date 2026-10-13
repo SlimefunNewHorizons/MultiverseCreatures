@@ -1429,7 +1429,7 @@ public class JackStarBoss implements Listener {
     private void exitCreativeMode(JackInstance inst) {
         for (UUID displayId : inst.creativeDisplays) {
             Entity entity = inst.stand.getWorld().getEntity(displayId);
-            if (entity != null) entity.remove();
+            if (entity != null && !(entity instanceof Player)) entity.remove();
         }
         inst.creativeDisplays.clear();
         inst.observedBossId = null;
@@ -2054,19 +2054,19 @@ public class JackStarBoss implements Listener {
         // Cleanup summoned minions
         for (UUID minionId : inst.summonedMinions) {
             Entity minion = world.getEntity(minionId);
-            if (minion != null) minion.remove();
+            if (minion != null && !(minion instanceof Player)) minion.remove();
         }
         inst.summonedMinions.clear();
 
         for (UUID displayId : inst.creativeDisplays) {
             Entity display = world.getEntity(displayId);
-            if (display != null) display.remove();
+            if (display != null && !(display instanceof Player)) display.remove();
         }
         inst.creativeDisplays.clear();
 
         if (inst.observedBossId != null) {
             Entity observed = world.getEntity(inst.observedBossId);
-            if (observed != null) observed.remove();
+            if (observed != null && !(observed instanceof Player)) observed.remove();
             inst.observedBossId = null;
         }
 
