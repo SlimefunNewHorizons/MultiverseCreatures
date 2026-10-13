@@ -220,6 +220,7 @@ Sobrevivir en la dimensión es más duro que en el overworld. Cada regla es un i
 | `saturation-effect` | `false` | El efecto **Saturación** no hace nada ahí: el hambre solo se recupera comiendo. |
 | `flight` | `false` | **Nadie vuela**: el `/fly` de otros plugins, el vuelo en creativo y las élitras quedan desactivados, y si otro plugin lo devuelve se quita en menos de un cuarto de segundo. Los jugadores en creativo recuperan el vuelo al salir. |
 | `fall-damage-multiplier` | `1.7` | Las caídas hacen un **70 % más** de daño. |
+| `fall-true-damage-share` | `0.2` | **El 20 % del daño de una caída es daño verdadero**, como el que hace Mahoraga: ni la armadura, ni Protección, ni Caída de pluma, ni Resistencia, ni los topes de otros plugins lo frenan. El otro 80 % se reduce como siempre. |
 | `gravity-multiplier` | `0.7` | Los jugadores tienen un **30 % menos de gravedad**: saltan más alto y caen más despacio. Se quita al salir. |
 
 Todos los jefes, donde sea que se peleen, reciben como máximo `max-damage-per-hit` (**10**) por golpe.

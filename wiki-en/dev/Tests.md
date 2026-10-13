@@ -187,6 +187,9 @@ Covers the health math in `utils/MscEntityUtils`:
 ### `listener/bossdimension/BossFightGuardTest` — Commands during a boss fight
 - `/say`, `/me`, `/help`, `/?` and `/dimtp` still run mid-fight in any case and with a namespace, while a command that merely starts like one of them (`/menu`, `/sayhi`, `/helpop`) is blocked.
 
+### `listener/bossdimension/BossDimensionRulesTest` — Falls in the dimension
+- A fall is split into the ordinary part and the true part (`fall-true-damage-share`, 20%): 17 damage becomes 13.6 + 3.4; the share is kept between 0 and 1 and a fall never hurts below zero.
+
 ### `entities/boss/BossArenaGroundRecoveryTest` — Ground recovery
 - `findFloorY` returns the floor altitude, and **`NaN`** — not the boss's own Y — when the scan reaches nothing. That distinction is the fix: the old convenience method made "standing on the floor" and "nothing underneath" the same value, so a grounded boss stopped attacking forever.
 - `getGroundY` keeps its documented fallback of returning the current Y, pinned down so the two behaviours cannot drift back together.

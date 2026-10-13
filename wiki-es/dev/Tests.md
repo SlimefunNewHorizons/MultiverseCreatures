@@ -187,6 +187,9 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 ### `listener/bossdimension/BossFightGuardTest` — Comandos durante una pelea de jefe
 - `/say`, `/me`, `/help`, `/?` y `/dimtp` siguen funcionando en plena pelea en cualquier mayúscula y con namespace, mientras que un comando que solo empieza como ellos (`/menu`, `/sayhi`, `/helpop`) se bloquea.
 
+### `listener/bossdimension/BossDimensionRulesTest` — Caídas en la dimensión
+- Una caída se divide en la parte normal y la parte verdadera (`fall-true-damage-share`, 20 %): 17 de daño quedan en 13,6 + 3,4; la parte se mantiene entre 0 y 1 y una caída nunca hace daño negativo.
+
 ### `entities/boss/BossArenaGroundRecoveryTest` — Recuperación de suelo
 - `findFloorY` devuelve la altura del piso, y **`NaN`** — no la `Y` propia del jefe — cuando el escaneo no alcanza nada. Esa distinción es el arreglo: antes "estar apoyado en el piso" y "no haber nada debajo" eran el mismo valor, así que un jefe en modo suelo dejaba de atacar para siempre.
 - `getGroundY` conserva su comportamiento documentado de devolver la `Y` actual, fijado por test para que los dos comportamientos no vuelvan a confundirse.

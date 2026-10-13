@@ -484,9 +484,11 @@ public final class WikiCatalogue {
                         "No flight of any kind: /fly from any plugin, creative flight and elytras are all turned off.",
                         "Nada de volar: el /fly de cualquier plugin, el vuelo creativo y las élitras quedan desactivados."))
                 .source(WikiSource.of(Material.FEATHER, "Low gravity, hard falls", "Poca gravedad, caídas duras",
-                        "Gravity is 30% lower, so you jump higher and fall slower, but falls hurt 70% more.",
+                        "Gravity is 30% lower, so you jump higher and fall slower, but falls hurt 70% more, and 20% "
+                                + "of a fall is true damage that no armour or enchantment stops.",
                         "La gravedad es un 30% menor: saltas más alto y caes más despacio, pero las caídas hacen un 70% "
-                                + "más de daño."))
+                                + "más de daño, y el 20% de una caída es daño verdadero que ninguna armadura ni "
+                                + "encantamiento frena."))
                 .source(WikiSource.of(Material.SHIELD, "Every boss holds out", "Todos los jefes aguantan",
                         "No boss takes more than 10 damage from a single hit, however strong it is.",
                         "Ningún jefe recibe más de 10 de daño de un solo golpe, por fuerte que sea."))

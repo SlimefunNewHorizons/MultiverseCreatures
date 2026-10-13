@@ -1,6 +1,7 @@
 package com.Chagui68.listener.bossdimension;
 
 import com.Chagui68.MultiverseCreatures;
+import com.Chagui68.integration.DrakesBossesIntegration;
 import com.Chagui68.ritual.BossDimensionManager;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -9,6 +10,8 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +22,7 @@ import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -26,6 +30,8 @@ import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+
+import java.util.UUID;
 
 /**
  * The survival rules of the boss dimension, for players, each a switch under {@code boss-dimension}:
@@ -37,6 +43,9 @@ import org.bukkit.scheduler.BukkitTask;
  *     <li><b>flight</b> off: nobody flies, whatever gave them flight (another plugin's /fly, creative
  *     mode) and no elytra opens;</li>
  *     <li><b>fall-damage-multiplier</b>: falls hurt that much more;</li>
+ *     <li><b>fall-true-damage-share</b>: that share of a fall's damage is true damage, as
+ *     Mahoraga deals it: armour, Protection, Feather Falling, Resistance and other plugins' caps do
+ *     not stop it;</li>
  *     <li><b>gravity-multiplier</b>: players fall and jump with that share of the usual gravity
  *     (an attribute modifier, taken off again when they leave).</li>
  * </ul>
@@ -52,6 +61,9 @@ public final class BossDimensionRules implements Listener {
     private final MultiverseCreatures plugin;
     /** The loop that takes away flight another plugin handed out. Held so {@link #stopTasks()} can end it. */
     private BukkitTask ticker;
+    /** The player taking a fall's true damage right now, and how much: see {@link #pierce}. */
+    private UUID piercing;
+    private double piercingAmount;
 
     public BossDimensionRules(MultiverseCreatures plugin) {
         this.plugin = plugin;
@@ -103,6 +115,10 @@ public final class BossDimensionRules implements Listener {
 
     private double fallDamageMultiplier() {
         return Math.max(0, plugin.getConfig().getDouble("boss-dimension.fall-damage-multiplier", 1.7));
+    }
+
+    private double fallTrueShare() {
+        return Math.max(0, Math.min(1, plugin.getConfig().getDouble("boss-dimension.fall-true-damage-share", 0.2)));
     }
 
     private double gravityMultiplier() {
@@ -229,6 +245,58 @@ public final class BossDimensionRules implements Listener {
     public void onFall(EntityDamageEvent event) {
         if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
         if (!(event.getEntity() instanceof Player player) || !inside(player)) return;
-        event.setDamage(event.getDamage() * fallDamageMultiplier());
+        double[] split = splitFall(event.getDamage() * fallDamageMultiplier(), fallTrueShare());
+        event.setDamage(split[0]);
+        if (split[1] > 0) {
+            // A tick later: the fall itself has just made the player invulnerable for this one.
+            double amount = split[1];
+            Bukkit.getScheduler().runTask(plugin, () -> pierce(player, amount));
+        }
+    }
+
+    /**
+     * A fall's damage as {@code [ordinary, true]}: the share {@code trueShare} (0 to 1) of it that
+     * nothing stops, and the rest that armour and enchantments reduce as usual.
+     */
+    static double[] splitFall(double damage, double trueShare) {
+        double share = Math.max(0, Math.min(1, trueShare));
+        double whole = Math.max(0, damage);
+        return new double[]{whole * (1 - share), whole * share};
+    }
+
+    /**
+     * The true part of a fall, dealt the way Mahoraga pierces armour: {@code OUT_OF_WORLD} damage,
+     * which the engine takes through armour, Protection and Resistance, and restored at the end of
+     * the event if another plugin capped or cancelled it. Like Mahoraga it leaves DrakesBosses'
+     * UltraGod alone and never sets health directly.
+     */
+    private void pierce(Player player, double amount) {
+        if (!player.isOnline() || player.isDead() || !inside(player)) return;
+        GameMode mode = player.getGameMode();
+        if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) return;
+        if (DrakesBossesIntegration.isUltraGod(player)) return;
+        player.setNoDamageTicks(0);
+        piercing = player.getUniqueId();
+        piercingAmount = amount;
+        try {
+            player.damage(amount, DamageSource.builder(DamageType.OUT_OF_WORLD).build());
+        } finally {
+            piercing = null;
+        }
+    }
+
+    /** Last word on the true part of a fall: whatever another plugin did to it, it lands whole. */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPierce(EntityDamageEvent event) {
+        if (piercing == null || !event.getEntity().getUniqueId().equals(piercing)) return;
+        event.setCancelled(false);
+        event.setDamage(Math.max(event.getDamage(), piercingAmount));
+    }
+
+    /** Killed by a fall's true part: the death message says the fall, not the void. */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPierceDeath(PlayerDeathEvent event) {
+        if (piercing == null || !event.getPlayer().getUniqueId().equals(piercing)) return;
+        event.deathMessage(net.kyori.adventure.text.Component.text(event.getPlayer().getName() + " hit the ground too hard"));
     }
 }

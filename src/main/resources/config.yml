@@ -113,11 +113,14 @@ boss-dimension:
   #   saturation-effect: false -> the Saturation effect does nothing there: players have to eat.
   #   flight: false -> nobody flies there, not with /fly, not in creative, not with an elytra.
   #   fall-damage-multiplier: fall damage taken there (1.7 = 70% more).
+  #   fall-true-damage-share: share of that fall damage dealt as true damage, as Mahoraga deals it:
+  #     armour, Protection, Feather Falling, Resistance and other plugins' caps do not stop it (0.2 = 20%).
   #   gravity-multiplier: share of the usual gravity players have there (0.7 = 30% less).
   natural-regeneration: false
   saturation-effect: false
   flight: false
   fall-damage-multiplier: 1.7
+  fall-true-damage-share: 0.2
   gravity-multiplier: 0.7
 
 

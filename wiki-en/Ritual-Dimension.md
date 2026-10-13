@@ -220,6 +220,7 @@ The dimension is harder to survive in than the overworld. Every rule is a switch
 | `saturation-effect` | `false` | The **Saturation** effect does nothing there: food only comes back from eating. |
 | `flight` | `false` | **Nobody flies**: another plugin's `/fly`, creative flight and elytras are all turned off, and flight handed out again is taken back within a quarter of a second. Creative players get their flight back when they leave. |
 | `fall-damage-multiplier` | `1.7` | Falls hurt **70% more**. |
+| `fall-true-damage-share` | `0.2` | **20% of a fall's damage is true damage**, dealt the way Mahoraga pierces armour: armour, Protection, Feather Falling, Resistance and other plugins' caps do not stop it. The other 80% is reduced as usual. |
 | `gravity-multiplier` | `0.7` | Players have **30% less gravity**: they jump higher and fall slower. It goes away when they leave. |
 
 Every boss, wherever it is fought, takes at most `max-damage-per-hit` (**10**) from a single hit.
