@@ -53,7 +53,7 @@ class ConfigFilesGuardTest {
 
     /** Sub-command names that plugin.yml's usage line must mention. */
     private static final List<String> SUB_COMMANDS = List.of(
-            "spawn", "give", "attack", "music", "dimtp", "kill", "debug", "reload");
+            "spawn", "give", "attack", "music", "dimtp", "kill", "debug", "reload", "troll");
 
     // ------------------------------------------------------------------ resources
 

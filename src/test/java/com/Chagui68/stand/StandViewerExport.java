@@ -86,9 +86,13 @@ public final class StandViewerExport {
         }
         // The Wither Storm's five forms, drawn with block displays.
         json.append(',').append(com.Chagui68.entities.boss.witherstorm.WitherStormViewerExport.entries());
+        // Concept models: a BDEngine export kept head for head, posed with its own rig.
+        json.append(',').append(ConceptViewerExport.entry());
         json.append("]}");
         Files.createDirectories(out.getParent());
         Files.writeString(out, json, StandardCharsets.UTF_8);
+        // The Monster's visits are large and only wanted when asked for: a file of their own.
+        Files.writeString(out.resolveSibling("monster-anims.json"), ConceptViewerExport.anims(), StandardCharsets.UTF_8);
         writeScript(out.resolveSibling("models.js"), json.toString());
         return out;
     }
@@ -159,7 +163,7 @@ public final class StandViewerExport {
                 p.x, p.y, p.z, q.x, q.y, q.z, q.w, s.x, s.y, s.z);
     }
 
-    private static String skinUrl(String texture) {
+    static String skinUrl(String texture) {
         Matcher url = SKIN_URL.matcher(new String(Base64.getDecoder().decode(texture), StandardCharsets.UTF_8));
         return url.find() ? url.group(1).replace("http://", "https://") : "";
     }

@@ -101,6 +101,7 @@ final class CommandMenu {
         line("   &e/msc spawn <type> &8- &7Spawn bosses, strikes & creatures.");
         line("   &e/msc attack <attack> [range] &8- &7Force a boss attack.");
         line("   &e/msc kill [type|all] [radius] &8- &7Safely purge custom mobs.");
+        line("   &e/msc troll <player> <entity> <position> &8- &7Send the Monster after a player.");
         line("");
         line(" &6&l📦 GEAR & ARTIFACTS&8:");
         line("   &e/msc give <item> [amt] [player] &8- &7Give custom items & catalysts.");
@@ -116,6 +117,18 @@ final class CommandMenu {
         line("   &e/msc reload &8- &7Reload config.yml & sync entities.");
         line("");
         line(" &7&oExplore subcommands: &e/msc <cmd> help &7(e.g. &e/msc spawn help&7)");
+        footer();
+    }
+
+    void trollHelp(List<String> entities) {
+        header("MSC TROLL");
+        line(" &7Usage: &e/msc troll <player> <entity> <position>");
+        line("");
+        line(" &7Sends the entity after the player, waiting in that position somewhere within");
+        line(" &7" + com.Chagui68.entities.monster.MonsterStalker.TROLL_RADIUS
+                + " blocks where they are not looking. If nowhere fits, you are told why.");
+        line(" &7Entities: &e" + String.join("&7, &e", entities));
+        line(" &7Positions: &erandom&7, or any pose (tab completes), e.g. &eceiling-cling&7, &esqueezed-in-a-shaft");
         footer();
     }
 

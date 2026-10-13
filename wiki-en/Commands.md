@@ -30,6 +30,7 @@ Summons a single entity (or a tactical formation) at the executor's location. Th
 | `merchant` | Multiverse Merchant ("Shaggy" Wandering Trader) |
 | `mahoraga` | Mahoraga miniboss |
 | `kinger` | Kinger miniboss |
+| `monster` | The Monster, sent to the nearest player: it waits where they are not looking |
 | `garou` | Garou [Hero Hunter] miniboss |
 | `nix` | NIX - The Executioner (custom 27-part model boss) |
 | `dio` | DIO with his Stand The World (JoJo's Bizarre Adventure boss) |
@@ -266,6 +267,23 @@ Plays any `.nbs` file from `plugins/MultiverseCreatures/music/`. Songs are playe
 ```
 
 `/msc music disc <song>` gives the matching jukebox disc — insert it in a jukebox to play the song, right-click with an empty hand to eject it. See [Music](./Music.md) for the bundled songs, credits and the Disc Trader.
+
+---
+
+## /msc troll <player> <entity> <position>
+
+Sends an entity after a player, waiting in the position you pick somewhere within **10 blocks** of them, out of their sight when it can. Today the entity is `monster`.
+
+- `<position>` is any of its poses with dashes for spaces (`ceiling-cling`, `lying-on-chest`, `squeezed-in-a-shaft`…; tab completion lists them all), or `random` for any that fits.
+- It looks for the place that pose needs: a floor, a ceiling, the top of any solid block, open air, or a room of the size a tight pose was made for (1×1, 1×2, 2×1), turning square to the blocks to fit it.
+- A place out of the player's view wins. If the only places are in plain sight it still comes, and you are told they will see it at once.
+- If nothing within 10 blocks works, it is not spawned and the chat says why, for example:
+
+```
+Could not spawn the Monster for Steve: there is no ceiling within 10 blocks of the player.
+Could not spawn the Monster for Steve: nothing within 10 blocks has room for it: "corridor-stalk" needs 1 x 2 x 3 blocks (wide x deep x tall) of free space.
+Could not spawn the Monster for Steve: there is no solid block with free space on top within 10 blocks.
+```
 
 ---
 

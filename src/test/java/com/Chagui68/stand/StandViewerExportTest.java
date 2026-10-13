@@ -27,5 +27,6 @@ class StandViewerExportTest {
             assertTrue(json.contains("\"key\":\"wither-storm-" + form.key() + "\""), "Wither Storm " + form.key());
         }
         assertTrue(json.contains("\"kind\":\"blocks\""), "the Wither Storm is drawn with block displays");
+        assertTrue(json.contains("\"key\":\"monster\""), "the Monster concept model");
     }
 }

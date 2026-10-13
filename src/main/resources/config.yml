@@ -339,6 +339,34 @@ entities:
       - "&5%player% could not keep up with Garou"
 
   # -------------------------------------------------------------------------
+  # The Monster: waits where a player is not looking (behind them, under the
+  # ceiling, on a chest). Seen, it gets down, covers their view with its hand
+  # and vanishes. It does no damage.
+  # -------------------------------------------------------------------------
+  monster:
+    enabled: true
+    # Seconds between the checks that may send it after each player.
+    check-interval-seconds: 20
+    # Chance per check, for a player who meets the conditions below.
+    chance: 0.04
+    # Seconds a player is left alone after a visit.
+    cooldown-seconds: 900
+    # It only comes where the light at the player's eyes is this level or darker (15 = anywhere).
+    max-light-level: 7
+    # Only at night in the Overworld (the Nether and the End have no night).
+    night-only: false
+    # Seconds it waits to be seen before it leaves, unseen, without a sound.
+    lurk-seconds: 45
+    # Degrees from the centre of the view at which a look counts as seeing it.
+    view-angle: 30
+    # Blocks per tick it closes in once seen (it always outruns the player).
+    approach-speed: 0.35
+    # Ticks its hand stays over the player's view before it vanishes.
+    hand-ticks: 25
+    # Visits running at once, across the server.
+    max-active: 5
+
+  # -------------------------------------------------------------------------
   # Kinger (chess piece)
   # -------------------------------------------------------------------------
   kinger:

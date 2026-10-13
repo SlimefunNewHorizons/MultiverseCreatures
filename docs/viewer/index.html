@@ -84,6 +84,9 @@
   .chip b { display: block; font-size: 14px; }
   .chip span { color: var(--muted); font-size: 12px; }
   .hint { position: absolute; right: 12px; bottom: 10px; color: var(--faint); font-size: 11px; pointer-events: none; }
+  /* The Darkness a player gets when the Monster's hand covers their view. */
+  #dark { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .25s;
+    background: radial-gradient(circle, rgba(0,0,0,.35) 0%, rgba(0,0,0,.92) 70%); }
   #status { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center;
     color: var(--muted); }
   #status code { font-size: 12px; color: var(--accent); }
@@ -122,6 +125,7 @@
       <label class="toggle"><span>Turn slowly</span><input type="checkbox" id="spin" checked></label>
       <label class="toggle" id="allLabel"><span>All Stands side by side</span><input type="checkbox" id="all"></label>
       <label class="toggle" id="paintedLabel"><span>Painted skins<small>tools/stand-skins on The World's eleven heads</small></span><input type="checkbox" id="painted"></label>
+      <label class="toggle" id="playerLabel"><span>Player<small>A player standing in front, to scale</small></span><input type="checkbox" id="player" checked></label>
       <label class="toggle" id="beamLabel"><span>Tractor beams<small>At each form's default reach</small></span><input type="checkbox" id="beams" checked></label>
       <label class="toggle" id="boxLabel"><span>Hitboxes<small>The mass (yellow) and one per head (blue)</small></span><input type="checkbox" id="boxes"></label>
     </section>
@@ -141,6 +145,7 @@
 <main id="viewport">
   <div class="chip"><b id="chipName">Loading…</b><span id="chipGroup"></span></div>
   <div class="hint">Drag to orbit · right-drag to pan · scroll to zoom</div>
+  <div id="dark"></div>
   <div id="status" class="off"></div>
 </main>
 <!-- Two ways to get the data. On the site, tools/site/build.py writes models.json and skins/ next to this
@@ -220,6 +225,94 @@ function headGeometry(layer) {
   return g;
 }
 const HEAD = headGeometry(false), HAT = headGeometry(true);
+
+// A player, the way the game draws one: each part a box with its two layers of a 64x64 skin, facing -z,
+// feet on y = 0. Sizes and offsets are skin pixels; [w, h, d, x, y, u, v, overlay u, overlay v].
+const STEVE = "https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb";
+const PLAYER_PARTS = [
+  [8, 8, 8, 0, 24, 0, 0, 32, 0],      // head, hat
+  [8, 12, 4, 0, 12, 16, 16, 16, 32],  // body, jacket
+  [4, 12, 4, 6, 12, 40, 16, 40, 32],  // right arm (+x while it faces -z)
+  [4, 12, 4, -6, 12, 32, 48, 48, 48], // left arm
+  [4, 12, 4, 2, 0, 0, 16, 0, 32],     // right leg
+  [4, 12, 4, -2, 0, 16, 48, 0, 48],   // left leg
+];
+function cuboid(w, h, d, u, v, grow) {
+  const g = new THREE.BoxGeometry((w + grow) / 16, (h + grow) / 16, (d + grow) / 16);
+  // Box faces are +x, -x, +y, -y, +z, -z: the skin's right side, left side, top, bottom, back and front.
+  const faces = [[u, v + d, d, h], [u + d + w, v + d, d, h], [u + d, v, w, d], [u + d + w, v, w, d],
+    [u + 2 * d + w, v + d, w, h], [u + d, v + d, w, h]];
+  const uv = g.attributes.uv;
+  faces.forEach(([px, py, fw, fh], f) => {
+    const u0 = px / 64, u1 = (px + fw) / 64, v0 = 1 - py / 64, v1 = 1 - (py + fh) / 64;
+    const quad = [[u0, v0], [u1, v0], [u0, v1], [u1, v1]];
+    for (let i = 0; i < 4; i++) uv.setXY(f * 4 + i, quad[i][0], quad[i][1]);
+  });
+  return g;
+}
+function buildPlayer(at) {
+  const tex = skin(STEVE), failed = tex.userData.failed;
+  const base = new THREE.MeshStandardMaterial(failed ? { color: 0x3a7bd5 } : { map: tex });
+  const over = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.5 });
+  const group = new THREE.Group();
+  for (const [w, h, d, x, y, u, v, ou, ov] of PLAYER_PARTS) {
+    const part = new THREE.Mesh(cuboid(w, h, d, u, v, 0), base);
+    part.position.set(x / 16, (y + h / 2) / 16, 0);
+    group.add(part);
+    if (!failed) {
+      const layer = new THREE.Mesh(cuboid(w, h, d, ou, ov, w === 8 && h === 8 ? 1 : 0.5), over);
+      layer.position.copy(part.position);
+      group.add(layer);
+    }
+  }
+  // The game draws a player at 0.9375 of its model: 1.875 blocks tall. Turned round to face +z,
+  // then by the scene's yaw (180 faces the model).
+  group.scale.setScalar(0.9375);
+  group.rotation.y = Math.PI + THREE.MathUtils.degToRad(at[3] || 0);
+  group.position.set(at[0], at[1], at[2]);
+  return group;
+}
+
+// What a concept pose rests on, from its scene: the blocks round it (stone you can see through, chests,
+// a pit in the floor), or for an older scene without blocks a ceiling or a chest under its anchor.
+function propsOf(scene) {
+  const group = new THREE.Group(), [x, y, z] = scene.anchor;
+  const stone = new THREE.MeshStandardMaterial(
+      { color: 0x6b7078, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide });
+  const edges = new THREE.LineBasicMaterial({ color: 0xa0a6b0, transparent: true, opacity: 0.55 });
+  const block = (x0, y0, z0, w, h, d, material) => {
+    const geometry = new THREE.BoxGeometry(w, h, d);
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(x0 + w / 2, y0 + h / 2, z0 + d / 2);
+    const lines = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), edges);
+    lines.position.copy(mesh.position);
+    group.add(mesh, lines);
+  };
+  // A chest (or a double chest): planks, a darker lid line and the latch on its front (+z).
+  const chest = (x0, y0, z0, w, d) => {
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w - 0.125, 0.875, d - 0.125),
+        new THREE.MeshStandardMaterial({ color: 0x9c6b30, roughness: 0.9 }));
+    body.position.set(x0 + w / 2, y0 + 0.4375, z0 + d / 2);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(w - 0.12, 0.04, d - 0.12), new THREE.MeshStandardMaterial({ color: 0x5a3a16 }));
+    lid.position.set(x0 + w / 2, y0 + 0.6, z0 + d / 2);
+    const latch = new THREE.Mesh(new THREE.BoxGeometry(0.125, 0.25, 0.06), new THREE.MeshStandardMaterial({ color: 0xc8c8c8 }));
+    latch.position.set(x0 + w / 2, y0 + 0.55, z0 + d - 0.04);
+    group.add(body, lid, latch);
+  };
+  if (scene.world) {
+    for (const [x0, y0, z0, x1, y1, z1, isChest] of scene.world.blocks) {
+      if (isChest) chest(x0, y0, z0, x1 - x0, z1 - z0);
+      else block(x0, y0, z0, x1 - x0, y1 - y0, z1 - z0, stone);
+    }
+    const pit = new THREE.MeshBasicMaterial({ color: 0x050608, transparent: true, opacity: 0.55, depthWrite: false });
+    for (const [hx, hy, hz] of scene.world.holes) block(hx, hy, hz, 1, 1, 1, pit);
+  } else if (scene.place === "ceiling") {
+    block(x - 2.5, y, z - 2.5, 5, 1, 5, stone);
+  } else if (scene.place === "block") {
+    chest(x - 0.5, y - 1, z - 0.5, 1, 1);
+  }
+  return group;
+}
 
 function place(object, p) {
   object.position.set(p.t[0], p.t[1], p.t[2]);
@@ -388,7 +481,7 @@ function hitboxesOf(model) {
 // A Stand painted in tools/stand-skins wears The World's eleven heads with its own skins.
 function painted(stand) {
   const files = paintedBox.checked && manifest && manifest[stand.key];
-  const base = files && data.stands.find(s => s.kind === "heads");
+  const base = files && data.stands.find(isStand);
   return base ? { files, base } : null;
 }
 
@@ -408,6 +501,7 @@ function buildStand(stand, poseName) {
       ? (paint.base.poses[poseName] || paint.base.poses.idle).map((p, i) => ({ ...p,
           skin: (window.STAND_VIEWER_PAINTED && window.STAND_VIEWER_PAINTED[paint.files[i]]) || skinBase + paint.files[i] }))
       : (stand.poses[poseName] || stand.poses.idle);
+  const meshes = [];
   for (const p of pieces) {
     const tex = skin(p.skin);
     const failed = tex.userData.failed;
@@ -416,11 +510,83 @@ function buildStand(stand, poseName) {
     if (!failed) {
       mesh.add(new THREE.Mesh(HAT, new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.5 })));
     }
-    place(mesh, p);
+    if (p.m) {
+      // The export's own matrix, row major, shear and all.
+      mesh.matrixAutoUpdate = false;
+      mesh.matrix.set(...p.m, 0, 0, 0, 1);
+    } else {
+      place(mesh, p);
+    }
     group.add(mesh);
+    meshes.push(mesh);
+  }
+  group.userData.meshes = meshes;
+  const scene = stand.scenes && stand.scenes[poseName];
+  if (scene) {
+    if (playerBox.checked) group.add(group.userData.player = buildPlayer(scene.player));
+    group.add(propsOf(scene));
   }
   return group;
 }
+
+// ------------------------------------------------------------------ the Monster's visit
+
+// The Monster's rig, turned from the export into matrices once: each part's parent and pivot, each
+// head's part and rest matrix. An animation frame is the rig's parameters, posed here the way the
+// game's MonsterRig poses it: T(anchor) * yaw * T(lift) * tilt, then every part about its pivot.
+const rad = THREE.MathUtils.degToRad;
+let rigCache = null;
+function monsterRig(stand) {
+  if (!rigCache || rigCache.stand !== stand) {
+    const rest = stand.rig.rest.map(r => new THREE.Matrix4().set(...r, 0, 0, 0, 1));
+    rigCache = { stand, rest, parts: stand.rig.parts, owners: stand.rig.owners };
+  }
+  return rigCache;
+}
+// Turns by [pitch, yaw, roll] degrees: yaw, then pitch, then roll.
+function turnBy(p, y, r) {
+  return new THREE.Matrix4().makeRotationY(rad(y))
+      .multiply(new THREE.Matrix4().makeRotationX(rad(p))).multiply(new THREE.Matrix4().makeRotationZ(rad(r)));
+}
+// Frame layout: phase, shown (1) or not, anchor x y z, yaw, lift x y z, tilt p y r, the player's yaw,
+// then p y r per part. Phases as the game's MonsterScript has them; its hand is over the view in "grab".
+const PHASES = ["lurk", "rise", "move", "grab", "blink", "hide", "gone"];
+function poseFrame(stand, f, meshes, player) {
+  const rig = monsterRig(stand);
+  const shown = f[1] === 1 && PHASES[f[0]] !== "gone";
+  meshes.forEach(m => { m.visible = shown; });
+  if (player) player.rotation.y = Math.PI + rad(f[12]);
+  document.getElementById("dark").style.opacity = PHASES[f[0]] === "grab" ? 1 : 0;
+  if (!shown) return;
+  const root = new THREE.Matrix4().makeTranslation(f[2], f[3], f[4])
+      .multiply(new THREE.Matrix4().makeRotationY(rad(f[5])))
+      .multiply(new THREE.Matrix4().makeTranslation(f[6], f[7], f[8]))
+      .multiply(turnBy(f[9], f[10], f[11]));
+  const world = [];
+  rig.parts.forEach(([, parent, px, py, pz], i) => {
+    const j = 13 + i * 3;
+    world.push((parent < 0 ? root : world[parent]).clone()
+        .multiply(new THREE.Matrix4().makeTranslation(px, py, pz))
+        .multiply(turnBy(f[j], f[j + 1], f[j + 2]))
+        .multiply(new THREE.Matrix4().makeTranslation(-px, -py, -pz)));
+  });
+  meshes.forEach((m, h) => m.matrix.copy(world[rig.owners[h]]).multiply(rig.rest[h]));
+}
+
+// The Monster's visits live in a file of their own, fetched the first time the Monster is shown.
+let monsterAnims = null, monsterAnimsLoading = false;
+function loadMonsterAnims(stand) {
+  if (monsterAnims || monsterAnimsLoading || typeof stand.anims !== "string") return;
+  monsterAnimsLoading = true;
+  firstJson(stand.anims, "../../target/stand-viewer/" + stand.anims).then(({ j }) => {
+    monsterAnims = j;
+    fillPoses();
+    refresh();
+  }).catch(() => { monsterAnimsLoading = false; });
+}
+// What each behaviour is called in the menu.
+const BEHAVIORS = { "walk": "walk: gets up and walks over", "coffin-rise": "coffin rise", "crawl-rush": "crawl rush",
+  "ceiling-scuttle": "ceiling scuttle", "blink": "blink", "peek-and-hide": "peek and hide" };
 
 let data, manifest, current = new THREE.Group();
 scene.add(current);
@@ -428,12 +594,14 @@ const modelList = document.getElementById("models"), search = document.getElemen
 const poseSelect = document.getElementById("pose");
 const animSelect = document.getElementById("anim");
 const allBox = document.getElementById("all"), spinBox = document.getElementById("spin");
-const paintedBox = document.getElementById("painted");
+const paintedBox = document.getElementById("painted"), playerBox = document.getElementById("player");
 const beamBox = document.getElementById("beams"), hitBox = document.getElementById("boxes");
 let frame = 0, clock = 0, selectedIndex = 0;
 
 const selected = () => data.stands[selectedIndex];
 const groupOf = s => s.group || "Stands";
+// Stands are the rigged eleven-head figures; other head models (the concepts) carry a group of their own.
+const isStand = s => s.kind === "heads" && !s.group;
 // "Wither Storm: The Hunchback" is listed under its group as "The Hunchback".
 const shortName = s => s.name.startsWith(groupOf(s) + ": ") ? s.name.slice(groupOf(s).length + 2) : s.name;
 
@@ -492,7 +660,7 @@ function refresh() {
   current = new THREE.Group();
   const pose = poseSelect.value;
   if (allBox.checked) {
-    const stands = data.stands.filter(s => s.kind === "heads");
+    const stands = data.stands.filter(isStand);
     stands.forEach((stand, i) => {
       const g = buildStand(stand, pose);
       g.position.x = (i - (stands.length - 1) / 2) * 1.6;
@@ -502,6 +670,7 @@ function refresh() {
     const built = buildStand(selected(), pose);
     current.add(built);
     current.userData.meshes = built.userData.meshes;
+    current.userData.player = built.userData.player;
   }
   scene.add(current);
   frame = 0;
@@ -511,7 +680,7 @@ function refresh() {
 function updateInfo() {
   const stand = selected(), pose = poseSelect.value;
   const pieces = s => (s.poses[pose] || s.poses.idle).filter(p => p).length;
-  const heads = data.stands.filter(s => s.kind === "heads");
+  const heads = data.stands.filter(isStand);
   const count = allBox.checked ? heads.reduce((n, s) => n + pieces(s), 0) : pieces(stand);
   const rows = [];
   if (allBox.checked) {
@@ -547,7 +716,7 @@ function updateInfo() {
 
 function fillPoses() {
   const poses = new Set();
-  const shown = allBox.checked ? data.stands.filter(s => s.kind === "heads") : [selected()];
+  const shown = allBox.checked ? data.stands.filter(isStand) : [selected()];
   shown.forEach(s => Object.keys(s.poses).forEach(k => poses.add(k)));
   const keep = poseSelect.value;
   poseSelect.innerHTML = "";
@@ -558,21 +727,38 @@ function fillPoses() {
   animSelect.add(new Option("none", "none"));
   if (isBlocks() && selected().frames) Object.keys(selected().frames).forEach(a => animSelect.add(new Option(a, a)));
   if (isBlocks()) animSelect.value = "idle";
+  // The Monster's one animation: what it does once the player sees it, from the pose shown.
+  // The Monster's visits from the pose shown: every behaviour that plays in its blocks.
+  let visit = false;
+  if (!allBox.checked && selected().anims) {
+    loadMonsterAnims(selected());
+    const plays = monsterAnims && monsterAnims[poseSelect.value];
+    if (plays) {
+      visit = true;
+      const keep = animSelect.dataset.monster;
+      Object.keys(plays).forEach(id => animSelect.add(new Option(BEHAVIORS[id] || id, id)));
+      if (keep && plays[keep]) animSelect.value = keep;
+    }
+  }
   const blocks = isBlocks();
-  document.getElementById("animLabel").classList.toggle("off", !blocks);
+  document.getElementById("animLabel").classList.toggle("off", !blocks && !visit);
   document.getElementById("beamLabel").classList.toggle("off", !blocks);
   document.getElementById("boxLabel").classList.toggle("off", !blocks);
-  document.getElementById("paintedLabel").classList.toggle("off", blocks || !manifest);
+  document.getElementById("playerLabel").classList.toggle("off", allBox.checked || !selected().scenes);
+  document.getElementById("paintedLabel").classList.toggle("off", blocks || !manifest
+      || (!allBox.checked && !isStand(selected())));
 }
 
 /** Frames the camera and the grid on what is shown: a Stand is two blocks tall, a storm a hundred. */
 function frameView(x = 0, z = 1, y = 0.25) {
   let centre = new THREE.Vector3(0, 0.95, 0), distance = allBox.checked ? 9 : 4.2, extent = 12;
-  if (isBlocks()) {
-    const b = selected().size;
+  if (!allBox.checked && selected().size) {
+    // A concept model has a box per pose: the Monster and the player wherever the pose puts them.
+    const scene = selected().scenes && selected().scenes[poseSelect.value];
+    const b = scene ? scene.size : selected().size;
     centre = new THREE.Vector3((b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2);
     const radius = Math.max(b[3] - b[0], b[4] - b[1], b[5] - b[2]) / 2;
-    distance = Math.max(9, radius * 3.4);
+    distance = isBlocks() ? Math.max(9, radius * 3.4) : Math.max(4.2, radius * 4.4);
     extent = Math.max(16, Math.ceil(radius * 4 / 8) * 8);
   }
   controls.target.copy(centre);
@@ -602,7 +788,7 @@ Promise.all([modelsLoad, manifestLoad])
   data = json;
   manifest = m;
   // Skins with no Stand of their own (DIO himself) are shown on the same eleven heads.
-  const base = data.stands.find(s => s.kind === "heads");
+  const base = data.stands.find(isStand);
   for (const key of Object.keys(manifest || {})) {
     if (base && !data.stands.some(s => s.key === key)) {
       const name = key.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
@@ -621,7 +807,7 @@ Promise.all([modelsLoad, manifestLoad])
   fillModels();
   fillPoses();
   if (wanted.has("pose")) poseSelect.value = wanted.get("pose");
-  if (wanted.has("anim")) animSelect.value = wanted.get("anim");
+  if (wanted.has("anim")) animSelect.value = animSelect.dataset.monster = wanted.get("anim");
   frameView();
   refresh();
 }).catch(e => {
@@ -633,9 +819,15 @@ Promise.all([modelsLoad, manifestLoad])
 });
 
 search.oninput = () => { if (data) fillModels(); };
-poseSelect.onchange = () => { animSelect.value = "none"; refresh(); };
-animSelect.onchange = () => { frame = 0; refresh(); };
+poseSelect.onchange = () => {
+  // Each pose of the Monster plays its own behaviours: the menu is rebuilt, keeping the one chosen.
+  if (selected().anims) fillPoses(); else animSelect.value = "none";
+  if (selected().scenes) frameView();
+  refresh();
+};
+animSelect.onchange = () => { animSelect.dataset.monster = animSelect.value; frame = 0; refresh(); };
 paintedBox.onchange = refresh;
+playerBox.onchange = refresh;
 beamBox.onchange = refresh;
 hitBox.onchange = refresh;
 allBox.onchange = () => { fillModels(); fillPoses(); frameView(); refresh(); };
@@ -648,8 +840,22 @@ document.getElementById("top").onclick = view(0, 0.02, 1.1);
 // The exported frames are three ticks apart, so they are played at 20 ticks a second.
 const FRAME_MS = 150;
 let last = performance.now();
+// The Monster's visit runs at the game's own 20 ticks a second, with a second of nothing after it vanishes.
+const TICK_MS = 50, AFTER_TICKS = 20;
 renderer.setAnimationLoop(now => {
   if (spinBox.checked) current.rotation.y += 0.004;
+  const plays = data && !allBox.checked && selected().anims && monsterAnims && monsterAnims[poseSelect.value];
+  const visit = plays && plays[animSelect.value];
+  if (visit && current.userData.meshes) {
+    clock += now - last;
+    while (clock >= TICK_MS) {
+      clock -= TICK_MS;
+      frame = (frame + 1) % (visit.length + AFTER_TICKS);
+      poseFrame(selected(), visit[Math.min(frame, visit.length - 1)], current.userData.meshes, current.userData.player);
+    }
+  } else {
+    document.getElementById("dark").style.opacity = 0;
+  }
   if (data && isBlocks() && animSelect.value !== "none" && current.userData.meshes) {
     clock += now - last;
     const frames = selected().frames[animSelect.value];

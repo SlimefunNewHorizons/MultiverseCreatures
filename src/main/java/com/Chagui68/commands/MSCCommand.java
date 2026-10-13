@@ -61,7 +61,10 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
 
     /** Sub-commands shown by {@code /msc} and offered by tab completion. */
     private static final List<String> SUB_COMMANDS = List.of(
-            "spawn", "give", "attack", "music", "kill", "debug", "reload", "dimtp");
+            "spawn", "give", "attack", "music", "kill", "debug", "reload", "dimtp", "troll");
+
+    /** The entities {@code /msc troll} can send after a player. */
+    private static final List<String> TROLL_ENTITIES = List.of("monster");
 
     /** How far {@code /msc debug} looks for the player the executor is aiming at. */
     private static final int DEBUG_TARGET_RANGE = 30;
@@ -167,6 +170,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             case "kill" -> handleKill(sender, args);
             case "debug" -> handleDebug(sender, args);
             case "reload" -> handleReload(sender);
+            case "troll" -> handleTroll(sender, args);
             default -> {
                 sender.sendMessage(RED + "Unknown command. Use /msc for help.");
                 new CommandMenu(sender).help();
@@ -216,6 +220,37 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(GREEN + "Spawned " + entry.spawnedName() + "!");
         } else {
             sender.sendMessage(RED + "Failed to spawn " + entry.failureName() + ".");
+        }
+    }
+
+    // ------------------------------------------------------------------ troll
+
+    /**
+     * {@code /msc troll <player> <entity> <position>}: sends an entity after a player, waiting in the
+     * position named, somewhere within ten blocks of them. When there is no such place, the sender is
+     * told it could not be spawned and why.
+     */
+    private void handleTroll(CommandSender sender, String[] args) {
+        if (args.length < 4 || args[1].equalsIgnoreCase("help")) {
+            new CommandMenu(sender).trollHelp(TROLL_ENTITIES);
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            sender.sendMessage(RED + "No player called " + args[1] + " is online.");
+            return;
+        }
+        String entity = args[2].toLowerCase();
+        if (!TROLL_ENTITIES.contains(entity)) {
+            sender.sendMessage(RED + "Unknown entity " + args[2] + ". It can be: " + String.join(", ", TROLL_ENTITIES) + ".");
+            return;
+        }
+        com.Chagui68.entities.monster.MonsterStalker.TrollResult result =
+                plugin.getMonsterStalker().troll(target, args[3]);
+        if (result.spawned()) {
+            sender.sendMessage(GREEN + "The Monster is on its way: " + result.message() + ".");
+        } else {
+            sender.sendMessage(RED + "Could not spawn the Monster for " + target.getName() + ": " + result.message() + ".");
         }
     }
 
@@ -822,6 +857,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
                     addMatchingPlayers(completions, args[1]);
                 }
                 case "dimtp" -> addMatching(completions, worldNames(), args[1]);
+                case "troll" -> addMatchingPlayers(completions, args[1]);
                 default -> {
                 }
             }
@@ -829,7 +865,9 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 3) {
-            if (subCommand.equals("kill")) {
+            if (subCommand.equals("troll")) {
+                addMatching(completions, TROLL_ENTITIES, args[2]);
+            } else if (subCommand.equals("kill")) {
                 addMatching(completions, KILL_RADII, args[2]);
             } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("geometry")) {
                 addMatching(completions, GEOMETRY_TARGETS, args[2]);
@@ -841,7 +879,9 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 4) {
-            if (subCommand.equals("give")) {
+            if (subCommand.equals("troll") && TROLL_ENTITIES.contains(args[2].toLowerCase())) {
+                addMatching(completions, plugin.getMonsterStalker().positions(), args[3]);
+            } else if (subCommand.equals("give")) {
                 addMatching(completions, GIVE_TARGETS, args[3]);
                 addMatchingPlayers(completions, args[3]);
             } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("geometry")

@@ -30,6 +30,7 @@ Invoca una sola entidad (o una formación táctica) en la ubicación del ejecuto
 | `merchant` | Comerciante Multiversal ("Shaggy" Comerciante Errante) |
 | `mahoraga` | Minijefe Mahoraga |
 | `kinger` | Minijefe Kinger |
+| `monster` | El Monstruo, enviado al jugador más cercano: espera donde no está mirando |
 | `garou` | Minijefe Garou [Hero Hunter] |
 | `nix` | NIX - El Verdugo (jefe con modelo custom de 27 piezas) |
 | `dio` | DIO con su Stand The World (jefe de JoJo's Bizarre Adventure) |
@@ -266,6 +267,23 @@ Reproduce cualquier archivo `.nbs` de `plugins/MultiverseCreatures/music/`. Las 
 ```
 
 `/msc music disc <canción>` te da el disco de jukebox correspondiente — insértalo en un jukebox para reproducir la canción, click derecho con la mano vacía para expulsarlo. Ver [Música](./Music.md) para las canciones incluidas, créditos y el Disc Trader.
+
+---
+
+## /msc troll <jugador> <entidad> <posición>
+
+Envía una entidad a por un jugador, esperando en la posición que elijas en algún sitio a menos de **10 bloques** de él, fuera de su vista cuando puede. Hoy la entidad es `monster`.
+
+- `<posición>` es cualquiera de sus poses con guiones en vez de espacios (`ceiling-cling`, `lying-on-chest`, `squeezed-in-a-shaft`…; el autocompletado las lista todas), o `random` para cualquiera que quepa.
+- Busca el sitio que pide esa pose: un suelo, un techo, la parte de arriba de cualquier bloque sólido, aire libre, o un espacio del tamaño para el que se hizo una pose estrecha (1×1, 1×2, 2×1), girándose alineado con los bloques para caber.
+- Gana un sitio fuera de la vista del jugador. Si solo hay sitios a la vista, aparece igual y se te avisa de que lo verá enseguida.
+- Si nada a menos de 10 bloques sirve, no aparece y el chat dice por qué, por ejemplo:
+
+```
+Could not spawn the Monster for Steve: there is no ceiling within 10 blocks of the player.
+Could not spawn the Monster for Steve: nothing within 10 blocks has room for it: "corridor-stalk" needs 1 x 2 x 3 blocks (wide x deep x tall) of free space.
+Could not spawn the Monster for Steve: there is no solid block with free space on top within 10 blocks.
+```
 
 ---
 

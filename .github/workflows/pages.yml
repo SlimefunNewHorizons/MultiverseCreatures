@@ -14,6 +14,8 @@ on:
       - 'tools/stand-skins/out/**'
       - 'src/main/resources/stands/**'
       - 'src/main/resources/witherstorm/**'
+      - 'src/main/resources/monster/**'
+      - 'src/main/java/com/Chagui68/entities/monster/**'
       - 'src/main/java/com/Chagui68/stand/**'
       - 'src/main/java/com/Chagui68/entities/boss/witherstorm/**'
       - 'src/test/java/com/Chagui68/stand/**'

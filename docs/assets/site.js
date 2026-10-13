@@ -46,6 +46,7 @@
   const CREATURES = [
     ["👻", "Head Slime", "Half-Life", "A parasitic slime that leaps onto its target and rides on its head.", "#7bd88f"],
     ["💥", "Creeper Jr.", "Original", "A swarm of three tiny, fast creepers that leap-fuse and deal true damage.", "#4caf50"],
+    ["👁️", "The Monster", "Original", "Waits where you are not looking: behind you, under the ceiling, on a chest. Look at it and it comes for your face.", "#d9d9d9"],
     ["🐴", "ZombieHorseTrap", "Military Army", "A rare Full Moon trap: step too close and a coordinated five-unit army appears.", "#9aa3b2"],
     ["⛑️", "Obsidian Guard", "Heavy tank", "A full-netherite tank zombie.", "#6b5b95"],
     ["🌌", "Ender Knight", "Original", "An Enderman-themed knight with a Sharp V Ender Blade.", "#b266ff"],

@@ -33,6 +33,9 @@ def main() -> int:
     data["stands"] = [m for m in data["stands"] if not m["key"].endswith("-detailed")]
     viewer = OUT / "viewer"
     (viewer / "models.json").write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
+    anims = MODELS.with_name("monster-anims.json")
+    if anims.exists():
+        shutil.copy2(anims, viewer / anims.name)
 
     skins = viewer / "skins"
     for f in SKINS.rglob("*"):

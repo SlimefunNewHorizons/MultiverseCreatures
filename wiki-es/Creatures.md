@@ -327,6 +327,48 @@ Un reemplazo del Comerciante Errante — el 30% (`SHAGGY_CHANCE`) de los spawns 
 
 ---
 
+## 👁️ El Monstruo
+
+Una figura alta y pálida, con brazos tan largos que llegan al suelo, hecha de 80 cabezas de jugador. No hace daño: está ahí para que lo veas de reojo.
+
+Cada `check-interval-seconds` (20) un jugador que está a oscuras (luz en los ojos ≤ `max-light-level`, 7) puede atraerlo, con una probabilidad `chance` del 4%, una vez cada `cooldown-seconds` (15 min). Espera **donde no estás mirando**, en una pose que se adapta al lugar:
+
+| Dónde estás | Dónde espera | Poses |
+|---|---|---|
+| Al aire libre | En el suelo, detrás o al lado de ti | justo detrás, sobre el hombro, asomándose de lado, agachado, cabeza ladeada, alcanzándote, grito |
+| En una sala baja o un túnel | En el suelo, plegado para caber | gateando, encorvado bajo el techo, sentado en un rincón |
+| Bajo un techo | Colgado del bloque de arriba | pegado al techo como una araña, colgando boca abajo |
+| Cerca de cualquier bloque sólido (un cofre, una mesa de crafteo, piedra…) | Encima de él | tumbado boca arriba, sentado en el borde, encaramado, tumbado boca abajo |
+| Volando o planeando | En el aire, a tu lado | flotando |
+| En un hueco, pozo o agujero de 1×1 | Plegado en ese bloque | apretado en un pozo, doblado en un agujero, estirado hacia arriba, cabeza fuera del agujero, colgado en un pozo |
+| En un pasillo de 1×2 (un bloque de ancho) | A lo largo | gateando en el pasillo, acechando en el pasillo, agachado en el pasillo, tumbado en una ranura, gateando por el techo del pasillo |
+| En un nicho de 2×1 (un bloque de fondo) | De lado a lado | abierto contra la pared, en cuclillas, sentado en el nicho, acurrucado de lado, pegado al techo a lo ancho |
+| Cerca de un cofre doble (o dos bloques sólidos juntos) | A lo largo | tumbado sobre un cofre doble, incorporado sobre un cofre doble, sentado sobre un cofre doble, de lado sobre un cofre doble, boca abajo sobre un cofre doble |
+
+Un sitio solo vale si la pose entera cabe ahí y ni sus ojos ni su pecho están a la vista. Las poses estrechas se prueban alineadas con los bloques en las cuatro direcciones y solo se usan donde el espacio de verdad es así de estrecho, así que al aire libre nunca aparece plegado.
+
+**Cuando lo ves** (a menos de `view-angle`, 30°, del centro de la vista), se delata con uno de seis comportamientos:
+
+| Comportamiento | Qué hace | Cuándo |
+|---|---|---|
+| Caminar | Se levanta como pide su sitio (cae dando la vuelta desde el techo, salta del bloque, se despliega fuera del hueco) y camina hacia ti | La mayoría de las veces |
+| Salir del ataúd | Se incorpora despacio sobre el cofre doble, pasa las piernas por el borde y baja | Siempre desde un cofre doble |
+| Carrera a gatas | Se pone a cuatro patas y corre hacia ti, más rápido | 1 de cada 4 desde el suelo |
+| Correr por el techo | Corre boca abajo por el techo hasta encima de ti y cae delante | 6 de cada 10 desde un techo |
+| Asomarse y esconderse | Se aparta fuera de tu vista y vuelve a esperar más cerca, donde no miras | 3 de cada 10, una vez por visita |
+| Parpadeo | Parpadea, desaparece y de pronto está en tu cara | Cuando nada más cabe |
+
+Todos terminan igual: te pone la palma delante de la vista (de pie, agachado o a cuatro patas, lo que quepa en el sitio, y desde un lado si no hay espacio enfrente) y desaparece en una nube de tinta, con Oscuridad y un instante de Ceguera. Si nadie lo ve en `lurk-seconds` (45), se va sin hacer ruido mientras no miras.
+
+**Nunca atraviesa bloques.** Todo lo que hace se planea contra los bloques de alrededor antes de empezar, tick a tick: camina hacia ti por una ruta, de pie donde hay espacio, estrecho en un pasillo, agachado bajo un techo bajo y a cuatro patas en un túnel, y sale de un hueco con un tirón cuando no hay espacio para desplegarse despacio. Si no hay ninguna salida (un pozo cerrado, un agujero hondo) parpadea en su lugar.
+
+- **Comandos:** `/msc spawn monster` lo envía ya al jugador más cercano, sin probabilidad, luz ni enfriamiento; `/msc troll <jugador> monster <posición>` lo envía en la posición que elijas (ver [Comandos](./Commands.md)).
+- **Animación:** el visor reproduce cada comportamiento que puede hacer cada pose, en los bloques para los que se hizo (el pozo, el pasillo, el nicho, el cofre doble): elige una pose y luego un comportamiento en Animation.
+- **Config:** `entities.monster`
+- **Visor:** todas las poses, con un jugador como escala, en el [visor 3D](https://slimefunnewhorizons.github.io/MultiverseCreatures/viewer/?stand=monster).
+
+---
+
 ## Tabla resumen de spawns
 
 | Mob vanilla | Reemplazo MSC | Probabilidad por defecto |

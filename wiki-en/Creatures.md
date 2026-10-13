@@ -327,6 +327,48 @@ A Wandering Trader replacement — 30% (`SHAGGY_CHANCE`) of trader spawns become
 
 ---
 
+## 👁️ The Monster
+
+A tall, pale thing with arms long enough to reach the floor, built from 80 player heads. It does no damage: it is there to be seen out of the corner of your eye.
+
+Every `check-interval-seconds` (20) a player standing in the dark (light at the eyes ≤ `max-light-level`, 7) may draw it, at a `chance` of 4%, once every `cooldown-seconds` (15 min). It waits **where you are not looking**, in a pose that suits the place:
+
+| Where you are | Where it waits | Poses |
+|---|---|---|
+| In the open | On the floor behind or beside you | standing right behind, over the shoulder, peeking from the side, crouched, head tilt, reaching, scream |
+| In a low room or a tunnel | On the floor, folded to fit | crawling, hunched under the ceiling, sat in a corner |
+| Under a ceiling | Hanging from the block above | clinging to the ceiling like a spider, hanging upside down |
+| Near any solid block (a chest, a crafting table, stone…) | On top of it | lying on its back, sitting on the edge, perched, lying face down |
+| Flying or gliding | In the air beside you | drifting |
+| In a 1×1 shaft, nook or pit | Folded into the one block | squeezed in a shaft, folded in a hole, reaching up a shaft, head out of a pit, hanging in a shaft |
+| In a 1×2 corridor (one block wide) | Along it | corridor crawl, corridor stalk, corridor crouch, lying in a slot, corridor ceiling crawl |
+| In a 2×1 alcove (one block deep) | Across it | spread against the wall, squatting wide, sitting in an alcove, curled on its side, wide ceiling cling |
+| Near a double chest (or any two solid blocks side by side) | Along it | lying on a double chest, sitting up on a double chest, sitting on a double chest, on its side on a double chest, face down on a double chest |
+
+A spot only counts when the whole pose fits there and neither its eyes nor its chest are in your view. The tight poses are tried square to the blocks in all four directions and only taken where the room really is that tight, so in the open it never stands folded up.
+
+**When you see it** (within `view-angle`, 30°, of the centre of your view), it gives itself away with one of six behaviours:
+
+| Behaviour | What it does | When |
+|---|---|---|
+| Walk | Gets up the way its place asks (tumbles down from a ceiling, hops off a block, unfolds out of a nook) and walks over | Most of the time |
+| Coffin rise | Sits up slowly on the double chest, swings its legs over the edge, steps down | Always from a double chest |
+| Crawl rush | Drops to all fours and scuttles at you, faster | 1 in 4 from the floor |
+| Ceiling scuttle | Runs along the ceiling upside down to above you, then drops in front of you | 6 in 10 from a ceiling |
+| Peek and hide | Pulls back out of sight, then waits again somewhere closer that you are not looking at | 3 in 10, once per visit |
+| Blink | Flickers out and is suddenly in your face | Whenever nothing else fits |
+
+Every behaviour ends the same way: it puts its palm over your view (standing, crouched or on all fours, whichever fits the room, reaching from the side when there is no room in front) and vanishes in a puff of ink, with Darkness and a moment of Blindness. Left unseen for `lurk-seconds` (45), it leaves without a sound while you are not looking.
+
+**It never goes through blocks.** Everything it does is planned against the blocks round it before it starts, tick by tick: it walks a path to you standing where there is room, narrow in a corridor, crouched under a low ceiling and on all fours in a tunnel, and squeezes out of a nook with a jerk when there is no room to unfold slowly. When there is no way at all (a closed shaft, a deep pit) it blinks instead.
+
+- **Commands:** `/msc spawn monster` sends it to the nearest player now, ignoring the chance, the light and the cooldown; `/msc troll <player> monster <position>` sends it in the position you pick (see [Commands](./Commands.md)).
+- **Animation:** the viewer plays every behaviour each pose can do, in the blocks it was made for (the shaft, the corridor, the alcove, the double chest): pick a pose, then a behaviour under Animation.
+- **Config:** `entities.monster`
+- **Viewer:** every pose, with a player for scale, in the [3D viewer](https://slimefunnewhorizons.github.io/MultiverseCreatures/viewer/?stand=monster).
+
+---
+
 ## Spawn Summary Table
 
 | Vanilla mob | MSC replacement | Default chance |
