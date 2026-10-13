@@ -226,8 +226,9 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
     // ------------------------------------------------------------------ troll
 
     /**
-     * {@code /msc troll <player> <entity> <position>}: sends an entity after a player, waiting in the
-     * position named, somewhere within ten blocks of them. When there is no such place, the sender is
+     * {@code /msc troll <player> <entity> <position> [animation]}: sends an entity after a player,
+     * waiting in the position named, somewhere within ten blocks of them, to play the animation named
+     * once seen (or what suits the place). When there is no such place, the sender is
      * told it could not be spawned and why.
      */
     private void handleTroll(CommandSender sender, String[] args) {
@@ -246,7 +247,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             return;
         }
         com.Chagui68.entities.monster.MonsterStalker.TrollResult result =
-                plugin.getMonsterStalker().troll(target, args[3]);
+                plugin.getMonsterStalker().troll(target, args[3], args.length > 4 ? args[4] : null);
         if (result.spawned()) {
             sender.sendMessage(GREEN + "The Monster is on its way: " + result.message() + ".");
         } else {
@@ -889,6 +890,10 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
                 // Only the three dressed models have limbs to walk: the Sentinel is the stand itself.
                 addMatching(completions, GEOMETRY_MODES, args[3]);
             }
+        }
+
+        if (args.length == 5 && subCommand.equals("troll") && TROLL_ENTITIES.contains(args[2].toLowerCase())) {
+            addMatching(completions, plugin.getMonsterStalker().animations(), args[4]);
         }
 
         return completions;

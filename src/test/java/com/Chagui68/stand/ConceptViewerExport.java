@@ -26,9 +26,9 @@ final class ConceptViewerExport {
 
     /** A player's box round its feet: half its width (arms included), its height and half its depth. */
     private static final float[] PLAYER = {0.375f, 1.875f, 0.125f};
-    /** The visit as the game plays it by default: entities.monster.approach-speed and hand-ticks. */
+    /** The visit as the game plays it by default: entities.monster.approach-speed and scream-ticks. */
     private static final double SPEED = 0.35;
-    private static final int HAND_TICKS = 25;
+    private static final int SCREAM_TICKS = 20;
 
     private ConceptViewerExport() {
     }
@@ -117,17 +117,21 @@ final class ConceptViewerExport {
             }
             rest.append(']');
         }
-        return "{\"parts\":[" + parts + "],\"owners\":[" + owners + "],\"rest\":[" + rest + "]}";
+        // Where it looks from, on its head as the model was built (idle turns nothing).
+        Vector3f eyes = rig.eyes(rig.pose("idle"), new Matrix4f());
+        return "{\"parts\":[" + parts + "],\"owners\":[" + owners + "],\"rest\":[" + rest + "],\"eyes\":["
+                + String.format(Locale.ROOT, "%.3f,%.3f,%.3f", eyes.x, eyes.y, eyes.z) + "]}";
     }
 
     /**
      * Every waiting pose's visits, one per behaviour it can really play in its own blocks, tick by tick:
      * phase, shown (1) or not (0), anchor, yaw (degrees), lift, tilt, the player's yaw (degrees), then
-     * [pitch, yaw, roll] for each part in the rig's order. {@code anims} in the entry names this file.
+     * [pitch, yaw, roll] for each part in the rig's order, then its face's pitch (degrees) and size,
+     * size 0 unless only its face is drawn, in the player's face. {@code anims} in the entry names this file.
      */
     static String anims() {
         MonsterRig rig = MonsterRig.get();
-        MonsterScript.Settings settings = new MonsterScript.Settings(SPEED, HAND_TICKS, 100_000, 30);
+        MonsterScript.Settings settings = new MonsterScript.Settings(SPEED, SCREAM_TICKS, 100_000, 30);
         StringBuilder out = new StringBuilder("{");
         boolean firstPose = true;
         for (Pose pose : rig.poses().values()) {
@@ -151,6 +155,8 @@ final class ConceptViewerExport {
                         Vector3f t = q.turn(part);
                         list.append(',').append(degrees(t.x)).append(',').append(degrees(t.y)).append(',').append(degrees(t.z));
                     }
+                    list.append(',').append(degrees(Math.toDegrees(f.facePitch()))).append(',')
+                            .append(String.format(Locale.ROOT, "%.3f", f.faceScale()));
                     list.append(']');
                 }
                 plays.append(plays.length() > 0 ? "," : "").append('"').append(behavior.id()).append("\":[").append(list).append(']');

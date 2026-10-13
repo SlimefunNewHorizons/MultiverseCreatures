@@ -42,6 +42,8 @@ public class GarouBoss implements Listener {
     private double attackDamage;
     private double skillDamage;
     private double counterDamage;
+    /** Most a single hit takes off him. */
+    private double maxDamagePerHit;
     private long counterCooldownMs;
 
     public GarouBoss(MultiverseCreatures plugin) {
@@ -49,6 +51,7 @@ public class GarouBoss implements Listener {
         var config = plugin.getConfig();
         counterChance = config.getDouble("entities.garou.counter-chance", 0.25);
         health = config.getDouble("entities.garou.health", 1800.0);
+        maxDamagePerHit = config.getDouble("entities.garou.max-damage-per-hit", 10.0);
         speed = config.getDouble("entities.garou.speed", 0.38);
         attackDamage = config.getDouble("entities.garou.attack-damage", 28.0);
         skillDamage = config.getDouble("entities.garou.skill-damage", 16.0);
@@ -244,6 +247,11 @@ public class GarouBoss implements Listener {
                 damager.sendMessage(ChatColor.DARK_PURPLE + "[Garou]" + ChatColor.GRAY + " Your strike was deflected by the Water Stream Fist!");
                 damager.setVelocity(MscEntityUtils.horizontalDirection(loc, damager.getLocation()).multiply(0.9).setY(0.3));
             }
+            return;
+        }
+        // No single hit takes more than the cap off him.
+        if (maxDamagePerHit > 0 && event.getDamage() > maxDamagePerHit) {
+            event.setDamage(maxDamagePerHit);
         }
     }
 

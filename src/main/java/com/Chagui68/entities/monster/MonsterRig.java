@@ -371,6 +371,21 @@ public final class MonsterRig {
         return heads;
     }
 
+    /**
+     * Its face alone: the heads of {@code HEAD} and {@code JAW} in {@code pose}, scaled by {@code scale}
+     * round its eyes and carried there by {@code place}; every other head folded to nothing.
+     */
+    public Matrix4f[] face(Pose pose, Matrix4f place, float scale) {
+        Vector3f e = eyes(pose, body(pose));
+        Matrix4f root = new Matrix4f(place).scale(scale).translate(-e.x, -e.y, -e.z).mul(body(pose));
+        Matrix4f[] heads = heads(pose, root);
+        int head = partNames.indexOf("HEAD"), jaw = partNames.indexOf("JAW");
+        for (int i = 0; i < heads.length; i++) {
+            if (owners[i] != head && owners[i] != jaw) heads[i] = new Matrix4f().scaling(0f);
+        }
+        return heads;
+    }
+
     /** A point of one part (given where the model was built) where the pose puts it. */
     public Vector3f point(Pose pose, Matrix4f root, String part, Vector3f local) {
         int p = partNames.indexOf(part);

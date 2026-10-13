@@ -56,7 +56,8 @@ class MonsterScriptTest {
                 List<Frame> frames = play.getValue().frames();
                 for (int i = 0; i < frames.size(); i++) {
                     Frame f = frames.get(i);
-                    if (!f.visible()) continue;
+                    // Its face alone is drawn at the player's camera, where there is no block.
+                    if (!f.visible() || f.face()) continue;
                     checked++;
                     float[] box = RIG.bounds(f.pose(), MonsterRig.body(f.pose()));
                     assertTrue(MonsterSpace.fits(space, f.anchor(), f.yaw(), box, f.resting()),
@@ -69,7 +70,7 @@ class MonsterScriptTest {
     }
 
     @Test
-    @DisplayName("Every visit ends with the hand over the eyes, or vanishing in front of them, and is gone")
+    @DisplayName("Every visit ends with its face in the player's face, screaming, and is gone")
     void everyVisitEndsInTheFace() {
         for (Map.Entry<String, Map<Behavior, Take>> pose : TAKES.entrySet()) {
             assertFalse(pose.getValue().isEmpty(), pose.getKey() + " plays nothing");
@@ -77,6 +78,7 @@ class MonsterScriptTest {
                 List<Frame> frames = play.getValue().frames();
                 String what = pose.getKey() + ", " + play.getKey().id();
                 assertEquals(Phase.GONE, frames.get(frames.size() - 1).phase(), what + " never ends");
+                assertTrue(frames.stream().anyMatch(f -> f.event() == Event.SCREAM), what + " never screams");
                 assertTrue(frames.stream().anyMatch(f -> f.event() == Event.VANISHED), what + " does not vanish before the player");
                 assertTrue(frames.stream().anyMatch(f -> f.event() == Event.NOTICED), what + " is never noticed");
             }
@@ -84,25 +86,28 @@ class MonsterScriptTest {
     }
 
     @Test
-    @DisplayName("The palm it holds up sits just in front of the player's eyes")
-    void thePalmCoversTheEyes() {
+    @DisplayName("Its face pops up just in front of the player's eyes, turned to them, and grows to full size")
+    void theFaceIsInTheirFace() {
+        int faces = 0;
         for (Map.Entry<String, Map<Behavior, Take>> pose : TAKES.entrySet()) {
-            Pose start = RIG.pose(pose.getKey());
-            float[] p = start.player();
+            float[] p = RIG.pose(pose.getKey()).player();
             Vector3d eye = new Vector3d(p[0], p[1] + 1.62, p[2]);
             for (Map.Entry<Behavior, Take> play : pose.getValue().entrySet()) {
-                Take take = play.getValue();
-                for (int i = 0; i < take.frames().size(); i++) {
-                    Frame f = take.frames().get(i);
-                    if (f.phase() != Phase.GRAB || !f.visible() || !f.pose().name().startsWith("hand on camera")) continue;
-                    if (i + 1 < take.frames().size() && take.frames().get(i + 1).phase() == Phase.GRAB) continue;
-                    Vector3f palm = RIG.palm(f.pose(), MonsterMotion.root(f.anchor(), f.yaw(), f.pose()));
-                    assertTrue(eye.distance(palm.x, palm.y, palm.z) < 0.75,
-                            pose.getKey() + ", " + play.getKey().id() + ": the palm is " + eye.distance(palm.x, palm.y, palm.z)
-                                    + " from the eyes");
+                List<Frame> frames = play.getValue().frames();
+                float last = 0;
+                for (Frame f : frames) {
+                    if (!f.face()) continue;
+                    faces++;
+                    assertEquals(Phase.SCREAM, f.phase());
+                    assertEquals(MonsterScript.FACE_DISTANCE, eye.distance(f.anchor()), 1e-6,
+                            pose.getKey() + ", " + play.getKey().id() + ": the face is not in front of the eyes");
+                    assertTrue(f.faceScale() >= last && f.faceScale() <= 1f, "it grows, then stays");
+                    last = f.faceScale();
                 }
+                if (last > 0) assertEquals(1f, last, 1e-6, "it ends full size");
             }
         }
+        assertTrue(faces > 100, "only " + faces + " face frames");
     }
 
     @Test
@@ -137,18 +142,64 @@ class MonsterScriptTest {
     }
 
     @Test
-    @DisplayName("The grab aims the palm at the eyes whichever way the player looks")
-    void grabAnchorAimsAtTheEyes() {
-        Vector3d eye = new Vector3d(10.5, 65.62, -3.5);
-        for (Vector3d look : List.of(new Vector3d(0, 0, 1), new Vector3d(1, -0.4, 0), new Vector3d(-0.3, 0.5, -1))) {
-            float yaw = MonsterMotion.facing(look, 0f);
-            Vector3d anchor = MonsterMotion.grabAnchor(RIG, eye, look, yaw);
-            Pose hand = RIG.pose("hand on camera");
-            Vector3f palm = RIG.palm(hand, new Matrix4f().rotateY(yaw).mul(MonsterRig.body(hand)));
-            Vector3d at = new Vector3d(anchor).add(palm.x, palm.y, palm.z);
-            Vector3d wanted = new Vector3d(look).normalize().mul(MonsterMotion.PALM_REACH).add(eye);
-            assertEquals(0, at.distance(wanted), 1e-4, "looking along " + look);
+    @DisplayName("The face it screams with is its head and jaw alone, its eyes where it is put")
+    void theFaceIsOnlyItsHead() {
+        Pose pose = RIG.pose("idle").plus(Map.of("JAW", new Vector3f(55, 0, 0)));
+        Matrix4f place = new Matrix4f().translation(3, 70, -2).rotateY(1.1f).rotateX(-0.4f);
+        Matrix4f[] heads = RIG.face(pose, place, 1f);
+        int shown = 0;
+        for (int i = 0; i < heads.length; i++) {
+            String part = RIG.partOf(i);
+            boolean face = part.equals("HEAD") || part.equals("JAW");
+            assertEquals(face, heads[i].determinant() != 0, "head " + i + " of " + part);
+            if (face) shown++;
         }
+        assertTrue(shown > 10, "the face has " + shown + " heads");
+        // Where its eyes were, the face carried there: on the place's origin.
+        Matrix4f[] whole = RIG.heads(pose, MonsterRig.body(pose));
+        Vector3f eyes = RIG.eyes(pose, MonsterRig.body(pose));
+        int h = RIG.partNames().indexOf("HEAD");
+        for (int i = 0; i < heads.length; i++) {
+            if (RIG.ownerOf(i) != h) continue;
+            Vector3f before = whole[i].transformPosition(new Vector3f()).sub(eyes);
+            Vector3f after = heads[i].transformPosition(new Vector3f());
+            Vector3f wanted = place.transformPosition(new Vector3f(before));
+            assertEquals(0, after.distance(wanted), 1e-4, "head " + i);
+        }
+    }
+
+    @Test
+    @DisplayName("Left to choose, it plays every behaviour its place allows, not always the same one")
+    void theGameUsesEveryBehaviour() {
+        Set<Behavior> floor = EnumSet.noneOf(Behavior.class), ceiling = EnumSet.noneOf(Behavior.class),
+                chest = EnumSet.noneOf(Behavior.class);
+        // Seeds spread out: java.util.Random gives nearly the same first numbers for 1, 2, 3...
+        for (long n = 1; n <= 40; n++) {
+            long seed = n * 0x9E3779B97F4A7C15L;
+            floor.add(MonsterScript.rehearse(RIG, RIG.pose("crouched"), null, SETTINGS, seed).played());
+            ceiling.add(MonsterScript.rehearse(RIG, RIG.pose("ceiling cling"), null, SETTINGS, seed).played());
+            chest.add(MonsterScript.rehearse(RIG, RIG.pose("lying on a double chest"), null, SETTINGS, seed).played());
+        }
+        assertTrue(floor.containsAll(EnumSet.of(Behavior.WALK, Behavior.CRAWL_RUSH, Behavior.BLINK, Behavior.PEEK_AND_HIDE)),
+                "from the floor it played " + floor);
+        assertTrue(ceiling.contains(Behavior.CEILING_SCUTTLE) && ceiling.size() >= 3, "from a ceiling it played " + ceiling);
+        assertTrue(chest.contains(Behavior.COFFIN_RISE) && chest.size() >= 3, "from a double chest it played " + chest);
+    }
+
+    @Test
+    @DisplayName("Its dry run knows a closed shaft has no way out and open ground has one")
+    void itKnowsWhereItCanGetOut() {
+        Pose shaft = RIG.pose("reaching up a shaft"), open = RIG.pose("crouched");
+        float[] p = shaft.player();
+        Vector3d feet = new Vector3d(p[0], p[1], p[2]), eye = new Vector3d(feet).add(0, 1.62, 0);
+        assertFalse(MonsterScript.reaches(RIG, shaft.world().space(), shaft, new Vector3d(shaft.at()),
+                (float) Math.toRadians(shaft.yaw()), feet, eye, false, null), "walls on every side");
+        assertTrue(MonsterScript.reaches(RIG, shaft.world().space(), shaft, new Vector3d(shaft.at()),
+                (float) Math.toRadians(shaft.yaw()), feet, eye, false, Behavior.BLINK), "but it can always blink");
+        float[] q = open.player();
+        Vector3d feet2 = new Vector3d(q[0], q[1], q[2]);
+        assertTrue(MonsterScript.reaches(RIG, new MonsterSpace.Blocks(true), open, new Vector3d(open.at()),
+                (float) Math.toRadians(open.yaw()), feet2, new Vector3d(feet2).add(0, 1.62, 0), false, null), "open ground");
     }
 
     @Test

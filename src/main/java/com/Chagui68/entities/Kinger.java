@@ -199,6 +199,8 @@ public class Kinger implements Listener {
     private double health;
     private double aggroRange;
     private double moveSpeed;
+    /** Most a single hit takes off him. */
+    private double maxDamagePerHit;
     private double meleeRange;
     private double meleeDamage;
     private double meleeRadius;
@@ -226,6 +228,7 @@ public class Kinger implements Listener {
         health = config.getDouble("entities.kinger.health", 120.0);
         aggroRange = config.getDouble("entities.kinger.aggro-range", 25.0);
         moveSpeed = config.getDouble("entities.kinger.move-speed", 0.32);
+        maxDamagePerHit = config.getDouble("entities.kinger.max-damage-per-hit", 10.0);
         meleeRange = config.getDouble("entities.kinger.melee-range", 3.0);
         meleeDamage = config.getDouble("entities.kinger.melee-damage", 8.0);
         meleeRadius = config.getDouble("entities.kinger.melee-radius", 3.5);
@@ -807,7 +810,8 @@ public class Kinger implements Listener {
     private void reduceHealth(ArmorStand stand, double damage) {
         stand.setNoDamageTicks(0);
         double currentHealth = MscEntityUtils.getVirtualHealth(stand);
-        double newHealth = Math.max(0, currentHealth - damage);
+        double applied = maxDamagePerHit > 0 ? Math.min(damage, maxDamagePerHit) : damage;
+        double newHealth = Math.max(0, currentHealth - applied);
         MscEntityUtils.setVirtualHealth(stand, newHealth);
 
         KingerInstance inst = activeKingers.get(stand.getUniqueId());

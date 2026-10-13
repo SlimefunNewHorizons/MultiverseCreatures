@@ -210,6 +210,22 @@ P . . . P
 
 ---
 
+## ⚖️ Survival rules inside the dimension
+
+The dimension is harder to survive in than the overworld. Every rule is a switch under `boss-dimension` in `config.yml`; spectators are left alone.
+
+| Rule | Default | What it does |
+|---|---|---|
+| `natural-regeneration` | `false` | Only **potion effects** heal: instant health and regeneration (golden apples and totems give regeneration, so they still work). A full food bar, other plugins' heals and every other source give nothing. |
+| `saturation-effect` | `false` | The **Saturation** effect does nothing there: food only comes back from eating. |
+| `flight` | `false` | **Nobody flies**: another plugin's `/fly`, creative flight and elytras are all turned off, and flight handed out again is taken back within a quarter of a second. Creative players get their flight back when they leave. |
+| `fall-damage-multiplier` | `1.7` | Falls hurt **70% more**. |
+| `gravity-multiplier` | `0.7` | Players have **30% less gravity**: they jump higher and fall slower. It goes away when they leave. |
+
+Every boss, wherever it is fought, takes at most `max-damage-per-hit` (**10**) from a single hit.
+
+---
+
 ## 🚪 Leaving
 
 There is no teleport command available inside the dimension — the only way out is the **same ritual used to enter**:

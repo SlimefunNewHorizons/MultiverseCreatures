@@ -84,7 +84,7 @@
   .chip b { display: block; font-size: 14px; }
   .chip span { color: var(--muted); font-size: 12px; }
   .hint { position: absolute; right: 12px; bottom: 10px; color: var(--faint); font-size: 11px; pointer-events: none; }
-  /* The Darkness a player gets when the Monster's hand covers their view. */
+  /* The Darkness a player is left in as the Monster vanishes. */
   #dark { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .25s;
     background: radial-gradient(circle, rgba(0,0,0,.35) 0%, rgba(0,0,0,.92) 70%); }
   #status { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center;
@@ -549,27 +549,49 @@ function turnBy(p, y, r) {
       .multiply(new THREE.Matrix4().makeRotationX(rad(p))).multiply(new THREE.Matrix4().makeRotationZ(rad(r)));
 }
 // Frame layout: phase, shown (1) or not, anchor x y z, yaw, lift x y z, tilt p y r, the player's yaw,
-// then p y r per part. Phases as the game's MonsterScript has them; its hand is over the view in "grab".
-const PHASES = ["lurk", "rise", "move", "grab", "blink", "hide", "gone"];
+// then p y r per part, then its face's pitch and size. Phases as the game's MonsterScript has them: in
+// "scream" only its face is drawn, its eyes at the anchor, in the player's face.
+const PHASES = ["lurk", "rise", "move", "scream", "blink", "hide", "gone"];
 function poseFrame(stand, f, meshes, player) {
   const rig = monsterRig(stand);
   const shown = f[1] === 1 && PHASES[f[0]] !== "gone";
-  meshes.forEach(m => { m.visible = shown; });
+  const faceSize = f[f.length - 1];
   if (player) player.rotation.y = Math.PI + rad(f[12]);
-  document.getElementById("dark").style.opacity = PHASES[f[0]] === "grab" ? 1 : 0;
-  if (!shown) return;
-  const root = new THREE.Matrix4().makeTranslation(f[2], f[3], f[4])
-      .multiply(new THREE.Matrix4().makeRotationY(rad(f[5])))
-      .multiply(new THREE.Matrix4().makeTranslation(f[6], f[7], f[8]))
-      .multiply(turnBy(f[9], f[10], f[11]));
-  const world = [];
-  rig.parts.forEach(([, parent, px, py, pz], i) => {
-    const j = 13 + i * 3;
-    world.push((parent < 0 ? root : world[parent]).clone()
-        .multiply(new THREE.Matrix4().makeTranslation(px, py, pz))
-        .multiply(turnBy(f[j], f[j + 1], f[j + 2]))
-        .multiply(new THREE.Matrix4().makeTranslation(-px, -py, -pz)));
+  // The Darkness and Blindness it leaves the player in as it vanishes.
+  document.getElementById("dark").style.opacity = PHASES[f[0]] === "gone" ? 1 : 0;
+  const owners = rig.parts.map(([name]) => name);
+  const head = owners.indexOf("HEAD"), jaw = owners.indexOf("JAW");
+  meshes.forEach((m, h) => {
+    m.visible = shown && (faceSize <= 0 || rig.owners[h] === head || rig.owners[h] === jaw);
   });
+  if (!shown) return;
+  const body = new THREE.Matrix4().makeTranslation(f[6], f[7], f[8]).multiply(turnBy(f[9], f[10], f[11]));
+  const chain = root => {
+    const world = [];
+    rig.parts.forEach(([, parent, px, py, pz], i) => {
+      const j = 13 + i * 3;
+      world.push((parent < 0 ? root : world[parent]).clone()
+          .multiply(new THREE.Matrix4().makeTranslation(px, py, pz))
+          .multiply(turnBy(f[j], f[j + 1], f[j + 2]))
+          .multiply(new THREE.Matrix4().makeTranslation(-px, -py, -pz)));
+    });
+    return world;
+  };
+  let root;
+  if (faceSize > 0) {
+    // Its eyes at the anchor, turned and tilted to the player, scaled round them.
+    const eye = new THREE.Vector3(...stand.rig.eyes).applyMatrix4(chain(body)[head]);
+    root = new THREE.Matrix4().makeTranslation(f[2], f[3], f[4])
+        .multiply(new THREE.Matrix4().makeRotationY(rad(f[5])))
+        .multiply(new THREE.Matrix4().makeRotationX(rad(f[f.length - 2])))
+        .multiply(new THREE.Matrix4().makeScale(faceSize, faceSize, faceSize))
+        .multiply(new THREE.Matrix4().makeTranslation(-eye.x, -eye.y, -eye.z))
+        .multiply(body);
+  } else {
+    root = new THREE.Matrix4().makeTranslation(f[2], f[3], f[4])
+        .multiply(new THREE.Matrix4().makeRotationY(rad(f[5]))).multiply(body);
+  }
+  const world = chain(root);
   meshes.forEach((m, h) => m.matrix.copy(world[rig.owners[h]]).multiply(rig.rest[h]));
 }
 

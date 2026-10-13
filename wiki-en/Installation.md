@@ -83,7 +83,7 @@ armor-stand-boss:
   penetrating-damage: true                  # boss hits bypass armor; Resistance is only partially pierced
   penetrating-resistance-pierce: 0.2        # share of the Resistance reduction those hits ignore
   max-damage-dealt: 15.0                    # cap per penetrating hit
-  max-damage-per-hit: 50.0                  # cap on the damage the boss can take per hit
+  max-damage-per-hit: 10.0                  # cap on the damage the boss can take per hit
   phase-thresholds: [0.8, 0.6, 0.4, 0.2]    # phases = entries + 1 = squares on the boss bar title
   defense-duration-stone-skin-ticks: 200
   defense-duration-reflect-barrier-ticks: 160

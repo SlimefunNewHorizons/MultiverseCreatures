@@ -97,7 +97,7 @@ Covers the health math in `utils/MscEntityUtils`:
 - The type filter matches tags with `-`/`_` stripped and falls back to a name substring; `null`/blank types never match.
 
 ### `entities/boss/NixDamageCapTest` — NIX damage cap
-- Nix can never lose more than `entities.nix-executioner.max-damage-per-hit` (default **100**) from a single hit: anything above is clamped, anything below passes through untouched, and the cap never *inflates* a hit.
+- Nix can never lose more than `entities.nix-executioner.max-damage-per-hit` (default **10**) from a single hit: anything above is clamped, anything below passes through untouched, and the cap never *inflates* a hit.
 - `0` (or any non-positive value) disables the limit, which is the documented way back to the old unbounded behaviour.
 - Pins the health-pool arithmetic down: a 10 000-damage burst leaves 350 of 450 HP, four capped hits leave 50, the fifth finishes the boss.
 

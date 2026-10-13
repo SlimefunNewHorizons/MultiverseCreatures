@@ -220,6 +220,8 @@ final class WitherStorm {
     private final List<Debris> debris = new ArrayList<>();
     private List<LivingEntity> targets = new ArrayList<>();
     private final Map<UUID, Integer> biteCooldown = new HashMap<>();
+    /** Ticks until a player held in a beam is hurt by it again: one beam or several, it hurts at one pace. */
+    private final Map<UUID, Integer> beamCooldown = new HashMap<>();
     private final Map<UUID, Integer> tentacleCooldown = new HashMap<>();
     private final Map<UUID, Integer> escaping = new HashMap<>();
     private final Map<UUID, Integer> exposure = new HashMap<>();
@@ -465,6 +467,7 @@ final class WitherStorm {
 
     private void tickCooldowns() {
         decrement(biteCooldown);
+        decrement(beamCooldown);
         decrement(tentacleCooldown);
         decrement(escaping);
         if (exposedTicks > 0) exposedTicks--;
@@ -900,6 +903,11 @@ final class WitherStorm {
             if (dist <= bite) {
                 bite(h, e);
                 continue;
+            }
+            // Held in the beam, a player is hurt the whole time it pulls.
+            if (e instanceof Player p && settings().beam().damage() > 0 && !beamCooldown.containsKey(p.getUniqueId())) {
+                beamCooldown.put(p.getUniqueId(), settings().beam().damageInterval());
+                boss.dealToPlayer(this, p, settings().beam().damage(), "Tractor Beam");
             }
             // The mod's pull: a steady speed straight at the mouth, slower within the last block.
             Vector delta = rel.multiply(-1 / dist).multiply(speed * Math.max(0.1, Math.min(1.0, dist)));
@@ -1535,8 +1543,9 @@ final class WitherStorm {
         ParticleBudget.spawn(world, Particle.EXPLOSION_EMITTER, loc.getX(), loc.getY(), loc.getZ(), 6, reach / 3, reach / 3, reach / 3, 0, null);
         world.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 12f, 0.4f);
         Location drop = new Location(world, loc.getX(), groundY(loc.toVector(), loc.getY()) + 1, loc.getZ());
-        ItemStack stars = new ItemStack(Material.NETHER_STAR, Math.max(1, form.netherStars()));
-        world.dropItemNaturally(drop, stars);
+        // Its reward: one Nether Star and one of its heads, named after the form it fell in.
+        world.dropItemNaturally(drop, new ItemStack(Material.NETHER_STAR));
+        world.dropItemNaturally(drop, com.Chagui68.items.misc.WitherStormHead.of(form.displayName()));
         world.spawn(drop, ExperienceOrb.class).setExperience(500 * (form.ordinal() + 1));
         for (Player p : world.getPlayers()) {
             if (p.getLocation().distanceSquared(loc) <= 200 * 200) {

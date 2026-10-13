@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * {@code /wiki}: opens the in-game wiki.
+ * {@code /mscwiki}: opens the in-game wiki.
  *
  * <pre>
- * /wiki              the home page
- * /wiki &lt;page&gt;       a page straight away, such as /wiki venomfang
- * /wiki hand         the page of the item in your hand
- * /wiki en|es        switch the language and open the home page
+ * /mscwiki           the home page
+ * /mscwiki &lt;page&gt;    a page straight away, such as /mscwiki venomfang
+ * /mscwiki hand      the page of the item in your hand
+ * /mscwiki en|es     switch the language and open the home page
  * </pre>
  */
 public final class WikiCommand implements TabExecutor {

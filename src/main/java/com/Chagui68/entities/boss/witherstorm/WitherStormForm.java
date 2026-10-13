@@ -14,11 +14,11 @@ package com.Chagui68.entities.boss.witherstorm;
 public enum WitherStormForm {
 
     //          key          name                 hp   body  beam  end  fly  keep  speed  turn  bite clus  every skull  power tip   sick  hits  stars suck aim
-    HUNCHBACK("hunchback", "The Hunchback", 1.0, 1.0, 20, 1.5, 5, 12, 0.24, 6.0, 1.6, 1, 24, 50, 2.5f, 0.0, 16, 1, 1, 3, 1.4),
-    GROWING("growing", "The Growing Hunchback", 1.5, 0.9, 26, 2.0, 6, 14, 0.22, 5.0, 1.8, 1, 24, 60, 3.0f, 0.0, 20, 2, 1, 9, 1.3),
-    PREGNANT("pregnant", "The Swollen Hunchback", 2.0, 0.8, 32, 2.5, 8, 16, 0.20, 4.0, 2.2, 2, 15, 60, 3.5f, 1.2, 28, 2, 2, 18, 1.2),
-    DESTROYER("destroyer", "The Destroyer", 3.5, 0.6, 64, 5.0, 28, 30, 0.16, 1.6, 4.0, 2, 20, 0, 4.0f, 3.0, 64, 3, 3, 0, 0.9),
-    DEVOURER("devourer", "The Devourer", 5.0, 0.5, 96, 7.0, 40, 44, 0.13, 1.0, 5.0, 3, 16, 0, 5.0f, 4.5, 96, 4, 5, 0, 0.8);
+    HUNCHBACK("hunchback", "The Hunchback", 1.0, 1.0, 20, 1.5, 5, 12, 0.24, 6.0, 1.6, 1, 24, 50, 2.5f, 0.0, 16, 1, 3, 1.4),
+    GROWING("growing", "The Growing Hunchback", 1.5, 0.9, 26, 2.0, 6, 14, 0.22, 5.0, 1.8, 1, 24, 60, 3.0f, 0.0, 20, 2, 9, 1.3),
+    PREGNANT("pregnant", "The Swollen Hunchback", 2.0, 0.8, 32, 2.5, 8, 16, 0.20, 4.0, 2.2, 2, 15, 60, 3.5f, 1.2, 28, 2, 18, 1.2),
+    DESTROYER("destroyer", "The Destroyer", 3.5, 0.6, 64, 5.0, 28, 30, 0.16, 1.6, 4.0, 2, 20, 0, 4.0f, 3.0, 64, 3, 0, 0.9),
+    DEVOURER("devourer", "The Devourer", 5.0, 0.5, 96, 7.0, 40, 44, 0.13, 1.0, 5.0, 3, 16, 0, 5.0f, 4.5, 96, 4, 0, 0.8);
 
     private final String key;
     private final String displayName;
@@ -51,7 +51,6 @@ public enum WitherStormForm {
     /** Projectile hits that injure a head (a random number up to twice this). */
     private final int injuryHits;
     /** Nether stars it leaves when it dies in this form. */
-    private final int netherStars;
     /**
      * Lumps of ground the hunchbacks suck into their mass at each pickup, like the mod's hunchback
      * cluster source (3, 9 and 18 in phases 1 to 3); 0 for the forms that feed through their beams.
@@ -69,7 +68,7 @@ public enum WitherStormForm {
     WitherStormForm(String key, String displayName, double healthMultiplier, double bodyDamageMultiplier,
                     double beamRange, double beamEndRadius, double flyHeight, double keepDistance, double moveSpeed,
                     double turnRate, double biteRadius, int clusterRadius, int clusterInterval, int skullInterval,
-                    float flamingSkullPower, double tentacleReach, double sicknessRadius, int injuryHits, int netherStars,
+                    float flamingSkullPower, double tentacleReach, double sicknessRadius, int injuryHits,
                     int suctionClusters, double beamAimRate) {
         this.key = key;
         this.displayName = displayName;
@@ -89,7 +88,6 @@ public enum WitherStormForm {
         this.tentacleReach = tentacleReach;
         this.sicknessRadius = sicknessRadius;
         this.injuryHits = injuryHits;
-        this.netherStars = netherStars;
         this.suctionClusters = suctionClusters;
         this.beamAimRate = beamAimRate;
     }
@@ -211,10 +209,6 @@ public enum WitherStormForm {
 
     public int injuryHits() {
         return injuryHits;
-    }
-
-    public int netherStars() {
-        return netherStars;
     }
 
     public int suctionClusters() {

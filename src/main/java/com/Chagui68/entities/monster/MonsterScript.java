@@ -40,8 +40,8 @@ import java.util.function.BiConsumer;
  *   <li><b>blink</b>: it flickers out and is suddenly in the player's face;</li>
  *   <li><b>peek and hide</b>: it pulls back out of sight and waits somewhere else, closer.</li>
  * </ul>
- * <p>Every one of them ends with its palm over the player's eyes, in the tallest of three hands that
- * fits the room (standing, crouched, on all fours), and then it is gone. When a behaviour cannot be
+ * <p>Every one of them ends with its body gone and its face in the player's face, jaw open, shaking
+ * and screaming, and then it is gone. When a behaviour cannot be
  * played where it is, it blinks instead.</p>
  */
 public final class MonsterScript {
@@ -57,15 +57,15 @@ public final class MonsterScript {
     }
 
     /** What it is doing in a frame. */
-    public enum Phase { LURK, RISE, MOVE, GRAB, BLINK, HIDE, GONE }
+    public enum Phase { LURK, RISE, MOVE, SCREAM, BLINK, HIDE, GONE }
 
     /** What the game has to do with a frame besides drawing it: sounds and effects. */
     public enum Event {
         NONE,
         /** It has been seen. */
         NOTICED,
-        /** Its hand is over the player's eyes. */
-        COVERED,
+        /** Its face is in the player's face, screaming. */
+        SCREAM,
         /** It vanished in front of the player. */
         VANISHED,
         /** It left without being seen. */
@@ -79,6 +79,11 @@ public final class MonsterScript {
     /** Whether the player can see a point, within an angle of where they look. */
     public interface Senses {
         boolean sees(Vector3d point, double angle);
+
+        /** Whether nothing solid stands between the player's eyes and a point: they would see it by turning round. */
+        default boolean open(Vector3d point) {
+            return true;
+        }
     }
 
     /** The player as the script needs them: where they stand, look from and look at, and how fast they go. */
@@ -86,7 +91,7 @@ public final class MonsterScript {
     }
 
     /** The visit's numbers, from {@code entities.monster}. */
-    public record Settings(double speed, int handTicks, int lurkTicks, double viewAngle) {
+    public record Settings(double speed, int screamTicks, int lurkTicks, double viewAngle) {
     }
 
     /**
@@ -94,15 +99,18 @@ public final class MonsterScript {
      * happened, and the blocks it rests on (which its body may touch).
      */
     public record Frame(Phase phase, Pose pose, Vector3d anchor, float yaw, boolean visible, Event event,
-                        Set<Long> resting) {
+                        Set<Long> resting, float facePitch, float faceScale) {
+
+        /** True while only its face is drawn, in the player's face: {@code anchor} is where the face is. */
+        public boolean face() {
+            return faceScale > 0;
+        }
     }
 
     /** Ticks in a row the player has to look at it before it notices. */
     public static final int SEEN_TICKS = 3;
-    /** How close it gets before it reaches for the player's eyes. */
+    /** How close it gets before its face is in the player's face. */
     static final double REACH = 2.4;
-    /** How far in front of the player's eyes it holds its palm. */
-    public static final double PALM_REACH = MonsterMotion.PALM_REACH;
     private static final double HIDDEN_ANGLE = 80;
     private static final int MAX_EXPANSIONS = 2500;
     private static final int PATH_RADIUS = 16;
@@ -112,9 +120,6 @@ public final class MonsterScript {
     private static final List<String> WALKERS = List.of("idle", "corridor stalk", "corridor crouch", "corridor crawl");
     private static final List<String> CRAWLERS = List.of("corridor crawl", "crawling");
     private static final List<String> CEILING_WALKERS = List.of("ceiling cling", "corridor ceiling crawl");
-    private static final List<String> HANDS = List.of("hand on camera", "hand on camera low", "hand on camera crawl");
-    /** Straight in front, then from the side: where it can stand to reach across to the player's eyes. */
-    private static final float[] SIDES = {0f, (float) Math.PI / 4, (float) -Math.PI / 4, (float) Math.PI / 2, (float) -Math.PI / 2};
     /** Ground poses it may wait in again after it has hidden, besides the one it had. */
     private static final List<String> HIDING = List.of("crouched", "right behind", "over the shoulder", "head tilt",
             "corridor crouch", "squeezed in a shaft", "folded in a hole");
@@ -146,6 +151,11 @@ public final class MonsterScript {
     private int replans;
     private float stride;
     private Event event = Event.NONE;
+    /** Its face's tilt (radians) and size while it screams in the player's face; size 0 the rest of the time. */
+    private float facePitch;
+    private float faceScale;
+    /** The head it screams with: standing, the jaw dropped wide. */
+    private final Pose screaming;
     private final Deque<Action> actions = new ArrayDeque<>();
 
     /**
@@ -163,6 +173,7 @@ public final class MonsterScript {
         this.anchor = new Vector3d(anchor);
         this.yaw = yaw;
         this.resting = support(start, anchor, yaw);
+        this.screaming = rig.pose("idle").plus(java.util.Map.of("JAW", new Vector3f(55, 0, 0)));
     }
 
     public Phase phase() {
@@ -211,6 +222,7 @@ public final class MonsterScript {
      */
     public Frame tick(Watcher watcher, boolean seenNow, Senses senses) {
         event = Event.NONE;
+        faceScale = 0;
         if (phase == Phase.GONE) return frame();
         ticks++;
         if (phase == Phase.LURK && actions.isEmpty()) {
@@ -239,18 +251,22 @@ public final class MonsterScript {
     }
 
     private Frame frame() {
-        return new Frame(phase, shown, new Vector3d(anchor), yaw, visible, event, Set.copyOf(resting));
+        return new Frame(phase, shown, new Vector3d(anchor), yaw, visible, event, Set.copyOf(resting), facePitch, faceScale);
     }
 
     // ------------------------------------------------------------------ choosing what to do
 
     private void notice(Watcher watcher, Senses senses) {
-        Behavior wanted = forced != null && !(peeked && forced == Behavior.PEEK_AND_HIDE) ? forced : natural();
-        if (build(wanted, watcher, senses)) {
-            behavior = wanted;
-        } else if (forced == null && wanted != Behavior.WALK && build(Behavior.WALK, watcher, senses)) {
-            behavior = Behavior.WALK;
-        } else {
+        List<Behavior> wanted = forced != null && !(peeked && forced == Behavior.PEEK_AND_HIDE)
+                ? List.of(forced) : natural();
+        behavior = null;
+        for (Behavior b : wanted) {
+            if (build(b, watcher, senses)) {
+                behavior = b;
+                break;
+            }
+        }
+        if (behavior == null) {
             build(Behavior.BLINK, watcher, senses);
             behavior = Behavior.BLINK;
         }
@@ -266,12 +282,51 @@ public final class MonsterScript {
     }
 
     /** What the game picks: the coffin rise from a double chest, often the scuttle from a ceiling. */
-    private Behavior natural() {
-        if (shown.wide()) return Behavior.COFFIN_RISE;
-        if (shown.place() == Place.CEILING && random.nextDouble() < 0.6) return Behavior.CEILING_SCUTTLE;
-        if (!peeked && shown.place() != Place.AIR && random.nextDouble() < 0.3) return Behavior.PEEK_AND_HIDE;
-        if (shown.place() == Place.GROUND && random.nextDouble() < 0.25) return Behavior.CRAWL_RUSH;
-        return Behavior.WALK;
+    private List<Behavior> natural() {
+        // The one its place is made for comes first most of the time: rising from a double chest,
+        // running along the ceiling it clings to.
+        List<Behavior> special = new ArrayList<>();
+        if (shown.wide()) special.add(Behavior.COFFIN_RISE);
+        if (shown.place() == Place.CEILING) special.add(Behavior.CEILING_SCUTTLE);
+        // The rest in a random order, so every one of them comes up: the first that the place allows
+        // is the one it plays.
+        List<Behavior> rest = new ArrayList<>(List.of(Behavior.WALK, Behavior.CRAWL_RUSH, Behavior.BLINK));
+        if (!peeked && shown.place() != Place.AIR) rest.add(Behavior.PEEK_AND_HIDE);
+        Collections.shuffle(rest, random);
+        List<Behavior> order = new ArrayList<>();
+        if (!special.isEmpty() && random.nextDouble() < 0.7) {
+            order.addAll(special);
+            order.addAll(rest);
+        } else {
+            order.addAll(rest);
+            order.addAll(special);
+        }
+        return order;
+    }
+
+    /**
+     * Whether, from {@code anchor}, it really plays {@code behavior} (or, when {@code null}, walks) all
+     * the way to a player standing at {@code feet} who turns to look at it: a dry run of the visit,
+     * which the game uses to wait only where it can get to the player.
+     */
+    public static boolean reaches(MonsterRig rig, MonsterSpace space, Pose pose, Vector3d anchor, float yaw,
+                                  Vector3d feet, Vector3d eye, boolean flying, Behavior behavior) {
+        Behavior wanted = behavior == null ? Behavior.WALK : behavior;
+        Settings settings = new Settings(0.35, 1, 100_000, 30);
+        MonsterScript script = new MonsterScript(rig, space, pose, anchor, yaw, settings, new Random(1), wanted);
+        Matrix4f root = new Matrix4f().rotateY(yaw).mul(MonsterRig.body(pose));
+        Vector3d look = world(anchor, rig.eyes(pose, root)).sub(eye);
+        if (look.lengthSquared() < 1.0e-6) return false;
+        Watcher watcher = new Watcher(feet, eye, look.normalize(), flying, 0);
+        Senses none = (point, angle) -> false;
+        for (int tick = 0; tick < 600; tick++) {
+            Frame frame = script.tick(watcher, true, none);
+            if (script.fellBack) return false;
+            if (frame.phase() == Phase.SCREAM || frame.phase() == Phase.GONE) {
+                return script.played() == wanted;
+            }
+        }
+        return false;
     }
 
     /** Queues a behaviour, all of it checked against the space first; false, with nothing queued, when it cannot be played. */
@@ -444,7 +499,7 @@ public final class MonsterScript {
     /** Walks (or flies) up to the player along a path that fits, or blinks when there is none. */
     private void approach(Watcher watcher, List<String> walkers) {
         if (near(watcher)) {
-            grab(watcher, walkers == CRAWLERS);
+            scream();
             return;
         }
         if (++replans > MAX_REPLANS) {
@@ -453,11 +508,10 @@ public final class MonsterScript {
         }
         double speed = speed(walkers, watcher);
         if (watcher.flying() || shown.place() == Place.AIR) {
-            Vector3d target = MonsterMotion.grabAnchor(rig, rig.pose(HANDS.get(0)), watcher.eye(), watcher.look(),
-                    MonsterMotion.facing(watcher.look(), yaw));
-            Vector3d toward = new Vector3d(target).sub(anchor);
+            // Flying: straight at the player, stopping within reach of them.
+            Vector3d toward = new Vector3d(watcher.feet()).sub(anchor);
             double length = toward.length();
-            if (length > REACH) toward.mul((length - REACH + 0.5) / length);
+            if (length > REACH - 0.5) toward.mul((length - REACH + 0.5) / length);
             Vector3d end = new Vector3d(anchor).add(toward);
             Move fly = new Move(Phase.MOVE, rig.pose("idle"), end, null, Math.max(1, (int) Math.ceil(toward.length() / speed)),
                     Curve.LINEAR, true, true);
@@ -667,59 +721,22 @@ public final class MonsterScript {
         return false;
     }
 
-    // ------------------------------------------------------------------ the hand
+    // ------------------------------------------------------------------ the face
 
-    /** Reaches for the player's eyes with the tallest hand that fits, or vanishes in front of them. */
-    private void grab(Watcher watcher, boolean crawling) {
-        List<String> hands = new ArrayList<>(HANDS);
-        if (crawling) Collections.reverse(hands);
-        State now = new State(base, anchor, yaw, resting);
-        for (String name : hands) for (float turn : SIDES) {
-            Pose hand = rig.pose(name);
-            float facing = MonsterMotion.facing(watcher.look(), yaw) + turn;
-            Vector3d at = handAnchor(hand, watcher, facing);
-            if (at == null || !MonsterSpace.fits(space, at, facing, still(hand), Set.of())) continue;
-            Move reach = new Move(Phase.GRAB, hand, at, facing, MonsterMotion.REACH_TICKS, Curve.SMOOTH, false, true);
-            List<Action> plan = new ArrayList<>();
-            if (reach.clear(now, watcher)) {
-                plan.add(reach);
-            } else {
-                // No room to reach across: it is gone for a blink and then there.
-                plan.add(new Hidden(Phase.BLINK, 3));
-                Vector3d there = at;
-                plan.add(new Decision((w, s) -> {
-                    Vector3d then = handAnchor(hand, w, facing);
-                    place(hand, then != null && MonsterSpace.fits(space, then, facing, still(hand), Set.of()) ? then : there, facing, Event.BACK);
-                }));
-            }
-            plan.add(new Decision((w, s) -> event = Event.COVERED));
-            plan.add(new Hold(hand));
-            plan.add(new Decision((w, s) -> vanish()));
-            for (int i = plan.size() - 1; i >= 0; i--) actions.addFirst(plan.get(i));
-            return;
-        }
-        actions.addFirst(new Decision((w, s) -> {
-            event = Event.COVERED;
-            vanish();
-        }));
-    }
+    /** How far in front of the player's eyes its face pops up. */
+    public static final double FACE_DISTANCE = 0.55;
 
     /**
-     * Where its anchor goes for a hand's palm to sit just in front of the player's eyes, never under
-     * the floor; {@code null} when standing on what is there would lift the palm off the eyes (on top
-     * of a chest beside the player, say).
+     * Close enough: its body is gone and its face is in the player's face, jaw open, shaking, with a
+     * scream, for {@code screamTicks}; then it vanishes. The face is drawn at the player's camera, so
+     * there is no block for it to go into.
      */
-    private Vector3d handAnchor(Pose hand, Watcher watcher, float facing) {
-        Vector3d at = MonsterMotion.grabAnchor(rig, hand, watcher.eye(), watcher.look(), facing);
-        if (!watcher.flying()) {
-            Double floor = MonsterSpace.floor(space, at.x, at.z, (int) Math.floor(watcher.eye().y) + 1,
-                    (int) Math.floor(watcher.feet().y) - 2);
-            if (floor != null && at.y < floor) {
-                if (floor - at.y > 0.3) return null;
-                at.y = floor;
-            }
-        }
-        return at;
+    private void scream() {
+        List<Action> plan = new ArrayList<>();
+        plan.add(new Decision((w, s) -> event = Event.SCREAM));
+        plan.add(new Face(settings.screamTicks()));
+        plan.add(new Decision((w, s) -> vanish()));
+        for (int i = plan.size() - 1; i >= 0; i--) actions.addFirst(plan.get(i));
     }
 
     private void place(Pose pose, Vector3d at, float facing, Event what) {
@@ -751,20 +768,7 @@ public final class MonsterScript {
     private boolean blink(List<Action> plan) {
         plan.add(new Flicker(10));
         plan.add(new Hidden(Phase.BLINK, 6));
-        plan.add(new Decision((w, s) -> {
-            for (String name : HANDS) for (float turn : SIDES) {
-                Pose hand = rig.pose(name);
-                float facing = MonsterMotion.facing(w.look(), yaw) + turn;
-                Vector3d at = handAnchor(hand, w, facing);
-                if (at != null && MonsterSpace.fits(space, at, facing, still(hand), Set.of())) {
-                    place(hand, at, facing, Event.BACK);
-                    actions.addFirst(new Decision((w2, s2) -> vanish()));
-                    actions.addFirst(new Hold(hand));
-                    return;
-                }
-            }
-            vanish();
-        }));
+        plan.add(new Decision((w, s) -> scream()));
         return true;
     }
 
@@ -796,7 +800,7 @@ public final class MonsterScript {
                 double d = Math.sqrt(dx * dx + dz * dz);
                 if (d < 2 || d > 5) continue;
                 double x = Math.floor(feet.x) + dx + 0.5, z = Math.floor(feet.z) + dz + 0.5;
-                Double y = MonsterSpace.floor(space, x, z, fy + 2, fy - 3);
+                Double y = MonsterSpace.floor(space, x, z, fy + 2, fy - 2);
                 if (y != null) cells.add(new Vector3d(x, y, z));
             }
         }
@@ -811,8 +815,10 @@ public final class MonsterScript {
                 for (float y : pose.space() == null ? new float[]{facing} : yaws(facing)) {
                     if (!MonsterSpace.fits(space, at, y, still(pose), Set.of())) continue;
                     Matrix4f root = new Matrix4f().rotateY(y).mul(MonsterRig.body(pose));
-                    if (senses.sees(world(at, rig.eyes(pose, root)), HIDDEN_ANGLE)
-                            || senses.sees(world(at, rig.chest(pose, root)), HIDDEN_ANGLE)) continue;
+                    Vector3d eyes = world(at, rig.eyes(pose, root)), chest = world(at, rig.chest(pose, root));
+                    // Out of their view, but never behind blocks: in a cave under the floor it could never be seen.
+                    if (!senses.open(eyes) && !senses.open(chest)) continue;
+                    if (senses.sees(eyes, HIDDEN_ANGLE) || senses.sees(chest, HIDDEN_ANGLE)) continue;
                     place(pose, at, y, Event.BACK);
                     phase = Phase.LURK;
                     ticks = 0;
@@ -1072,32 +1078,32 @@ public final class MonsterScript {
         }
     }
 
-    /** Holds its palm over the player's eyes, following them while it still fits. */
-    private final class Hold implements Action {
-        private final Pose hand;
-        /** How far round from straight in front it holds its hand, kept while it follows the player. */
-        private Float turn;
+    /**
+     * Its face in the player's face: the head and the open jaw, {@link #FACE_DISTANCE} in front of their
+     * eyes and turned to them wherever they look, popping up over two ticks and shaking.
+     */
+    private final class Face implements Action {
+        private final int ticks;
         private int k;
 
-        Hold(Pose hand) {
-            this.hand = hand;
+        Face(int ticks) {
+            this.ticks = Math.max(1, ticks);
         }
 
         @Override
         public boolean step(Watcher watcher) {
-            phase = Phase.GRAB;
-            if (turn == null) turn = (float) Math.atan2(Math.sin(yaw - MonsterMotion.facing(watcher.look(), yaw)),
-                    Math.cos(yaw - MonsterMotion.facing(watcher.look(), yaw)));
-            float facing = MonsterMotion.facing(watcher.look(), yaw) + turn;
-            Vector3d at = handAnchor(hand, watcher, facing);
-            if (at != null && MonsterSpace.fits(space, at, facing, still(hand), Set.of())) {
-                anchor = at;
-                yaw = facing;
-            }
-            shown = hand;
-            base = hand;
+            phase = Phase.SCREAM;
             visible = true;
-            return ++k >= settings.handTicks();
+            shown = screaming;
+            base = screaming;
+            resting = Set.of();
+            Vector3d look = new Vector3d(watcher.look()).normalize();
+            anchor = new Vector3d(look).mul(FACE_DISTANCE).add(watcher.eye());
+            float shake = 0.07f;
+            yaw = MonsterMotion.facing(look, yaw) + (random.nextFloat() - 0.5f) * shake;
+            facePitch = (float) Math.asin(Math.max(-1, Math.min(1, look.y))) + (random.nextFloat() - 0.5f) * shake;
+            faceScale = k < 2 ? 0.55f + 0.225f * (k + 1) : 1f;
+            return ++k >= ticks;
         }
     }
 
@@ -1146,8 +1152,8 @@ public final class MonsterScript {
             } else {
                 waited = 0;
                 turnFrom = null;
-                // Once it moves the player follows it with their eyes, until its hand is over them.
-                if (script.visible && script.phase() != Phase.GRAB && script.phase() != Phase.HIDE) {
+                // Once it moves the player follows it with their eyes, until its face is in theirs.
+                if (script.visible && script.phase() != Phase.SCREAM && script.phase() != Phase.HIDE) {
                     Matrix4f root = new Matrix4f().rotateY(script.yaw()).mul(MonsterRig.body(script.pose()));
                     Vector3d eyes = world(script.anchor(), rig.eyes(script.pose(), root));
                     look = new Vector3d(look).lerp(new Vector3d(eyes).sub(eye).normalize(), 0.3).normalize();

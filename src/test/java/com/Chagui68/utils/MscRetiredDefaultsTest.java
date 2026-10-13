@@ -67,4 +67,31 @@ class MscRetiredDefaultsTest {
 
         assertEquals(112, config.getInt("entities.jackstar-architect.special-attack-gap-ticks"));
     }
+
+    @Test
+    @DisplayName("Every boss's old cap on the damage of a single hit becomes 10; an edited one is kept")
+    void retiresTheOldHitCaps() {
+        MemoryConfiguration defaults = new MemoryConfiguration();
+        for (String boss : List.of("armor-stand-boss", "mahoraga", "dio-brando", "nix-executioner",
+                "jackstar-architect", "wither-storm")) {
+            defaults.set("entities." + boss + ".max-damage-per-hit", 10.0);
+        }
+        MemoryConfiguration config = new MemoryConfiguration();
+        config.set("entities.armor-stand-boss.max-damage-per-hit", 50.0);
+        config.set("entities.mahoraga.max-damage-per-hit", 100.0);
+        // DIO's cap shipped as 100 first and 75 later: both are retired.
+        config.set("entities.dio-brando.max-damage-per-hit", 75.0);
+        config.set("entities.nix-executioner.max-damage-per-hit", 100.0);
+        config.set("entities.wither-storm.max-damage-per-hit", 150.0);
+        config.set("entities.jackstar-architect.max-damage-per-hit", 35.0);
+
+        Set<String> replaced = MscConfigMigration.replaceRetiredDefaults(config, defaults);
+
+        for (String boss : List.of("armor-stand-boss", "mahoraga", "dio-brando", "nix-executioner", "wither-storm")) {
+            assertEquals(10.0, config.getDouble("entities." + boss + ".max-damage-per-hit"), boss);
+        }
+        assertEquals(35.0, config.getDouble("entities.jackstar-architect.max-damage-per-hit"),
+                "an operator's own cap stays");
+        assertEquals(5, replaced.size());
+    }
 }

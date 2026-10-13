@@ -83,7 +83,7 @@ armor-stand-boss:
   penetrating-damage: true                  # los golpes del jefe ignoran armadura; la Resistencia solo se perfora en parte
   penetrating-resistance-pierce: 0.2        # parte de la reducción de Resistencia que esos golpes ignoran
   max-damage-dealt: 15.0                    # cap por golpe penetrante
-  max-damage-per-hit: 50.0                  # cap del daño que el jefe puede recibir por golpe
+  max-damage-per-hit: 10.0                  # cap del daño que el jefe puede recibir por golpe
   phase-thresholds: [0.8, 0.6, 0.4, 0.2]    # fases = entradas + 1 = cuadrados del título de la boss bar
   defense-duration-stone-skin-ticks: 200
   defense-duration-reflect-barrier-ticks: 160

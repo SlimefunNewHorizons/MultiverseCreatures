@@ -30,9 +30,10 @@ record WitherStormSettings(boolean enabled, double health, double maxDamagePerHi
     /**
      * The tractor beam's rhythm: it lights up thin for {@code chargeTicks}, pulls for at most
      * {@code holdTicks}, then goes dark for {@code restTicks}. {@code pullSpeed} is the mod's
-     * tractorPullSpeedModifier: blocks per tick, slower the closer the victim gets.
+     * tractorPullSpeedModifier: blocks per tick, slower the closer the victim gets. A player held in
+     * it takes {@code damage} every {@code damageInterval} ticks.
      */
-    record Beam(double pullSpeed, int chargeTicks, int holdTicks, int restTicks) {
+    record Beam(double pullSpeed, int chargeTicks, int holdTicks, int restTicks, double damage, int damageInterval) {
     }
 
     /** The storm's big attacks: one every {@code cooldownTicks}, and how hard each one hits. */
@@ -69,7 +70,9 @@ record WitherStormSettings(boolean enabled, double health, double maxDamagePerHi
                 clamp(c.getDouble("entities.wither-storm.beam.pull-speed", 0.2), 0.05, 1.0),
                 Math.max(0, c.getInt("entities.wither-storm.beam.charge-ticks", 30)),
                 Math.max(20, c.getInt("entities.wither-storm.beam.hold-ticks", 120)),
-                Math.max(0, c.getInt("entities.wither-storm.beam.rest-ticks", 100)));
+                Math.max(0, c.getInt("entities.wither-storm.beam.rest-ticks", 100)),
+                Math.max(0, c.getDouble("entities.wither-storm.beam.damage", 2.0)),
+                Math.max(1, c.getInt("entities.wither-storm.beam.damage-interval-ticks", 10)));
         Specials specials = new Specials(
                 c.getBoolean("entities.wither-storm.specials.enabled", true),
                 Math.max(100, c.getInt("entities.wither-storm.specials.cooldown-ticks", 500)),

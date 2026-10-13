@@ -237,7 +237,7 @@ Un verdugo colosal e implacable construido a partir de un **modelo personalizado
 | Velocidad de movimiento | `nix-executioner.move-speed` (0.30) |
 | Rango cuerpo a cuerpo / Daño de tajo | `nix-executioner.melee-range` (3.5) · `nix-executioner.cleave-damage` (22.0) |
 | Rango de atracción con cadenas | `nix-executioner.chain-range` (24.0 bloques) |
-| Cap de daño recibido | `nix-executioner.max-damage-per-hit` (100.0 por golpe; `0` desactiva el cap) |
+| Cap de daño recibido | `nix-executioner.max-damage-per-hit` (10.0 por golpe; `0` desactiva el cap) |
 | Cooldowns | cuerpo a cuerpo 20 ticks · cadenas 80 ticks |
 | Ritual de Invocación | **El Cadalso del Verdugo** en la Boss Dimension (sacrificando `Sentencia de Muerte`) · `/msc spawn nix` (OP) |
 
@@ -329,7 +329,7 @@ DIO camina amenazante (letras ゴゴゴ suben a su alrededor) con su Stand **The
 |---|---|
 | Vida | `dio-brando.health` (1500) — por debajo del 50% se enfurece ("WRYYYY!"): pausas más cortas, tiempo detenido más largo y más cuchillos |
 | Detección / velocidad | `aggro-range` (32) · `move-speed` (0.26) |
-| Tope de daño recibido | `max-damage-per-hit` (100) |
+| Tope de daño recibido | `max-damage-per-hit` (10) |
 
 | Ataque | Qué pasa | Clave de daño (por defecto) |
 |---|---|---|
@@ -387,6 +387,8 @@ Como en el mod: **la primera forma no tiene rayo**, en las dos jorobas siguiente
 3. **Tira** durante `beam.hold-ticks` (120) a la velocidad del mod, `beam.pull-speed` (0,2 bloques/tick), más despacio en el último bloque.
 4. **Descansa** `beam.rest-ticks` (100) y también al morder.
 
+Un jugador atrapado en un rayo que tira **recibe daño todo el tiempo**: `beam.damage` (2) de daño verdadero cada `beam.damage-interval-ticks` (10), escalado como los demás golpes de la tormenta. Varios rayos sobre el mismo jugador hacen daño a ese mismo ritmo. `beam.damage: 0` lo desactiva.
+
 Mientras el rayo está encendido la cabeza gira **más despacio que un jugador corriendo**: cruza el cono corriendo de lado y te sueltas. Las jorobas solo arrastran a la víctima que fijaron; el Destructor y el Devorador arrastran todo lo que entre en el cono. El rayo se ve como un cono translúcido de cristal morado, igual que en el mod.
 
 El cono se dibuja estable: se redibuja en los mismos fotogramas de animación que la cabeza de la que sale, así que en el cliente se mueven juntos; la cabeza apunta a un punto que sigue con suavidad los ojos de la víctima en vez de cada paso y cada salto, y gira al revés cuando gira el cuerpo para que el rayo no se desvíe; su largo no se deja llevar por el suelo que arranca debajo (los cambios de menos de un bloque se ignoran y los mayores se suavizan); y mientras sujeta a una víctima la cabeza ignora los vaivenes pequeños dentro del cono (3 grados de margen) y solo sigue, con suavidad, a una víctima que se está saliendo.
@@ -434,7 +436,7 @@ Todos sus golpes directos son **daño verdadero** (`max-damage-dealt` 20, `true-
 - **Hitboxes:** la masa y cada cabeza son entidades `Interaction` que siguen al modelo. Las espadas usan el daño del arma, el enfriamiento, Afilado y **Castigo** (la tormenta es no-muerta como cualquier Wither). Los proyectiles que entran en una caja también cuentan.
 - **Herir las cabezas:** cada proyectil que alcanza una cabeza cuenta; tras unos cuantos (1–2 en las jorobas, 3–8 en las formas colosales) la cabeza queda **herida** `injury-ticks` (200): su rayo se apaga, escupe una calavera azul y recibe ×1,5 de daño. Quien la hirió **escapa**: la tormenta lo deja en paz `escape-ticks` (800, los 40 s del mod). Con **todas** las cabezas heridas a la vez la tormenta queda **expuesta** `exposed-ticks` (160) y recibe ×`exposed-damage-multiplier` (2).
 - **Hacerse el muerto:** el Destructor y el Devorador, al bajar a `play-dead-threshold` (15%), caen al suelo con las mandíbulas rotas durante `play-dead-ticks` (200) recibiendo ×1,5... y se levantan con todas las cabezas rugiendo, una onda que daña (`revive-damage` 12) y lanza a todos, y un 10% de vida recuperada. Solo una vez.
-- **Muerte:** se deshace en rayos de luz mientras sus bloques revientan uno a uno; suelta estrellas del Nether (1 a 5 según la forma) y experiencia, y cura la enfermedad de todos.
+- **Muerte:** se deshace en rayos de luz mientras sus bloques revientan uno a uno; suelta una estrella del Nether, su cabeza (un trofeo con el nombre de la forma en que cayó) y experiencia, y cura la enfermedad de todos.
 
 ### Rendimiento
 

@@ -270,12 +270,14 @@ Reproduce cualquier archivo `.nbs` de `plugins/MultiverseCreatures/music/`. Las 
 
 ---
 
-## /msc troll <jugador> <entidad> <posición>
+## /msc troll <jugador> <entidad> <posición> [animación]
 
 Envía una entidad a por un jugador, esperando en la posición que elijas en algún sitio a menos de **10 bloques** de él, fuera de su vista cuando puede. Hoy la entidad es `monster`.
 
 - `<posición>` es cualquiera de sus poses con guiones en vez de espacios (`ceiling-cling`, `lying-on-chest`, `squeezed-in-a-shaft`…; el autocompletado las lista todas), o `random` para cualquiera que quepa.
 - Busca el sitio que pide esa pose: un suelo, un techo, la parte de arriba de cualquier bloque sólido, aire libre, o un espacio del tamaño para el que se hizo una pose estrecha (1×1, 1×2, 2×1), girándose alineado con los bloques para caber.
+- `[animación]` (opcional) es lo que hace cuando lo ven: `walk`, `coffin-rise`, `crawl-rush`, `ceiling-scuttle`, `blink` o `peek-and-hide`; si no se pone (o `random`), elige una que el sitio permita. Se elige primero un sitio desde el que pueda hacer esa animación; si no hay ninguno, parpadea y se te avisa.
+- Solo espera donde el jugador podría verlo al girarse (nunca detrás de bloques, en una cueva bajo el suelo ni dentro de una colina).
 - Gana un sitio fuera de la vista del jugador. Si solo hay sitios a la vista, aparece igual y se te avisa de que lo verá enseguida.
 - Si nada a menos de 10 bloques sirve, no aparece y el chat dice por qué, por ejemplo:
 
@@ -293,14 +295,14 @@ Teletransporta al ejecutor entre mundos/dimensiones. Se usa para probar el andam
 
 ---
 
-## /wiki [página|hand|en|es]
+## /mscwiki [página|hand|en|es]
 
-Abre la wiki dentro del juego, para todos los jugadores (`msc.wiki`, concedido por defecto). Alias: `/mscwiki`, `/mwiki`.
+Abre la wiki dentro del juego, para todos los jugadores (`msc.wiki`, concedido por defecto).
 
 - Nueve secciones: armas, armaduras, reliquias, comida y pociones, botín de criaturas, componentes fabricados, botín de jefes, Stands y jefes.
 - Cada página muestra el ítem con su lore, su receta tal como la tiene el servidor (mesa de crafteo, horno, alto horno, soporte para pociones o intercambio), quién lo suelta con la probabilidad del propio servidor y en qué se usa. Haz clic en un ingrediente para abrir su página.
 - Inglés y español: se abre en el idioma del cliente y la bandera de la esquina lo cambia (la elección se guarda en el jugador).
-- `/wiki venomfang` abre una página directamente; `/wiki hand` abre la del ítem que sostienes; `/wiki es` o `/wiki en` cambia el idioma.
+- `/mscwiki venomfang` abre una página directamente; `/mscwiki hand` abre la del ítem que sostienes; `/mscwiki es` o `/mscwiki en` cambia el idioma.
 
 ## Permisos
 

@@ -210,6 +210,22 @@ P . . . P
 
 ---
 
+## ⚖️ Reglas de supervivencia dentro de la dimensión
+
+Sobrevivir en la dimensión es más duro que en el overworld. Cada regla es un interruptor bajo `boss-dimension` en `config.yml`; los espectadores no se ven afectados.
+
+| Regla | Por defecto | Qué hace |
+|---|---|---|
+| `natural-regeneration` | `false` | Solo curan los **efectos de poción**: curación instantánea y regeneración (las manzanas doradas y los tótems dan regeneración, así que siguen sirviendo). La barra de comida llena, las curaciones de otros plugins y cualquier otra fuente no curan. |
+| `saturation-effect` | `false` | El efecto **Saturación** no hace nada ahí: el hambre solo se recupera comiendo. |
+| `flight` | `false` | **Nadie vuela**: el `/fly` de otros plugins, el vuelo en creativo y las élitras quedan desactivados, y si otro plugin lo devuelve se quita en menos de un cuarto de segundo. Los jugadores en creativo recuperan el vuelo al salir. |
+| `fall-damage-multiplier` | `1.7` | Las caídas hacen un **70 % más** de daño. |
+| `gravity-multiplier` | `0.7` | Los jugadores tienen un **30 % menos de gravedad**: saltan más alto y caen más despacio. Se quita al salir. |
+
+Todos los jefes, donde sea que se peleen, reciben como máximo `max-damage-per-hit` (**10**) por golpe.
+
+---
+
 ## 🚪 Salir
 
 Con el jefe inactivo puedes salir directamente con **`/msc dimtp`** (los comandos solo se bloquean durante la pelea). Si quieres salir por medios del juego, o si el jefe sigue activo, la única salida es **el mismo ritual usado para entrar**:

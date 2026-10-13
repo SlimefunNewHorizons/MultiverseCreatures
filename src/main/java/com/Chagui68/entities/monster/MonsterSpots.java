@@ -27,8 +27,9 @@ import java.util.Set;
  * Where the Monster can wait for a player: on the floor, under a ceiling, on top of any solid block,
  * or in the air beside a player who is flying.
  *
- * <p>A spot holds when the whole box of the pose is free there (the block it lies on aside) and,
- * ideally, neither its eyes nor its chest are in the player's view. The open poses face the player
+ * <p>A spot holds when the whole box of the pose is free there (the block it lies on aside), the
+ * player could see it by turning round (nothing solid between them: never in a cave under the floor
+ * or inside a hill), and, ideally, it is out of their view and it can get to them from there. The open poses face the player
  * and start from where the viewer shows them round its player, so the game keeps their spacing. The
  * tight poses, made for a room one or two blocks across, are tried square to the blocks in all four
  * directions and centred on one or two cells, so they find the shaft, the corridor or the alcove they
@@ -36,8 +37,11 @@ import java.util.Set;
  */
 final class MonsterSpots {
 
-    /** A pose, the point it hangs from, the angle it faces (radians about {@code y}), and whether it is out of sight. */
-    record Spot(Pose pose, Vector anchor, float yaw, boolean hidden) {
+    /**
+     * A pose, the point it hangs from, the angle it faces (radians about {@code y}), whether it is out
+     * of the player's view, and whether it can get to them from there.
+     */
+    record Spot(Pose pose, Vector anchor, float yaw, boolean hidden, boolean reachable) {
     }
 
     /** The spot a search found, or why there was none. */
@@ -54,6 +58,8 @@ final class MonsterSpots {
     private static final float SNUG = 0.7f;
     /** Closest an anchor may be to the player's feet. */
     private static final double TOO_CLOSE = 0.9;
+    /** Most dry runs of the visit one search makes before it settles for a spot it has not tried. */
+    private static final int MAX_REACH_CHECKS = 6;
     /** Most candidate points one search looks at. */
     private static final int MAX_BASES = 3000;
     private static final double[][] CELL_SHIFTS = {{0, 0}, {0.5, 0}, {-0.5, 0}, {0, 0.5}, {0, -0.5},
@@ -81,7 +87,7 @@ final class MonsterSpots {
         }
         Collections.shuffle(poses, random);
         for (Pose pose : poses.subList(0, Math.min(NATURAL_TRIES, poses.size()))) {
-            Search search = search(player, pose, NATURAL_RADIUS, true, true);
+            Search search = search(player, pose, NATURAL_RADIUS, true, true, null);
             if (search.spot() != null) spots.add(search.spot());
         }
         return spots;
@@ -91,10 +97,11 @@ final class MonsterSpots {
      * The nearest place within {@code radius} blocks of the player where {@code pose} fits. A spot out
      * of their view wins; when {@code hiddenOnly} is false a spot in plain sight is taken if there is no
      * other. With {@code snug}, a tight pose only takes a room that really is tight, so it folds itself
-     * into a shaft or a corridor but never stands folded in the open. When there is nothing, the reason
-     * says what was missing.
+     * into a shaft or a corridor but never stands folded in the open. A spot it can get to the player
+     * from, playing {@code behavior} (walking, when {@code null}), wins over one it cannot. When there is
+     * nothing, the reason says what was missing.
      */
-    Search search(Player player, Pose pose, int radius, boolean hiddenOnly, boolean snug) {
+    Search search(Player player, Pose pose, int radius, boolean hiddenOnly, boolean snug, MonsterScript.Behavior behavior) {
         if (pose.place() == Place.ACTION) {
             return new Search(null, "\"" + pose.id() + "\" is what it does once it has been seen, not a place to wait");
         }
@@ -110,8 +117,11 @@ final class MonsterSpots {
         float[] box = boxes.get(pose.name());
         MonsterSpace space = new WorldSpace(player.getWorld());
         Vector feet = player.getLocation().toVector();
-        int fitted = 0;
-        Spot inSight = null;
+        int fitted = 0, walled = 0, reachChecks = 0;
+        Spot stuck = null, inSight = null;
+        Vector3d eye = new Vector3d(player.getEyeLocation().getX(), player.getEyeLocation().getY(), player.getEyeLocation().getZ());
+        Vector3d at3 = new Vector3d(feet.getX(), feet.getY(), feet.getZ());
+        boolean flying = airborne(player);
         for (Vector base : bases.subList(0, Math.min(MAX_BASES, bases.size()))) {
             float facing = (float) Math.atan2(feet.getX() - base.getX(), feet.getZ() - base.getZ());
             for (float yaw : yaws(pose, facing, base)) {
@@ -121,14 +131,34 @@ final class MonsterSpots {
                     if (!MonsterSpace.fits(space, at, yaw, box, support)) continue;
                     if (snug && pose.space() != null && MonsterSpace.fits(space, at, yaw, grown(box), support)) continue;
                     fitted++;
+                    // It has to be somewhere the player could see by turning round, not behind blocks.
+                    if (!inOpen(player, pose, anchor, yaw)) {
+                        walled++;
+                        continue;
+                    }
                     boolean hidden = !seen(player, pose, anchor, yaw, HIDDEN_ANGLE);
-                    Spot spot = new Spot(pose, anchor, yaw, hidden);
-                    if (hidden) return new Search(spot, null);
-                    if (inSight == null) inSight = spot;
+                    if (!hidden && (hiddenOnly || inSight != null)) continue;
+                    if (reachChecks >= MAX_REACH_CHECKS) {
+                        Spot spot = new Spot(pose, anchor, yaw, hidden, false);
+                        if (hidden && stuck == null) stuck = spot;
+                        if (!hidden && inSight == null) inSight = spot;
+                        continue;
+                    }
+                    reachChecks++;
+                    boolean reachable = MonsterScript.reaches(rig, space, pose, at, yaw, at3, eye, flying, behavior);
+                    Spot spot = new Spot(pose, anchor, yaw, hidden, reachable);
+                    if (hidden && reachable) return new Search(spot, null);
+                    if (hidden && stuck == null) stuck = spot;
+                    if (!hidden && (inSight == null || (reachable && !inSight.reachable()))) inSight = spot;
                 }
             }
         }
+        if (stuck != null) return new Search(stuck, null);
         if (inSight != null && !hiddenOnly) return new Search(inSight, null);
+        if (fitted > 0 && walled == fitted) {
+            return new Search(null, "every place within " + radius + " blocks where it fits is walled off from the player "
+                    + "(it has to wait where they could see it by turning round)");
+        }
         if (fitted > 0) return new Search(null, "every place within " + radius + " blocks where it fits is in plain sight");
         return new Search(null, "nothing within " + radius + " blocks has room for it: \"" + pose.id() + "\" needs "
                 + room(pose, box) + " of free space" + (pose.place() == Place.BLOCK ? " on top of a block" : ""));
@@ -164,7 +194,8 @@ final class MonsterSpots {
                 int x = fx + dx, z = fz + dz;
                 switch (pose.place()) {
                     case GROUND -> {
-                        for (int y = fy + 3; y >= fy - 4; y--) {
+                        // Two blocks up or down at most: a floor further off is in another room, or a cave.
+                        for (int y = fy + 2; y >= fy - 2; y--) {
                             Block below = world.getBlockAt(x, y - 1, z);
                             if (!below.isPassable() && world.getBlockAt(x, y, z).isPassable()) {
                                 found.add(new Vector(x + 0.5, below.getY() + below.getBoundingBox().getHeight(), z + 0.5));
@@ -273,6 +304,23 @@ final class MonsterSpots {
     }
 
     // ------------------------------------------------------------------ checks
+
+    /**
+     * True when nothing solid stands between the player's eyes and its eyes or its chest: they would
+     * see it if they turned round.
+     */
+    private boolean inOpen(Player player, Pose pose, Vector anchor, float yaw) {
+        Matrix4f turned = new Matrix4f().rotateY(yaw).mul(MonsterRig.body(pose));
+        return clearLine(player, at(anchor, rig.eyes(pose, turned))) || clearLine(player, at(anchor, rig.chest(pose, turned)));
+    }
+
+    static boolean clearLine(Player player, Vector point) {
+        Location eye = player.getEyeLocation();
+        Vector to = point.clone().subtract(eye.toVector());
+        double distance = to.length();
+        if (distance < 0.01) return true;
+        return player.getWorld().rayTraceBlocks(eye, to.normalize(), distance - 0.3, FluidCollisionMode.NEVER, true) == null;
+    }
 
     /** True when the player sees its eyes or its chest, within {@code angle} degrees of where they look. */
     boolean seen(Player player, Pose pose, Vector anchor, float yaw, double angle) {

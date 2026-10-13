@@ -31,8 +31,8 @@ public enum WikiCategory {
             "The Arrow, DIO's blood and the six Stands it can awaken.",
             "La Flecha, la sangre de DIO y los seis Stands que puede despertar."),
     BOSSES(Material.WITHER_SKELETON_SKULL, NamedTextColor.DARK_RED, "Bosses & Rituals", "Jefes y rituales",
-            "Where every boss lives and how to call it.",
-            "Dónde vive cada jefe y cómo invocarlo.");
+            "Where every boss lives, how to call it, and what waits in the dark.",
+            "Dónde vive cada jefe, cómo invocarlo y qué espera en la oscuridad.");
 
     private final Material icon;
     private final NamedTextColor color;

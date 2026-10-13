@@ -4,7 +4,7 @@
 # Version of this file. A server that updates the plugin keeps its own config.yml and the plugin
 # adds whatever keys are missing on start (values you edited are never touched), stamping the new
 # version here. See MscConfigMigration.CONFIG_VERSION — keep the two in step.
-config-version: 7
+config-version: 8
 #
 # SlimeTinker Infinity against every boss except Mahoraga (which adapts on its own):
 #   pierce-infinity-armor: boss hits pierce the full Infinity set (absorption is cleared first)
@@ -107,6 +107,18 @@ boss-dimension:
   # A world built by an older generator is rebuilt once on its own; this switch forces it.
   # One-shot switch: it destroys everything built in that world. Set it back to false after.
   reset-on-load: false
+  # Survival rules for players inside the dimension.
+  #   natural-regeneration: false -> only potion effects heal (instant health, regeneration);
+  #     a full food bar, peaceful, plugins' heals and every other source give nothing.
+  #   saturation-effect: false -> the Saturation effect does nothing there: players have to eat.
+  #   flight: false -> nobody flies there, not with /fly, not in creative, not with an elytra.
+  #   fall-damage-multiplier: fall damage taken there (1.7 = 70% more).
+  #   gravity-multiplier: share of the usual gravity players have there (0.7 = 30% less).
+  natural-regeneration: false
+  saturation-effect: false
+  flight: false
+  fall-damage-multiplier: 1.7
+  gravity-multiplier: 0.7
 
 
 # ---------------------------------------------------------------------------
@@ -207,7 +219,7 @@ entities:
     # 0.0 leaves Resistance fully effective, 1.0 ignores it completely.
     penetrating-resistance-pierce: 0.2
     max-damage-dealt: 15.0        # cap for penetrating damage dealt per hit
-    max-damage-per-hit: 50.0      # cap for damage the boss can receive per hit
+    max-damage-per-hit: 10.0      # cap for damage the boss can receive per hit
     phase-transition-slam-damage: 10.0
 
     # Phase thresholds: the fraction of max health at which each next phase begins, highest first.
@@ -301,7 +313,7 @@ entities:
     spawn-chance: 0.002
     health: 350.0
     drop-chance: 0.75
-    max-damage-per-hit: 100.0
+    max-damage-per-hit: 10.0
     speed-effect-level: 3
     true-damage-base: 4.0
     true-damage-per-stage: 2.0
@@ -332,6 +344,7 @@ entities:
     counter-damage: 14.0
     counter-chance: 0.25
     counter-cooldown-ms: 3000
+    max-damage-per-hit: 10.0      # cap on the damage Garou can receive from a single hit
     death-messages:
       - "&5%player% was humiliated by Garou's martial arts"
       - "&5%player% fell to Garou's Water Stream Fist"
@@ -361,8 +374,8 @@ entities:
     view-angle: 30
     # Blocks per tick it closes in once seen (it always outruns the player).
     approach-speed: 0.35
-    # Ticks its hand stays over the player's view before it vanishes.
-    hand-ticks: 25
+    # Ticks its face stays in the player's face, screaming, before it vanishes.
+    scream-ticks: 20
     # Visits running at once, across the server.
     max-active: 5
 
@@ -373,6 +386,7 @@ entities:
     enabled: true
     spawn-on-armorstand-chance: 0.01
     health: 120.0
+    max-damage-per-hit: 10.0      # cap on the damage Kinger can receive from a single hit
     # Size of the invisible stand the suit is hit through. 1.0 is a plain stand, which already
     # covers the whole model; raise it to make the chess piece easier to hit.
     hitbox-scale: 1.0
@@ -401,7 +415,7 @@ entities:
     health: 1500.0
     aggro-range: 32.0
     move-speed: 0.26
-    max-damage-per-hit: 75.0      # cap on the damage DIO can receive from a single hit
+    max-damage-per-hit: 10.0      # cap on the damage DIO can receive from a single hit
     attack-cooldown-ticks: 45     # pause between attacks (halved below 50% health)
     punch-damage: 12.0            # The World's single punch, his basic attack
     barrage-damage: 2.5           # each hit of the MUDA MUDA barrage (every 3 ticks)
@@ -444,7 +458,7 @@ entities:
     melee-damage: 14.0
     cleave-damage: 22.0
     chain-range: 24.0
-    max-damage-per-hit: 100.0      # cap on the damage Nix can receive from a single hit
+    max-damage-per-hit: 10.0       # cap on the damage Nix can receive from a single hit
     melee-cooldown-ticks: 20
     chain-cooldown-ticks: 80
     cleave-anim-ticks: 14
@@ -493,7 +507,7 @@ entities:
     sigkill-damage: 35.0
     dodge-chance: 0.22
     packet-loss-chance: 0.25
-    max-damage-per-hit: 60.0      # cap on the damage JackStar can receive from a single hit
+    max-damage-per-hit: 10.0      # cap on the damage JackStar can receive from a single hit
     # Every attack but the three-slash is a special, and only one special starts per
     # special-attack-gap-ticks (112 = 5.6 s), never the same kind twice in a row.
     special-attack-gap-ticks: 112
@@ -538,7 +552,7 @@ entities:
   wither-storm:
     enabled: true
     health: 800.0                 # max health of the first form; each form multiplies it
-    max-damage-per-hit: 150.0     # cap on what a single hit takes from it
+    max-damage-per-hit: 10.0      # cap on what a single hit takes from it
     # Its hits are true damage: armour and Protection are ignored, each hit is capped at
     # max-damage-dealt and Resistance keeps only part of its effect.
     max-damage-dealt: 20.0
@@ -569,6 +583,10 @@ entities:
       charge-ticks: 30
       hold-ticks: 120
       rest-ticks: 100
+      # A player held in a beam takes damage the whole time: damage every damage-interval-ticks
+      # (true damage, scaled like the storm's other hits). 0 turns it off.
+      damage: 2.0
+      damage-interval-ticks: 10
     # Projectiles injure a head: its beam goes dark for injury-ticks and it takes 1.5x damage, and the
     # player who injured it is left alone for escape-ticks (the mod's 40 s). With every head injured
     # at once the storm is exposed for exposed-ticks and takes exposed-damage-multiplier times the

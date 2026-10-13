@@ -95,6 +95,7 @@ public class MultiverseCreatures extends JavaPlugin {
     private EnderKnight enderKnight;
     private Kinger kinger;
     private com.Chagui68.entities.monster.MonsterStalker monsterStalker;
+    private com.Chagui68.listener.bossdimension.BossDimensionRules bossDimensionRules;
     private NixBoss nixBoss;
     private JackStarBoss jackStarBoss;
     private DioBoss dioBoss;
@@ -235,6 +236,8 @@ public class MultiverseCreatures extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RecipeGuardListener(), this);
         getServer().getPluginManager().registerEvents(new BossDimensionCommandHandler(this), this);
         getServer().getPluginManager().registerEvents(new BossDimensionBlockHandler(this), this);
+        bossDimensionRules = new com.Chagui68.listener.bossdimension.BossDimensionRules(this);
+        getServer().getPluginManager().registerEvents(bossDimensionRules, this);
         getServer().getPluginManager().registerEvents(new RitualCandleListener(this), this);
         getServer().getPluginManager().registerEvents(new BossInvocationManager(this), this);
         getServer().getPluginManager().registerEvents(new NixInvocationManager(this), this);
@@ -277,8 +280,8 @@ public class MultiverseCreatures extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new com.Chagui68.wiki.WikiListener(), this);
         getServer().getPluginManager().registerEvents(new com.Chagui68.items.LegacyItemRefresher(), this);
         com.Chagui68.wiki.WikiCommand wikiCommand = new com.Chagui68.wiki.WikiCommand();
-        getCommand("wiki").setExecutor(wikiCommand);
-        getCommand("wiki").setTabCompleter(wikiCommand);
+        getCommand("mscwiki").setExecutor(wikiCommand);
+        getCommand("mscwiki").setTabCompleter(wikiCommand);
 
         // The last line of a good start: the version compatibility check on GitHub waits for it.
         getLogger().info("MultiverseCreatures " + getPluginMeta().getVersion() + " ready on "
@@ -331,6 +334,7 @@ public class MultiverseCreatures extends JavaPlugin {
         if (chaosMage != null) chaosMage.stopTasks();
         if (enderKnight != null) enderKnight.stopTasks();
         if (monsterStalker != null) monsterStalker.stopAll();
+        if (bossDimensionRules != null) bossDimensionRules.stopTasks();
         if (kinger != null) kinger.stopTasks();
         if (nixBoss != null) nixBoss.stopTasks();
         if (jackStarBoss != null) jackStarBoss.stopTasks();

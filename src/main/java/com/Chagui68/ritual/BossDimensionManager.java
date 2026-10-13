@@ -168,6 +168,9 @@ public class BossDimensionManager {
         world.setGameRuleValue("doMobSpawning", "false");
         world.setGameRuleValue("doImmediateRespawn", "true");
         world.setGameRuleValue("announceAdvancements", "false");
+        // Natural regeneration, as boss-dimension.natural-regeneration says (BossDimensionRules stops the rest).
+        world.setGameRuleValue("naturalRegeneration",
+                String.valueOf(plugin.getConfig().getBoolean("boss-dimension.natural-regeneration", false)));
 
         world.setTime(14000);
         world.setStorm(false);

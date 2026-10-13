@@ -9,6 +9,7 @@ import com.Chagui68.items.misc.IceCrown;
 import com.Chagui68.items.misc.MantisClaws;
 import com.Chagui68.items.misc.MilitaryMine;
 import com.Chagui68.items.misc.WirtsLantern;
+import com.Chagui68.items.misc.WitherStormHead;
 import com.Chagui68.items.misc.offhand.FrostHeartOffhand;
 import com.Chagui68.items.misc.offhand.MarrowAegis;
 import com.Chagui68.items.misc.offhand.VeilwalkerMantle;
@@ -361,6 +362,15 @@ public final class WikiCatalogue {
                         "Garou always drops it. He very rarely takes the place of a Wither Skeleton.",
                         "Garou siempre lo suelta. Muy rara vez aparece en lugar de un Esqueleto Wither."))
                 .build());
+        list.add(WikiEntry.item("witherstormhead", BOSS_LOOT, () -> WitherStormHead.of("the Wither Storm"))
+                .about("A trophy: one of the Wither Storm's heads, named after the form it fell in. It can be placed "
+                                + "like any skull.",
+                        "Un trofeo: una de las cabezas del Wither Storm, con el nombre de la forma en la que cayó. Se "
+                                + "puede colocar como cualquier calavera.")
+                .source(WikiSource.of(Material.WITHER_ROSE, "Wither Storm", "Wither Storm",
+                        "The Wither Storm always drops its head and one Nether Star when it falls.",
+                        "El Wither Storm siempre suelta su cabeza y una Estrella del Nether al caer."))
+                .build());
     }
 
     private static void stands(List<WikiEntry> list) {
@@ -462,6 +472,24 @@ public final class WikiCatalogue {
                                 + "candles. Light them all and stand inside for five seconds.",
                         "Una plataforma de 7x7 de piedra negra con obsidiana llorosa y obsidiana en el centro, rodeada "
                                 + "de 12 velas. Enciéndelas todas y quédate dentro cinco segundos."))
+                .source(WikiSource.of(Material.SPLASH_POTION, "No natural healing", "Sin curación natural",
+                        "Health does not come back on its own: only potion effects heal (instant health, regeneration; "
+                                + "golden apples and totems still work).",
+                        "La vida no vuelve sola: solo curan los efectos de poción (curación instantánea, regeneración; "
+                                + "las manzanas doradas y los tótems siguen funcionando)."))
+                .source(WikiSource.of(Material.COOKED_BEEF, "Eat to stay fed", "Come para no pasar hambre",
+                        "The Saturation effect does nothing there: hunger only comes back by eating.",
+                        "El efecto de Saturación no funciona allí: el hambre solo se recupera comiendo."))
+                .source(WikiSource.of(Material.ELYTRA, "Nobody flies", "Nadie vuela",
+                        "No flight of any kind: /fly from any plugin, creative flight and elytras are all turned off.",
+                        "Nada de volar: el /fly de cualquier plugin, el vuelo creativo y las élitras quedan desactivados."))
+                .source(WikiSource.of(Material.FEATHER, "Low gravity, hard falls", "Poca gravedad, caídas duras",
+                        "Gravity is 30% lower, so you jump higher and fall slower, but falls hurt 70% more.",
+                        "La gravedad es un 30% menor: saltas más alto y caes más despacio, pero las caídas hacen un 70% "
+                                + "más de daño."))
+                .source(WikiSource.of(Material.SHIELD, "Every boss holds out", "Todos los jefes aguantan",
+                        "No boss takes more than 10 damage from a single hit, however strong it is.",
+                        "Ningún jefe recibe más de 10 de daño de un solo golpe, por fuerte que sea."))
                 .build());
         list.add(WikiEntry.info("obsidiansentinel", BOSSES, Material.ARMOR_STAND, NamedTextColor.DARK_GRAY,
                         "The Obsidian Sentinel", "The Obsidian Sentinel")
@@ -533,6 +561,80 @@ public final class WikiCatalogue {
                         "Muy rara vez aparece en lugar de un Esqueleto Wither."))
                 .source(WikiSource.of(Material.NETHER_STAR, "Loot", "Botín",
                         "The Garou Cosmic Core.", "El Garou Cosmic Core."))
+                .build());
+        list.add(WikiEntry.info("witherstorm", BOSSES, Material.WITHER_ROSE, NamedTextColor.DARK_PURPLE,
+                        "Wither Storm", "Wither Storm")
+                .about("A Wither that swallowed a command block. It eats the world to grow, through five forms, each "
+                                + "one bigger and stronger than the last.",
+                        "Un Wither que se tragó un bloque de comandos. Se come el mundo para crecer, a través de cinco "
+                                + "formas, cada una más grande y fuerte que la anterior.")
+                .source(WikiSource.of(Material.CRYING_OBSIDIAN, "Summoning", "Invocación",
+                        "Build a Wither (a T of 4 soul sand and 3 wither skeleton skulls) with its foot on crying "
+                                + "obsidian. The Wither is swallowed and the storm forms in its place.",
+                        "Construye un Wither (una T de 4 de arena de almas y 3 calaveras de esqueleto wither) con su "
+                                + "base sobre obsidiana llorosa. El Wither es tragado y la tormenta se forma en su lugar."))
+                .source(WikiSource.of(Material.OBSIDIAN, "Five forms", "Cinco formas",
+                        "The Hunchback, the Growing Hunchback, the Swollen Hunchback, the Destroyer and the Devourer. "
+                                + "It evolves by eating blocks, mobs and players.",
+                        "El Jorobado, el Jorobado Creciente, el Jorobado Hinchado, el Destructor y el Devorador. "
+                                + "Evoluciona comiendo bloques, criaturas y jugadores."))
+                .source(WikiSource.of(Material.PURPLE_STAINED_GLASS, "Tractor beam", "Rayo tractor",
+                        "A thin beam is the warning; then it pulls you in and hurts you the whole time. Run sideways "
+                                + "across it to break free.",
+                        "Un rayo fino es el aviso; luego te arrastra y te hace daño todo el tiempo. Corre de lado a "
+                                + "través de él para soltarte."))
+                .source(WikiSource.of(Material.ARROW, "Weak spots", "Puntos débiles",
+                        "Projectiles that hit a head injure it: it takes more damage and leaves you alone for a while. "
+                                + "With every head injured the storm is exposed.",
+                        "Los proyectiles que dan en una cabeza la hieren: recibe más daño y te deja en paz un rato. "
+                                + "Con todas las cabezas heridas la tormenta queda expuesta."))
+                .source(WikiSource.of(Material.NETHER_STAR, "Loot", "Botín",
+                        "One Nether Star and the Wither Storm Head.", "Una Estrella del Nether y la Wither Storm Head."))
+                .build());
+        list.add(WikiEntry.info("pantheonaltar", BOSSES, Material.CHISELED_QUARTZ_BLOCK, NamedTextColor.YELLOW,
+                        "The Pantheon Altar", "El Altar del Panteón")
+                .about("Calls the gods of DrakesBosses into the Boss Dimension. It only works with DrakesBosses "
+                                + "installed.",
+                        "Llama a los dioses de DrakesBosses a la Dimensión de Jefes. Solo funciona con DrakesBosses "
+                                + "instalado.")
+                .source(WikiSource.of(Material.QUARTZ_PILLAR, "The altar", "El altar",
+                        "5x5: a core block in the middle, 4 candles round it and a 2-block pillar on each corner, all "
+                                + "of the pantheon's kind.",
+                        "5x5: un bloque núcleo en el centro, 4 velas a su alrededor y un pilar de 2 bloques en cada "
+                                + "esquina, todos del tipo del panteón."))
+                .source(WikiSource.of(Material.WHITE_CANDLE, "Olimpo", "Olimpo",
+                        "White candles, chiseled quartz core, quartz pillars.",
+                        "Velas blancas, núcleo de cuarzo cincelado, pilares de cuarzo."))
+                .source(WikiSource.of(Material.GREEN_CANDLE, "Asgard", "Asgard",
+                        "Green candles, chiseled deepslate core, spruce log pillars.",
+                        "Velas verdes, núcleo de pizarra profunda cincelada, pilares de tronco de abeto."))
+                .source(WikiSource.of(Material.ORANGE_CANDLE, "Duat", "Duat",
+                        "Orange candles, chiseled sandstone core, smooth sandstone pillars.",
+                        "Velas naranjas, núcleo de arenisca cincelada, pilares de arenisca lisa."))
+                .source(WikiSource.of(Material.PURPLE_CANDLE, "The Void", "El Vacío",
+                        "Purple candles, end stone bricks core, purpur pillars.",
+                        "Velas moradas, núcleo de ladrillos de piedra del End, pilares de púrpur."))
+                .source(WikiSource.of(Material.LIGHTNING_ROD, "The offering", "La ofrenda",
+                        "Light the candles, right-click one and drop the god's offering on the core. The chat lists the "
+                                + "offerings each altar takes.",
+                        "Enciende las velas, haz clic derecho en una y suelta la ofrenda del dios sobre el núcleo. El "
+                                + "chat muestra las ofrendas que acepta cada altar."))
+                .build());
+        list.add(WikiEntry.info("monster", BOSSES, Material.SKELETON_SKULL, NamedTextColor.WHITE,
+                        "The Monster", "El Monster")
+                .about("A tall, pale thing that waits in the dark where you are not looking. It does no damage: it "
+                                + "is there to scare you.",
+                        "Una cosa alta y pálida que espera en la oscuridad donde no miras. No hace daño: está ahí para "
+                                + "asustarte.")
+                .source(WikiSource.drop(Material.BLACK_CANDLE, "Where", "Dónde",
+                        "In the dark: behind you, on the ceiling, on a chest or in a tight hole. If you hear breathing "
+                                + "nearby, it is already there.",
+                        "En la oscuridad: a tu espalda, en el techo, sobre un cofre o en un hueco estrecho. Si oyes "
+                                + "respirar cerca, ya está ahí.",
+                        "entities.monster.chance", 0.04))
+                .source(WikiSource.of(Material.ENDER_EYE, "If you see it", "Si lo ves",
+                        "It comes for you, and its face ends up in yours, screaming. Then it is gone.",
+                        "Va a por ti, y su cara acaba en la tuya, gritando. Luego desaparece."))
                 .build());
     }
 }

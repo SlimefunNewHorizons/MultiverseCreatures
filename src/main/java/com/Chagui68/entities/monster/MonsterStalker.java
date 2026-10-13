@@ -120,28 +120,30 @@ public final class MonsterStalker {
         if (haunts.containsKey(player.getUniqueId())) return false;
         MonsterSpots.Spot spot = choose(spots.find(player, random));
         if (spot == null) return false;
-        start(player, spot);
+        start(player, spot, null);
         return true;
     }
 
-    private void start(Player player, MonsterSpots.Spot spot) {
+    /** Starts a visit from {@code spot}; {@code forced} is the behaviour to play once seen, or {@code null}. */
+    private void start(Player player, MonsterSpots.Spot spot, MonsterScript.Behavior forced) {
         FileConfiguration config = plugin.getConfig();
         MonsterScript.Settings settings = new MonsterScript.Settings(
                 config.getDouble("entities.monster.approach-speed", 0.35),
-                config.getInt("entities.monster.hand-ticks", 25),
+                config.getInt("entities.monster.scream-ticks", 20),
                 config.getInt("entities.monster.lurk-seconds", 45) * 20,
                 config.getDouble("entities.monster.view-angle", 30));
-        haunts.put(player.getUniqueId(), new MonsterHaunt(rig, spots, player, spot, settings, random));
+        haunts.put(player.getUniqueId(), new MonsterHaunt(rig, spots, player, spot, settings, random, forced));
         if (ticker == null) startTicker();
     }
 
     /**
      * {@code /msc troll}: sends it to {@code target} in the position named (a pose's id, or
-     * {@code random}), somewhere within {@link #TROLL_RADIUS} blocks. A place out of their view is
-     * taken first; one in plain sight only when there is no other, and the answer says so. When there
-     * is no place at all, the answer says why.
+     * {@code random}), somewhere within {@link #TROLL_RADIUS} blocks, to play {@code animation} once
+     * seen (a behaviour's id), or what suits the place when it is {@code null}. A place out of their
+     * view that it can get to them from is taken first; one in plain sight only when there is no other,
+     * and the answer says so. When there is no place at all, the answer says why.
      */
-    public TrollResult troll(Player target, String position) {
+    public TrollResult troll(Player target, String position, String animation) {
         if (!plugin.isEnabled("entities.monster")) {
             return new TrollResult(false, "the Monster is turned off (entities.monster.enabled in config.yml)");
         }
@@ -151,42 +153,69 @@ public final class MonsterStalker {
         if (haunts.containsKey(target.getUniqueId())) {
             return new TrollResult(false, target.getName() + " already has it after them");
         }
+        MonsterScript.Behavior behavior = null;
+        if (animation != null && !animation.equalsIgnoreCase("random")) {
+            for (MonsterScript.Behavior b : MonsterScript.Behavior.values()) {
+                if (b.id().equalsIgnoreCase(animation)) behavior = b;
+            }
+            if (behavior == null) {
+                return new TrollResult(false, "there is no animation called \"" + animation + "\" (it can be "
+                        + String.join(", ", animations()) + ")");
+            }
+        }
         MonsterSpots.Search search;
         if (position.equalsIgnoreCase("random")) {
-            search = anywhere(target);
+            search = anywhere(target, behavior);
         } else {
             MonsterRig.Pose pose = rig.byId(position);
             if (pose == null) {
                 return new TrollResult(false, "there is no position called \"" + position + "\"");
             }
-            search = spots.search(target, pose, TROLL_RADIUS, false, false);
+            search = spots.search(target, pose, TROLL_RADIUS, false, false, behavior);
         }
         MonsterSpots.Spot spot = search.spot();
         if (spot == null) return new TrollResult(false, search.reason());
-        start(target, spot);
+        start(target, spot, behavior);
         double away = spot.anchor().distance(target.getLocation().toVector());
-        return new TrollResult(true, String.format(java.util.Locale.ROOT, "it waits for %s %s, %.1f blocks away, %s",
+        String note = spot.reachable() ? ""
+                : behavior != null && behavior != MonsterScript.Behavior.BLINK
+                ? " (the " + behavior.id() + " animation cannot be played from there, so it will blink instead)"
+                : " (it has no way to get to them from there, so it will blink)";
+        return new TrollResult(true, String.format(java.util.Locale.ROOT, "it waits for %s %s, %.1f blocks away, %s%s",
                 target.getName(), spot.pose().id(), away, spot.hidden()
                         ? "out of their sight"
-                        : "in plain sight (there was nowhere hidden), so they will see it at once"));
+                        : "in plain sight (there was nowhere hidden), so they will see it at once", note));
     }
 
-    /** Any position that fits round the player, a hidden one first. */
-    private MonsterSpots.Search anywhere(Player target) {
+    /** The animations {@code /msc troll} takes, for its help and tab completion. */
+    public List<String> animations() {
+        List<String> ids = new ArrayList<>();
+        ids.add("random");
+        for (MonsterScript.Behavior b : MonsterScript.Behavior.values()) ids.add(b.id());
+        return ids;
+    }
+
+    /**
+     * Any position that fits round the player: hidden and able to reach them first, then hidden, then
+     * in plain sight. A dozen poses at most are tried, so the command answers at once.
+     */
+    private MonsterSpots.Search anywhere(Player target, MonsterScript.Behavior behavior) {
         List<MonsterRig.Pose> poses = new ArrayList<>();
         for (MonsterRig.Pose pose : rig.poses().values()) {
             if (pose.place() != Place.ACTION) poses.add(pose);
         }
         java.util.Collections.shuffle(poses, random);
-        MonsterSpots.Spot inSight = null;
-        for (MonsterRig.Pose pose : poses) {
-            MonsterSpots.Search search = spots.search(target, pose, TROLL_RADIUS, false, false);
+        MonsterSpots.Spot hidden = null, inSight = null;
+        for (MonsterRig.Pose pose : poses.subList(0, Math.min(12, poses.size()))) {
+            MonsterSpots.Search search = spots.search(target, pose, TROLL_RADIUS, false, false, behavior);
             MonsterSpots.Spot spot = search.spot();
             if (spot == null) continue;
-            if (spot.hidden()) return search;
-            if (inSight == null) inSight = spot;
+            if (spot.hidden() && spot.reachable()) return search;
+            if (spot.hidden() && hidden == null) hidden = spot;
+            if (!spot.hidden() && inSight == null) inSight = spot;
         }
-        return inSight != null ? new MonsterSpots.Search(inSight, null)
+        MonsterSpots.Spot best = hidden != null ? hidden : inSight;
+        return best != null ? new MonsterSpots.Search(best, null)
                 : new MonsterSpots.Search(null, "no position fits anywhere within " + TROLL_RADIUS + " blocks of the player");
     }
 

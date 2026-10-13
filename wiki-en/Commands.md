@@ -270,12 +270,14 @@ Plays any `.nbs` file from `plugins/MultiverseCreatures/music/`. Songs are playe
 
 ---
 
-## /msc troll <player> <entity> <position>
+## /msc troll <player> <entity> <position> [animation]
 
 Sends an entity after a player, waiting in the position you pick somewhere within **10 blocks** of them, out of their sight when it can. Today the entity is `monster`.
 
 - `<position>` is any of its poses with dashes for spaces (`ceiling-cling`, `lying-on-chest`, `squeezed-in-a-shaft`…; tab completion lists them all), or `random` for any that fits.
 - It looks for the place that pose needs: a floor, a ceiling, the top of any solid block, open air, or a room of the size a tight pose was made for (1×1, 1×2, 2×1), turning square to the blocks to fit it.
+- `[animation]` (optional) is what it does once seen: `walk`, `coffin-rise`, `crawl-rush`, `ceiling-scuttle`, `blink` or `peek-and-hide`; left out (or `random`), it picks one the place allows. A spot it can play that animation from is chosen first; if there is none, it blinks and you are told.
+- It only waits where the player could see it by turning round (never behind blocks, in a cave under the floor or inside a hill).
 - A place out of the player's view wins. If the only places are in plain sight it still comes, and you are told they will see it at once.
 - If nothing within 10 blocks works, it is not spawned and the chat says why, for example:
 
@@ -293,14 +295,14 @@ Teleports the executor across worlds/dimensions. Used for testing the boss dimen
 
 ---
 
-## /wiki [page|hand|en|es]
+## /mscwiki [page|hand|en|es]
 
-Opens the in-game wiki, for every player (`msc.wiki`, granted by default). Aliases: `/mscwiki`, `/mwiki`.
+Opens the in-game wiki, for every player (`msc.wiki`, granted by default).
 
 - Nine shelves: weapons, armor, relics, food and potions, creature drops, crafted components, boss loot, Stands and bosses.
 - Each item page shows the item with its lore, its recipe as the server has it (crafting table, furnace, blast furnace, brewing stand or merchant trade), who drops it with the server's own chance, and what it is used in. Click an ingredient to open its page.
 - English and Spanish: it opens in the client's language and the flag in the corner switches it (the choice is kept on the player).
-- `/wiki venomfang` opens a page directly; `/wiki hand` opens the page of the item you hold; `/wiki es` or `/wiki en` switches the language.
+- `/mscwiki venomfang` opens a page directly; `/mscwiki hand` opens the page of the item you hold; `/mscwiki es` or `/mscwiki en` switches the language.
 
 ## Permissions
 

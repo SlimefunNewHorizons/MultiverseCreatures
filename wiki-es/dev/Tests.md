@@ -97,7 +97,7 @@ Cubre la aritmética de salud de `utils/MscEntityUtils`:
 - El filtro por tipo compara etiquetas con `-`/`_` eliminados y cae al nombre como subcadena; un tipo `null` o vacío nunca coincide.
 
 ### `entities/boss/NixDamageCapTest` — Cap de daño de NIX
-- Nix nunca puede perder más de `entities.nix-executioner.max-damage-per-hit` (por defecto **100**) en un solo golpe: lo que supera el cap se recorta, lo que queda por debajo pasa intacto y el cap nunca *infla* un golpe.
+- Nix nunca puede perder más de `entities.nix-executioner.max-damage-per-hit` (por defecto **10**) en un solo golpe: lo que supera el cap se recorta, lo que queda por debajo pasa intacto y el cap nunca *infla* un golpe.
 - `0` (o cualquier valor no positivo) desactiva el límite, que es la forma documentada de volver al comportamiento sin tope.
 - Fija la aritmética del pool de vida: una ráfaga de 10 000 deja 350 de 450 HP, cuatro golpes con cap dejan 50 y el quinto termina con el jefe.
 

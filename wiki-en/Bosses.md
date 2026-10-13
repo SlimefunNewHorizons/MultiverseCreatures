@@ -237,7 +237,7 @@ A towering, ruthless executioner constructed from a custom **27-piece ItemDispla
 | Move speed | `nix-executioner.move-speed` (0.30) |
 | Melee range / Cleave damage | `nix-executioner.melee-range` (3.5) · `nix-executioner.cleave-damage` (22.0) |
 | Chain pull range | `nix-executioner.chain-range` (24.0 blocks) |
-| Damage cap taken | `nix-executioner.max-damage-per-hit` (100.0 per hit; `0` disables the cap) |
+| Damage cap taken | `nix-executioner.max-damage-per-hit` (10.0 per hit; `0` disables the cap) |
 | Cooldowns | melee 20 ticks · chain pull 80 ticks |
 | Summon Ritual | **The Executioner's Scaffold** in Boss Dimension (sacrificing `Executioner's Warrant`) · `/msc spawn nix` (OP) |
 
@@ -328,7 +328,7 @@ DIO walks in menacingly (ゴゴゴ letters drift up around him) with his Stand *
 |---|---|
 | Health | `dio-brando.health` (1500) — below 50% he enrages ("WRYYYY!"): shorter pauses, longer time stop, more knives |
 | Aggro / speed | `aggro-range` (32) · `move-speed` (0.26) |
-| Damage cap taken | `max-damage-per-hit` (100) |
+| Damage cap taken | `max-damage-per-hit` (10) |
 
 | Attack | What happens | Damage key (default) |
 |---|---|---|
@@ -386,6 +386,8 @@ As in the mod: **the first form has no beam**, in the next two hunchbacks only t
 3. It **pulls** for `beam.hold-ticks` (120) at the mod's speed, `beam.pull-speed` (0.2 blocks a tick), slower within the last block.
 4. It **rests** for `beam.rest-ticks` (100), and after a bite.
 
+A player held in a pulling beam is **hurt the whole time**: `beam.damage` (2) true damage every `beam.damage-interval-ticks` (10), scaled like the storm's other hits. Several beams on the same player hurt at that one pace. `beam.damage: 0` turns it off.
+
 While its beam is on a head turns **slower than a player sprints**: run sideways across the cone and you break free. The hunchbacks only drag the victim they locked onto; the Destroyer and the Devourer drag anything inside the cone. The beam is a translucent cone of purple glass, as in the mod.
 
 The cone is drawn steady: it is redrawn on the same animation frames as the head it leaves, so both move together on the client; the head aims at a point that follows its victim's eyes smoothly instead of at every step and jump, and turns back as the body turns so the beam does not swing; its length ignores the ground it tears up underneath (changes under a block are ignored, bigger ones are eased in); and while it holds a victim the head ignores small bobs inside the cone (3 degrees of slack) and only follows, smoothly, a victim that is leaving it.
@@ -433,7 +435,7 @@ Every direct hit it lands is **true damage** (`max-damage-dealt` 20, `true-damag
 - **Hitboxes:** the mass and each head are `Interaction` entities that follow the model. Swords deal the weapon's damage, scaled by the attack cooldown, plus Sharpness and **Smite** (the storm is undead like any Wither). Projectiles that enter a box count too.
 - **Injuring the heads:** every projectile that reaches a head counts; after a few (1–2 on the hunchbacks, 3–8 on the colossal forms) the head is **injured** for `injury-ticks` (200): its beam goes dark, it spits a blue skull and takes ×1.5 damage. Whoever injured it **escapes**: the storm leaves them alone for `escape-ticks` (800, the mod's 40 s). With **every** head injured at once the storm is **exposed** for `exposed-ticks` (160) and takes ×`exposed-damage-multiplier` (2).
 - **Playing dead:** the Destroyer and the Devourer, at `play-dead-threshold` (15%), fall to the ground with their jaws hanging for `play-dead-ticks` (200), taking ×1.5... then rise with every head roaring, a blast that hurts (`revive-damage` 12) and throws everyone back, and 10% of their health back. Only once.
-- **Death:** it breaks apart in rays of light as its blocks burst one by one; it drops Nether Stars (1 to 5 by form) and experience, and cures everyone's sickness.
+- **Death:** it breaks apart in rays of light as its blocks burst one by one; it drops one Nether Star, its head (a trophy named after the form it fell in) and experience, and cures everyone's sickness.
 
 ### Performance
 

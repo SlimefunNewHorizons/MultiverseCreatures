@@ -44,6 +44,8 @@ final class MonsterBody {
     private final List<ItemDisplay> parts = new ArrayList<>();
     private World world;
     private Vector origin;
+    /** True once its face has been lit up to be seen. */
+    private boolean lit;
 
     MonsterBody(MonsterRig rig) {
         this.rig = rig;
@@ -83,15 +85,46 @@ final class MonsterBody {
      */
     void show(Vector anchor, float yaw, Pose pose, int ticks) {
         if (world == null) return;
-        Vector wanted = new Vector(anchor.getX(), anchor.getY() - BELOW, anchor.getZ());
-        if (wanted.distanceSquared(origin) > 1.0e-6) {
-            origin = wanted;
-            Location at = origin.toLocation(world, 0f, 0f);
+        move(anchor, 2);
+        draw(rig.heads(pose, root(anchor, yaw, pose)), ticks);
+    }
+
+    /**
+     * Shows only its face, the head and jaw of {@code pose}, with its eyes at {@code at}: turned by
+     * {@code yaw} and tilted by {@code pitch} radians, {@code scale} times its size. No sliding: it is
+     * there at once.
+     */
+    void face(Vector at, float yaw, float pitch, float scale, Pose pose) {
+        if (world == null) return;
+        move(at, 0);
+        if (!lit) {
+            // Its face is never lost in the dark, even where the player stands in none.
+            lit = true;
             for (ItemDisplay part : parts) {
-                if (part.isValid()) part.teleport(at);
+                if (part.isValid()) part.setBrightness(new Display.Brightness(9, 0));
             }
         }
-        Matrix4f[] heads = rig.heads(pose, root(anchor, yaw, pose));
+        Matrix4f place = new Matrix4f()
+                .translation((float) (at.getX() - origin.getX()), (float) (at.getY() - origin.getY()),
+                        (float) (at.getZ() - origin.getZ()))
+                .rotateY(yaw).rotateX(pitch);
+        draw(rig.face(pose, place, scale), 0);
+    }
+
+    /** Moves the displays' point under {@code anchor}, the client sliding there over {@code ticks}. */
+    private void move(Vector anchor, int ticks) {
+        Vector wanted = new Vector(anchor.getX(), anchor.getY() - BELOW, anchor.getZ());
+        if (wanted.distanceSquared(origin) <= 1.0e-6) return;
+        origin = wanted;
+        Location at = origin.toLocation(world, 0f, 0f);
+        for (ItemDisplay part : parts) {
+            if (!part.isValid()) continue;
+            if (part.getTeleportDuration() != ticks) part.setTeleportDuration(ticks);
+            part.teleport(at);
+        }
+    }
+
+    private void draw(Matrix4f[] heads, int ticks) {
         for (int i = 0; i < parts.size(); i++) {
             ItemDisplay part = parts.get(i);
             if (!part.isValid()) continue;

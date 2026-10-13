@@ -33,20 +33,25 @@ public final class MscConfigMigration {
      * Version of the shipped {@code config.yml}. Bump it when a release adds, moves or renames keys
      * so the log stops claiming the file is current once it is not.
      */
-    public static final int CONFIG_VERSION = 7;
+    public static final int CONFIG_VERSION = 8;
 
     /**
-     * Numbers an earlier version shipped, by path. A file still holding one exactly never had it
+     * Numbers earlier versions shipped, by path. A file still holding one exactly never had it
      * edited, so it takes the new default (version 5 retuned the bosses' health and damage caps,
-     * version 6 JackStar's pause between specials);
-     * a value an operator changed is kept.
+     * version 6 JackStar's pause between specials, version 8 every boss's cap on the damage a single
+     * hit takes, down to 10); a value an operator changed is kept.
      */
-    static final Map<String, Double> RETIRED_NUMBERS = Map.of(
-            "entities.nix-executioner.health", 450.0,
-            "entities.jackstar-architect.health", 600.0,
-            "entities.dio-brando.health", 900.0,
-            "entities.dio-brando.max-damage-per-hit", 100.0,
-            "entities.jackstar-architect.special-attack-gap-ticks", 160.0);
+    static final Map<String, List<Double>> RETIRED_NUMBERS = Map.ofEntries(
+            Map.entry("entities.nix-executioner.health", List.of(450.0)),
+            Map.entry("entities.jackstar-architect.health", List.of(600.0)),
+            Map.entry("entities.dio-brando.health", List.of(900.0)),
+            Map.entry("entities.jackstar-architect.special-attack-gap-ticks", List.of(160.0)),
+            Map.entry("entities.armor-stand-boss.max-damage-per-hit", List.of(50.0)),
+            Map.entry("entities.mahoraga.max-damage-per-hit", List.of(100.0)),
+            Map.entry("entities.dio-brando.max-damage-per-hit", List.of(100.0, 75.0)),
+            Map.entry("entities.nix-executioner.max-damage-per-hit", List.of(100.0)),
+            Map.entry("entities.jackstar-architect.max-damage-per-hit", List.of(60.0)),
+            Map.entry("entities.wither-storm.max-damage-per-hit", List.of(150.0)));
 
     /**
      * Lists that version 3 shipped in Spanish, by path. A file that still holds one of them word for
@@ -169,12 +174,14 @@ public final class MscConfigMigration {
                 replaced.add(path);
             }
         }
-        for (Map.Entry<String, Double> retired : RETIRED_NUMBERS.entrySet()) {
+        for (Map.Entry<String, List<Double>> retired : RETIRED_NUMBERS.entrySet()) {
             String path = retired.getKey();
-            if (config.isDouble(path) || config.isInt(path)) {
-                if (Math.abs(config.getDouble(path) - retired.getValue()) < 1e-9 && defaults.contains(path)) {
+            if (!(config.isDouble(path) || config.isInt(path)) || !defaults.contains(path)) continue;
+            for (double old : retired.getValue()) {
+                if (Math.abs(config.getDouble(path) - old) < 1e-9) {
                     config.set(path, defaults.get(path));
                     replaced.add(path);
+                    break;
                 }
             }
         }

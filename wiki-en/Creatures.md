@@ -358,7 +358,9 @@ A spot only counts when the whole pose fits there and neither its eyes nor its c
 | Peek and hide | Pulls back out of sight, then waits again somewhere closer that you are not looking at | 3 in 10, once per visit |
 | Blink | Flickers out and is suddenly in your face | Whenever nothing else fits |
 
-Every behaviour ends the same way: it puts its palm over your view (standing, crouched or on all fours, whichever fits the room, reaching from the side when there is no room in front) and vanishes in a puff of ink, with Darkness and a moment of Blindness. Left unseen for `lurk-seconds` (45), it leaves without a sound while you are not looking.
+Every behaviour ends the same way: once it is close, its body is gone and **only its face pops up right in front of your eyes**, jaw wide open and shaking, with a scream (for `scream-ticks`, 20 ticks, wherever you look, while you are slowed). Then it vanishes in a puff of ink, with Darkness and a moment of Blindness.
+
+From the moment it comes you can **hear it breathing** where it is, and only you hear it: a slow, deep breath every few seconds while it waits, with a sniff now and then, and quick breaths once it comes for you. Left unseen for `lurk-seconds` (45), it leaves without a sound while you are not looking.
 
 **It never goes through blocks.** Everything it does is planned against the blocks round it before it starts, tick by tick: it walks a path to you standing where there is room, narrow in a corridor, crouched under a low ceiling and on all fours in a tunnel, and squeezes out of a nook with a jerk when there is no room to unfold slowly. When there is no way at all (a closed shaft, a deep pit) it blinks instead.
 

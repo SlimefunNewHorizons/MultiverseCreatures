@@ -358,7 +358,9 @@ Un sitio solo vale si la pose entera cabe ahí y ni sus ojos ni su pecho están 
 | Asomarse y esconderse | Se aparta fuera de tu vista y vuelve a esperar más cerca, donde no miras | 3 de cada 10, una vez por visita |
 | Parpadeo | Parpadea, desaparece y de pronto está en tu cara | Cuando nada más cabe |
 
-Todos terminan igual: te pone la palma delante de la vista (de pie, agachado o a cuatro patas, lo que quepa en el sitio, y desde un lado si no hay espacio enfrente) y desaparece en una nube de tinta, con Oscuridad y un instante de Ceguera. Si nadie lo ve en `lurk-seconds` (45), se va sin hacer ruido mientras no miras.
+Todos terminan igual: cuando está cerca, su cuerpo desaparece y **solo su cara aparece de golpe justo delante de tus ojos**, con la mandíbula abierta y temblando, con un grito (durante `scream-ticks`, 20 ticks, mires a donde mires, mientras vas ralentizado). Luego desaparece en una nube de tinta, con Oscuridad y un instante de Ceguera.
+
+Desde que llega **lo oyes respirar** donde está, y solo tú lo oyes: una respiración lenta y profunda cada pocos segundos mientras espera, con algún olfateo, y respiraciones rápidas cuando va a por ti. Si nadie lo ve en `lurk-seconds` (45), se va sin hacer ruido mientras no miras.
 
 **Nunca atraviesa bloques.** Todo lo que hace se planea contra los bloques de alrededor antes de empezar, tick a tick: camina hacia ti por una ruta, de pie donde hay espacio, estrecho en un pasillo, agachado bajo un techo bajo y a cuatro patas en un túnel, y sale de un hueco con un tirón cuando no hay espacio para desplegarse despacio. Si no hay ninguna salida (un pozo cerrado, un agujero hondo) parpadea en su lugar.
 
