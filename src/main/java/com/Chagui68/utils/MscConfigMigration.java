@@ -33,15 +33,18 @@ public final class MscConfigMigration {
      * Version of the shipped {@code config.yml}. Bump it when a release adds, moves or renames keys
      * so the log stops claiming the file is current once it is not.
      */
-    public static final int CONFIG_VERSION = 8;
+    public static final int CONFIG_VERSION = 9;
 
     /**
      * Numbers earlier versions shipped, by path. A file still holding one exactly never had it
      * edited, so it takes the new default (version 5 retuned the bosses' health and damage caps,
      * version 6 JackStar's pause between specials, version 8 every boss's cap on the damage a single
-     * hit takes, down to 10); a value an operator changed is kept.
+     * hit takes, down to 10, version 9 the Architect's Deployer's damage, up 40%); a value an operator
+     * changed is kept.
      */
     static final Map<String, List<Double>> RETIRED_NUMBERS = Map.ofEntries(
+            Map.entry("items.architect-deployer.damage-bonus", List.of(0.2)),
+            Map.entry("items.architect-deployer.beam-damage", List.of(12.0)),
             Map.entry("entities.nix-executioner.health", List.of(450.0)),
             Map.entry("entities.jackstar-architect.health", List.of(600.0)),
             Map.entry("entities.dio-brando.health", List.of(900.0)),

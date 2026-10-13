@@ -56,7 +56,9 @@ public final class TrueDamage {
         PotionEffect resistance = target.getPotionEffect(PotionEffectType.RESISTANCE);
         // The hit and its cap grow with what the player has invested (BossDamageScaling).
         double scale = scaled ? BossDamageScaling.factor(target, true) : 1.0;
-        double dealt = dealt(amount * scale, resistance == null ? -1 : resistance.getAmplifier(), pierce, cap * scale);
+        // Inside the Boss Dimension Resistance is weaker on top of what the boss pierces.
+        double pierced = com.Chagui68.listener.bossdimension.BossDimensionRules.resistancePierce(target, pierce);
+        double dealt = dealt(amount * scale, resistance == null ? -1 : resistance.getAmplifier(), pierced, cap * scale);
         if (dealt <= 0) return 0;
         // Back-to-back boss hits must not be swallowed by the vanilla invulnerability window.
         target.setNoDamageTicks(0);

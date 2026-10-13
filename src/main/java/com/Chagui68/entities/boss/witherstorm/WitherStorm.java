@@ -1594,8 +1594,14 @@ final class WitherStorm {
      *
      * @param head       the head index hit, or -1 for the mass
      * @param projectile whether a projectile landed it; only projectiles injure a head
+     * @param after      what the hit is multiplied by once capped: more for arrows, less for a sharp sword
      */
-    void hurt(double amount, int head, boolean projectile, Player attacker) {
+    void hurt(double amount, int head, boolean projectile, Player attacker, double after) {
+        hurt(amount, head, projectile, attacker, settings().maxDamagePerHit(), after);
+    }
+
+    /** {@link #hurt(double, int, boolean, Player, double)} with its own cap: arrows have a higher one. */
+    void hurt(double amount, int head, boolean projectile, Player attacker, double cap, double after) {
         if (state == State.FORMING || state == State.EVOLVING || state == State.DYING || amount <= 0) {
             if (state == State.FORMING || state == State.EVOLVING) shieldSpark(head);
             return;
@@ -1604,7 +1610,7 @@ final class WitherStorm {
         double factor = h == null ? form.bodyDamageMultiplier() : (h.injured > 0 ? 1.5 : 1.0);
         if (exposedTicks > 0) factor *= settings().exposedMultiplier();
         if (state == State.PLAYING_DEAD) factor *= 1.5;
-        double dealt = Math.min(amount * factor, settings().maxDamagePerHit());
+        double dealt = Math.min(amount * factor, cap) * after;
         health = Math.max(0, health - dealt);
         hitEffect(h);
         if (h != null) {

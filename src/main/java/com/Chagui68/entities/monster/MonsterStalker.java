@@ -44,6 +44,8 @@ public final class MonsterStalker {
     private final MonsterSpots spots;
     private final Random random = new Random();
     private final Map<UUID, MonsterHaunt> haunts = new HashMap<>();
+    /** Players it is about to visit, and what they hear and see before it comes. */
+    private final Map<UUID, MonsterOmen> omens = new HashMap<>();
     private final Map<UUID, Long> lastVisit = new HashMap<>();
 
     /**
@@ -81,20 +83,45 @@ public final class MonsterStalker {
                 it.remove();
             }
         }
+        Iterator<Map.Entry<UUID, MonsterOmen>> omen = omens.entrySet().iterator();
+        while (omen.hasNext()) {
+            Map.Entry<UUID, MonsterOmen> entry = omen.next();
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (entry.getValue().tick(player)) continue;
+            omen.remove();
+            // Its time is up: now it comes. Where there is nowhere for it, the lights come back on.
+            if (player == null || !player.isOnline() || !visit(player)) {
+                entry.getValue().end();
+                lastVisit.put(entry.getKey(), System.currentTimeMillis());
+            } else {
+                haunts.get(entry.getKey()).omen = entry.getValue();
+            }
+        }
         FileConfiguration config = plugin.getConfig();
         long every = Math.max(1, config.getLong("entities.monster.check-interval-seconds", 20)) * 20L;
         if (tick % every == 0) {
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (due(player, config)) visit(player);
+                if (due(player, config)) forewarn(player, config);
             }
         }
+    }
+
+    /** Starts what comes before a visit, or the visit itself when {@code omen-seconds} is 0. */
+    private void forewarn(Player player, FileConfiguration config) {
+        int ticks = Math.max(0, config.getInt("entities.monster.omen-seconds", 30)) * 20;
+        if (ticks == 0) {
+            visit(player);
+            return;
+        }
+        omens.put(player.getUniqueId(), new MonsterOmen(rig, player, ticks, random));
     }
 
     /** True when a player meets everything a visit asks for, the roll of the dice included. */
     private boolean due(Player player, FileConfiguration config) {
         if (!plugin.isEnabled("entities.monster")) return false;
-        if (haunts.size() >= config.getInt("entities.monster.max-active", 5)) return false;
-        if (haunts.containsKey(player.getUniqueId()) || player.getGameMode() == GameMode.SPECTATOR) return false;
+        if (haunts.size() + omens.size() >= config.getInt("entities.monster.max-active", 5)) return false;
+        if (haunts.containsKey(player.getUniqueId()) || omens.containsKey(player.getUniqueId())
+                || player.getGameMode() == GameMode.SPECTATOR) return false;
         World world = player.getWorld();
         if (!MscWorldPolicy.isAllowed(plugin, world)) return false;
         Long last = lastVisit.get(player.getUniqueId());
@@ -126,13 +153,21 @@ public final class MonsterStalker {
 
     /** Starts a visit from {@code spot}; {@code forced} is the behaviour to play once seen, or {@code null}. */
     private void start(Player player, MonsterSpots.Spot spot, MonsterScript.Behavior forced) {
+        // A command does not wait for an omen still running: that one ends, its lights back on.
+        MonsterOmen pending = omens.remove(player.getUniqueId());
+        if (pending != null) pending.end();
         FileConfiguration config = plugin.getConfig();
         MonsterScript.Settings settings = new MonsterScript.Settings(
                 config.getDouble("entities.monster.approach-speed", 0.35),
                 config.getInt("entities.monster.scream-ticks", 20),
                 config.getInt("entities.monster.lurk-seconds", 45) * 20,
                 config.getDouble("entities.monster.view-angle", 30));
-        haunts.put(player.getUniqueId(), new MonsterHaunt(rig, spots, player, spot, settings, random, forced));
+        MonsterHaunt.Feel feel = new MonsterHaunt.Feel(
+                config.getBoolean("entities.monster.darkness-while-coming", true),
+                Math.max(0, config.getInt("entities.monster.trace-seconds", 12)) * 20,
+                config.getString("entities.monster.sounds.scream", "").trim(),
+                config.getString("entities.monster.sounds.breath", "").trim());
+        haunts.put(player.getUniqueId(), new MonsterHaunt(rig, spots, player, spot, settings, feel, random, forced));
         if (ticker == null) startTicker();
     }
 
@@ -276,5 +311,9 @@ public final class MonsterStalker {
             haunt.end();
         }
         haunts.clear();
+        for (MonsterOmen omen : omens.values()) {
+            omen.end();
+        }
+        omens.clear();
     }
 }

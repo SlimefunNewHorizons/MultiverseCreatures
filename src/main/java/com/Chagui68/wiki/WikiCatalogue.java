@@ -158,6 +158,12 @@ public final class WikiCatalogue {
         list.add(WikiEntry.item("architectdeployer", WEAPONS, () -> ArchitectDeployer.ARCHITECT_DEPLOYER)
                 .about("Jack Star's legacy, built round the Architect Kernel he drops.",
                         "El legado de Jack Star, construido alrededor del Architect Kernel que suelta.")
+                .source(WikiSource.of(Material.SPECTRAL_ARROW, "Damage", "Daño",
+                        "Guided arrows deal 68% more damage and sudo rm -rf deals 16.8 to each target. Against the "
+                                + "Wither Storm its arrows count as arrows: their own 150 cap, then twice the damage.",
+                        "Las flechas guiadas hacen un 68% más de daño y sudo rm -rf hace 16.8 a cada objetivo. Contra el "
+                                + "Wither Storm sus flechas cuentan como flechas: su propio tope de 150 y luego el doble "
+                                + "de daño."))
                 .build());
         list.add(WikiEntry.item("chaosforge", WEAPONS, () -> ChaosForge.CHAOS_FORGE).build());
         list.add(WikiEntry.item("skyfiretalisman", WEAPONS, () -> SkyfireTalisman.SKYFIRE_TALISMAN).build());
@@ -492,6 +498,16 @@ public final class WikiCatalogue {
                 .source(WikiSource.of(Material.SHIELD, "Every boss holds out", "Todos los jefes aguantan",
                         "No boss takes more than 10 damage from a single hit, however strong it is.",
                         "Ningún jefe recibe más de 10 de daño de un solo golpe, por fuerte que sea."))
+                .source(WikiSource.of(Material.DIAMOND_SWORD, "Sharp swords are blunted", "Las espadas afiladas se embotan",
+                        "Every boss but Mahoraga and Kinger takes 2% less from a sword for every 5 levels of "
+                                + "Sharpness it has, 50% less at most (Sharpness 125). It is taken off after the 10 cap.",
+                        "Todos los jefes menos Mahoraga y Kinger reciben un 2% menos de una espada por cada 5 niveles "
+                                + "de Filo que tenga, un 50% menos como máximo (Filo 125). Se resta después del tope de 10."))
+                .source(WikiSource.of(Material.IRON_CHESTPLATE, "Weaker Resistance", "Resistencia más débil",
+                        "The Resistance effect blocks 10% less than usual there: Resistance I blocks 18% instead of "
+                                + "20%. It counts against the bosses' true damage too.",
+                        "El efecto de Resistencia bloquea un 10% menos de lo normal allí: Resistencia I bloquea un 18% "
+                                + "en vez de un 20%. También cuenta contra el daño verdadero de los jefes."))
                 .build());
         list.add(WikiEntry.info("obsidiansentinel", BOSSES, Material.ARMOR_STAND, NamedTextColor.DARK_GRAY,
                         "The Obsidian Sentinel", "The Obsidian Sentinel")
@@ -590,6 +606,16 @@ public final class WikiCatalogue {
                                 + "With every head injured the storm is exposed.",
                         "Los proyectiles que dan en una cabeza la hieren: recibe más daño y te deja en paz un rato. "
                                 + "Con todas las cabezas heridas la tormenta queda expuesta."))
+                .source(WikiSource.of(Material.BOW, "Arrows hurt it most", "Las flechas le duelen más",
+                        "An arrow has its own cap of 150 damage instead of 10, and then deals twice that: up to 300 "
+                                + "from a single arrow.",
+                        "Una flecha tiene su propio tope de 150 de daño en vez de 10, y luego hace el doble: hasta 300 "
+                                + "de una sola flecha."))
+                .source(WikiSource.of(Material.DIAMOND_SWORD, "Swords", "Espadas",
+                        "Melee hits stay capped at 10, and a sword loses 2% for every 5 levels of Sharpness, 50% at "
+                                + "most.",
+                        "Los golpes cuerpo a cuerpo siguen con tope de 10, y una espada pierde un 2% por cada 5 niveles "
+                                + "de Filo, un 50% como máximo."))
                 .source(WikiSource.of(Material.NETHER_STAR, "Loot", "Botín",
                         "One Nether Star and the Wither Storm Head.", "Una Estrella del Nether y la Wither Storm Head."))
                 .build());
@@ -634,9 +660,23 @@ public final class WikiCatalogue {
                         "En la oscuridad: a tu espalda, en el techo, sobre un cofre o en un hueco estrecho. Si oyes "
                                 + "respirar cerca, ya está ahí.",
                         "entities.monster.chance", 0.04))
+                .source(WikiSource.of(Material.SOUL_TORCH, "Before it comes", "Antes de que llegue",
+                        "For half a minute: steps behind you that stop when they are close, a door somewhere near, the "
+                                + "torches round you going out one by one, and maybe a glimpse of it at the edge of your "
+                                + "sight, gone before you can look at it. Only you hear and see any of it.",
+                        "Durante medio minuto: pasos a tu espalda que se paran cuando están cerca, una puerta cerca, las "
+                                + "antorchas a tu alrededor apagándose una a una y quizá un vistazo de él al borde de tu "
+                                + "vista, que desaparece antes de que puedas mirarlo. Solo tú lo oyes y lo ves."))
                 .source(WikiSource.of(Material.ENDER_EYE, "If you see it", "Si lo ves",
-                        "It comes for you, and its face ends up in yours, screaming. Then it is gone.",
-                        "Va a por ti, y su cara acaba en la tuya, gritando. Luego desaparece."))
+                        "Its head turns slowly to follow you. Then it comes for you, your sight pulsing dark, and its "
+                                + "face ends up in yours, screaming. Then it is gone.",
+                        "Su cabeza gira despacio para seguirte. Luego va a por ti, con tu vista latiendo a oscuras, y su "
+                                + "cara acaba en la tuya, gritando. Luego desaparece."))
+                .source(WikiSource.of(Material.OAK_DOOR, "If it leaves", "Si se va",
+                        "Left unseen too long, it goes without a sound, but leaves its footprints behind for a while, "
+                                + "and a door near where it waited may be standing open.",
+                        "Si nadie lo ve durante mucho rato, se va sin un sonido, pero deja sus huellas un tiempo, y una "
+                                + "puerta cerca de donde esperaba puede quedar abierta."))
                 .build());
     }
 }

@@ -1808,7 +1808,7 @@ public class ArmorStandBoss implements Listener, BossHost {
                 modifierValue(event, EntityDamageEvent.DamageModifier.MAGIC),
                 modifierValue(event, EntityDamageEvent.DamageModifier.RESISTANCE),
                 resistanceAmplifier(player),
-                penetratingResistancePierce,
+                com.Chagui68.listener.bossdimension.BossDimensionRules.resistancePierce(player, penetratingResistancePierce),
                 maxDamageDealtPerHit * scale,
                 System.currentTimeMillis());
         if (hit.raw() <= 0) return;

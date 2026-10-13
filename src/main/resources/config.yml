@@ -4,7 +4,7 @@
 # Version of this file. A server that updates the plugin keeps its own config.yml and the plugin
 # adds whatever keys are missing on start (values you edited are never touched), stamping the new
 # version here. See MscConfigMigration.CONFIG_VERSION — keep the two in step.
-config-version: 8
+config-version: 9
 #
 # SlimeTinker Infinity against every boss except Mahoraga (which adapts on its own):
 #   pierce-infinity-armor: boss hits pierce the full Infinity set (absorption is cleared first)
@@ -19,6 +19,12 @@ performance:
 boss-balance:
   pierce-infinity-armor: true
   infinity-weapon-damage-multiplier: 0.5
+  # Swords hit every boss but Mahoraga and Kinger for less the more Sharpness they carry:
+  # per-5-levels off for every 5 levels (Sharpness 25 -> 10% less), max off at most. Taken off after
+  # the boss's cap on a single hit, so it counts however hard the sword hits.
+  sword-sharpness-resistance:
+    per-5-levels: 0.02
+    max: 0.5
   # Boss damage adapts to what each player has invested, so endgame players are hit as hard, relative
   # to their health, as fresh ones. Applies to every boss but Mahoraga (which adapts on its own).
   # factor = health x rank x effects (x gear for Garou and Kinger, whose hits armour still reduces),
@@ -116,12 +122,16 @@ boss-dimension:
   #   fall-true-damage-share: share of that fall damage dealt as true damage, as Mahoraga deals it:
   #     armour, Protection, Feather Falling, Resistance and other plugins' caps do not stop it (0.2 = 20%).
   #   gravity-multiplier: share of the usual gravity players have there (0.7 = 30% less).
+  #   resistance-effectiveness: see below.
   natural-regeneration: false
   saturation-effect: false
   flight: false
   fall-damage-multiplier: 1.7
   fall-true-damage-share: 0.2
   gravity-multiplier: 0.7
+  # Share of what the Resistance effect usually blocks that it still blocks there (0.9 = 10% weaker:
+  # Resistance I blocks 18% instead of 20%). Counts on the bosses' true hits too.
+  resistance-effectiveness: 0.9
 
 
 # ---------------------------------------------------------------------------
@@ -379,8 +389,21 @@ entities:
     approach-speed: 0.35
     # Ticks its face stays in the player's face, screaming, before it vanishes.
     scream-ticks: 20
-    # Visits running at once, across the server.
+    # Visits running at once, across the server (omens included).
     max-active: 5
+    # Seconds of omen before it comes: steps behind the player, a door, lights near them going out
+    # (on their screen only, back on when the visit ends), maybe a glimpse of it at the edge of their
+    # sight. 0 to come at once. The spawn and troll commands never wait for it.
+    omen-seconds: 30
+    # The player's sight pulses dark (the Darkness effect) while it comes for them.
+    darkness-while-coming: true
+    # Seconds its footprints stay when it leaves unseen (a door near it shows open, too). 0 for none.
+    trace-seconds: 12
+    # Resource pack sounds to play instead of the vanilla ones, e.g. "myhorror:monster.scream".
+    # Leave blank for the vanilla mix.
+    sounds:
+      scream: ""
+      breath: ""
 
   # -------------------------------------------------------------------------
   # Kinger (chess piece)
@@ -556,6 +579,8 @@ entities:
     enabled: true
     health: 800.0                 # max health of the first form; each form multiplies it
     max-damage-per-hit: 10.0      # cap on what a single hit takes from it
+    arrow-max-damage-per-hit: 150.0 # arrows have their own cap on a single hit
+    arrow-damage-multiplier: 2.0  # arrows deal this many times their damage, after their cap (150 x 2 = 300 at most)
     # Its hits are true damage: armour and Protection are ignored, each hit is capped at
     # max-damage-dealt and Resistance keeps only part of its effect.
     max-damage-dealt: 20.0
@@ -990,10 +1015,10 @@ items:
 
   # Jack Star's bow, built round the Architect Kernel.
   architect-deployer:
-    damage-bonus: 0.2         # extra damage of every guided arrow
+    damage-bonus: 0.68        # extra damage of every guided arrow
     homing-radius: 8.0
     beam-range: 40.0          # sudo rm -rf (sneak + left click)
-    beam-damage: 12.0
+    beam-damage: 16.8
     beam-cooldown-ms: 18000
     failover-threshold: 0.3   # Failover below this share of health
     failover-cooldown-ms: 12000

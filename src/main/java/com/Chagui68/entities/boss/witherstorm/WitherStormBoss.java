@@ -41,6 +41,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.Chagui68.listener.weapons.ranged.ArchitectDeployerHandler;
 import com.Chagui68.utils.MscEntityUtils;
 
 import java.util.ArrayList;
@@ -322,7 +323,10 @@ public final class WitherStormBoss implements Listener {
         player.resetCooldown();
         player.getWorld().playSound(player.getLocation(), damage > 6 ? Sound.ENTITY_PLAYER_ATTACK_STRONG
                 : Sound.ENTITY_PLAYER_ATTACK_WEAK, 1f, 1f);
-        hit.storm().hurt(damage, hit.head(), false, player);
+        // A sharp sword loses its share after the cap, as on every other boss but Mahoraga and Kinger.
+        double share = com.Chagui68.entities.boss.BossInfinityRules.swordShare(
+                player.getInventory().getItemInMainHand(), plugin.getConfig());
+        hit.storm().hurt(damage, hit.head(), false, player, share);
     }
 
     /** The engine's own damage event on a hitbox is not used: the swing above already counted. */
@@ -380,7 +384,18 @@ public final class WitherStormBoss implements Listener {
         } else {
             projectile.remove();
         }
-        storm.hurt(damage, head, true, shooter);
+        if (!(projectile instanceof AbstractArrow) || projectile instanceof Trident) {
+            storm.hurt(damage, head, true, shooter, 1.0);
+            return;
+        }
+        // The Architect's Deployer's guided arrows keep their bonus here too, before the cap.
+        if (projectile.getScoreboardTags().contains(ArchitectDeployerHandler.PACKET)) {
+            damage *= 1 + plugin.getConfig().getDouble("items.architect-deployer.damage-bonus", 0.68);
+        }
+        // Arrows have their own, higher cap, and hurt it twice as much once capped.
+        double cap = Math.max(1, plugin.getConfig().getDouble("entities.wither-storm.arrow-max-damage-per-hit", 150.0));
+        double after = Math.max(0, plugin.getConfig().getDouble("entities.wither-storm.arrow-damage-multiplier", 2.0));
+        storm.hurt(damage, head, true, shooter, cap, after);
     }
 
     static double projectileDamage(Projectile projectile) {

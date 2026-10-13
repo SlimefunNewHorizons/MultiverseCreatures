@@ -47,7 +47,9 @@ import java.util.UUID;
  *     Mahoraga deals it: armour, Protection, Feather Falling, Resistance and other plugins' caps do
  *     not stop it;</li>
  *     <li><b>gravity-multiplier</b>: players fall and jump with that share of the usual gravity
- *     (an attribute modifier, taken off again when they leave).</li>
+ *     (an attribute modifier, taken off again when they leave);</li>
+ *     <li><b>resistance-effectiveness</b>: the Resistance effect blocks that share of what it
+ *     usually would (0.9 = 10% weaker), on ordinary hits and on the bosses' true hits alike.</li>
  * </ul>
  * Spectators are left alone: they cannot touch anything, and they have to fly to move at all.
  */
@@ -99,6 +101,26 @@ public final class BossDimensionRules implements Listener {
 
     private static boolean inside(Entity entity) {
         return entity.getWorld().getName().equals(BossDimensionManager.WORLD_NAME);
+    }
+
+    /**
+     * Share of what the Resistance effect blocks that it still blocks for {@code entity}:
+     * {@code boss-dimension.resistance-effectiveness} (0.9) inside the dimension, all of it elsewhere.
+     */
+    public static double resistanceKept(Entity entity) {
+        if (entity == null || !inside(entity)) return 1.0;
+        double kept = org.bukkit.plugin.java.JavaPlugin.getPlugin(MultiverseCreatures.class).getConfig()
+                .getDouble("boss-dimension.resistance-effectiveness", 0.9);
+        return Math.max(0, Math.min(1, kept));
+    }
+
+    /**
+     * The share of Resistance a boss's true hit on {@code target} ignores: {@code pierce} as it is,
+     * and inside the dimension the weaker Resistance on top of it.
+     */
+    public static double resistancePierce(Entity target, double pierce) {
+        double ignored = Math.max(0, Math.min(1, pierce));
+        return 1 - (1 - ignored) * resistanceKept(target);
     }
 
     private boolean naturalRegeneration() {
@@ -237,6 +259,27 @@ public final class BossDimensionRules implements Listener {
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (player.isOnline() && inside(player)) enforce(player);
         });
+    }
+
+    // ------------------------------------------------------------------ resistance
+
+    /**
+     * Resistance blocks less inside: its share of an ordinary hit shrinks to
+     * {@link #resistanceKept}. The bosses' true hits weaken it themselves ({@link #resistancePierce}),
+     * and the Sentinel credits the modifier back to pierce it, so its hits are left alone here.
+     */
+    @SuppressWarnings("deprecation")
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onResistance(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player) || !inside(player)) return;
+        if (!event.isApplicable(EntityDamageEvent.DamageModifier.RESISTANCE)) return;
+        if (event instanceof org.bukkit.event.entity.EntityDamageByEntityEvent byEntity
+                && byEntity.getDamager().getScoreboardTags().contains(com.Chagui68.entities.boss.ArmorStandBoss.TAG)) {
+            return;
+        }
+        double blocked = event.getDamage(EntityDamageEvent.DamageModifier.RESISTANCE);
+        if (blocked >= 0) return;
+        event.setDamage(EntityDamageEvent.DamageModifier.RESISTANCE, blocked * resistanceKept(player));
     }
 
     // ------------------------------------------------------------------ falls

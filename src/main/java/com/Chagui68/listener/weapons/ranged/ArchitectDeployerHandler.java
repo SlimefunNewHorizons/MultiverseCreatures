@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ArchitectDeployerHandler implements Listener {
 
-    private static final String PACKET = "MSC_DeployerPacket";
+    public static final String PACKET = "MSC_DeployerPacket";
 
     private final Plugin plugin;
     private final Map<UUID, Long> beamCooldowns = new ConcurrentHashMap<>();
@@ -123,7 +123,7 @@ public class ArchitectDeployerHandler implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPacketHit(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Projectile projectile && projectile.getScoreboardTags().contains(PACKET)) {
-            event.setDamage(event.getDamage() * (1 + setting("items.architect-deployer.damage-bonus", 0.2)));
+            event.setDamage(event.getDamage() * (1 + setting("items.architect-deployer.damage-bonus", 0.68)));
         }
     }
 
@@ -143,7 +143,7 @@ public class ArchitectDeployerHandler implements Listener {
         }
         beamCooldowns.put(player.getUniqueId(), now + (long) setting("items.architect-deployer.beam-cooldown-ms", 18000));
         double range = setting("items.architect-deployer.beam-range", 40.0);
-        double damage = setting("items.architect-deployer.beam-damage", 12.0);
+        double damage = setting("items.architect-deployer.beam-damage", 16.8);
         Location eye = player.getEyeLocation();
         Vector direction = eye.getDirection().normalize();
         RayTraceResult wall = player.getWorld().rayTraceBlocks(eye, direction, range);
