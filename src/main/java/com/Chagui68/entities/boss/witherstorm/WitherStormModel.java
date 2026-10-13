@@ -20,7 +20,7 @@ import java.util.Map;
  * the mod puts it.
  *
  * <p>The forms are the text files in {@code resources/witherstorm}, written by
- * {@code tools/wither-storm} from the mod's own model classes. A form is a tree of parts (a pivot
+ * {@code website/models/wither-storm} from the mod's own model classes. A form is a tree of parts (a pivot
  * and a rest rotation each, in the mod's sixteenths of a block with y pointing down) whose boxes are
  * drawn with one block each; groups say which subtree is rendered under which extra scale, the way
  * the mod's renderer scales its mass, heads and tentacles differently.</p>

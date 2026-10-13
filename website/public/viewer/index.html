@@ -124,7 +124,7 @@
       <h2>Show</h2>
       <label class="toggle"><span>Turn slowly</span><input type="checkbox" id="spin" checked></label>
       <label class="toggle" id="allLabel"><span>All Stands side by side</span><input type="checkbox" id="all"></label>
-      <label class="toggle" id="paintedLabel"><span>Painted skins<small>tools/stand-skins on The World's eleven heads</small></span><input type="checkbox" id="painted"></label>
+      <label class="toggle" id="paintedLabel"><span>Painted skins<small>website/models/stand-skins on The World's eleven heads</small></span><input type="checkbox" id="painted"></label>
       <label class="toggle" id="playerLabel"><span>Player<small>A player standing in front, to scale</small></span><input type="checkbox" id="player" checked></label>
       <label class="toggle" id="beamLabel"><span>Tractor beams<small>At each form's default reach</small></span><input type="checkbox" id="beams" checked></label>
       <label class="toggle" id="boxLabel"><span>Hitboxes<small>The mass (yellow) and one per head (blue)</small></span><input type="checkbox" id="boxes"></label>
@@ -478,7 +478,7 @@ function hitboxesOf(model) {
 
 // ------------------------------------------------------------------ stands
 
-// A Stand painted in tools/stand-skins wears The World's eleven heads with its own skins.
+// A Stand painted in website/models/stand-skins wears The World's eleven heads with its own skins.
 function painted(stand) {
   const files = paintedBox.checked && manifest && manifest[stand.key];
   const base = files && data.stands.find(isStand);
@@ -800,7 +800,7 @@ function firstJson(...paths) {
 // Where the painted skins' png files live, set by whichever manifest answered.
 let skinBase = "skins/";
 const manifestLoad = window.STAND_VIEWER_MANIFEST ? Promise.resolve(window.STAND_VIEWER_MANIFEST)
-    : firstJson("skins/manifest.json", "../../../tools/stand-skins/out/manifest.json")
+    : firstJson("skins/manifest.json", "../../models/stand-skins/out/manifest.json")
         .then(({ j, path }) => { skinBase = path.replace("manifest.json", ""); return j; })
         .catch(() => { paintedBox.disabled = true; return null; });
 const modelsLoad = window.STAND_VIEWER_DATA ? Promise.resolve(window.STAND_VIEWER_DATA)

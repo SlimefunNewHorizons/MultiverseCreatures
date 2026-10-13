@@ -283,7 +283,7 @@ public final class Gen {
       Files.createDirectories(out);
       for (Form form : forms()) {
          StringBuilder text = new StringBuilder();
-         text.append("# Wither Storm form '").append(form.name).append("', generated from Cracker's Wither Storm Mod 4.2.1 by tools/wither-storm.\n");
+         text.append("# Wither Storm form '").append(form.name).append("', generated from Cracker's Wither Storm Mod 4.2.1 by website/models/wither-storm.\n");
          for (Group g : form.groups) {
             text.append(String.format(Locale.ROOT, "group %s %s %s %s%n", g.kind, g.path, f(g.scale), f(g.rotX)));
          }

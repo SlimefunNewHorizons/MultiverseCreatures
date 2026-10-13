@@ -11,7 +11,7 @@ Faces are written as 8 strings of 8 characters. A character is a colour of the S
 (cloth, plates), u v the aura its shins fade into, and the rest are named per Stand. '.' is
 transparent (outer layer only).
 
-    python tools/stand-skins/paint.py      writes tools/stand-skins/out/<stand>/<nn>_<piece>.png
+    python website/models/stand-skins/paint.py      writes website/models/stand-skins/out/<stand>/<nn>_<piece>.png
 """
 
 from pathlib import Path

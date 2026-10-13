@@ -1,6 +1,6 @@
 # Regenerates src/main/resources/witherstorm/*.txt from Cracker's Wither Storm Mod.
 #
-#   .\tools\wither-storm\generate.ps1 -Mod "C:\path\to\witherstormmod-1.20.1-4.2.1-all.jar"
+#   .\website\models\wither-storm\generate.ps1 -Mod "C:\path\to\witherstormmod-1.20.1-4.2.1-all.jar"
 #
 # -Mod is the mod's jar or a folder it was unzipped into. -Decompiler is a Fernflower jar (IntelliJ
 # ships one as plugins\java-decompiler\lib\java-decompiler.jar) and -Java a java.exe new enough to
@@ -12,7 +12,7 @@ param(
 )
 $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repo = Resolve-Path (Join-Path $here "..\..")
+$repo = Resolve-Path (Join-Path $here "..\..\..")
 # Short paths: the decompiled sources nest deep enough to pass Windows' 260 character limit.
 $work = Join-Path $env:TEMP "wsgen"
 if (Test-Path $work) { Remove-Item -Recurse -Force $work }

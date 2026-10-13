@@ -108,7 +108,7 @@ Todos los Stands con cuerpo (Star Platinum, The World, Magician's Red, Crazy Dia
 Queen) y el propio DIO se dibujan con **once cabezas de jugador texturizadas** (cabeza, pecho,
 abdomen, brazos, antebrazos, muslos y espinillas); el armor stand de DIO ahora solo es su hitbox.
 Los modelos van en el jar (`stands/<nombre>.txt`, formato `/summon` de BDEngine, hechos a partir de
-skins con `tools/stand-skins`): el plugin lee cada uno tal cual, lo pone de pie y lo anima con su propio esqueleto (respiración, la
+skins con `website/models/stand-skins`): el plugin lee cada uno tal cual, lo pone de pie y lo anima con su propio esqueleto (respiración, la
 cabeza siguiendo a su usuario, codos y rodillas que se doblan, la ráfaga y cada movimiento de
 The World de DIO).
 

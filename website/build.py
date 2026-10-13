@@ -7,7 +7,7 @@
 
 What goes in: everything in website/public/, the model data `mvn test` exports (rounded, and
 without the Destroyer's high-detail variant, which is seven megabytes on its own) and the painted
-Stand skins from tools/stand-skins/out (split.py and paint.py make them).
+Stand skins from website/models/stand-skins/out (split.py and paint.py make them).
 What never goes in: Mojang's textures (the viewer draws stand-in blocks instead).
 """
 import json
@@ -19,7 +19,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 OUT = HERE / "_site"
 MODELS = ROOT / "target" / "stand-viewer" / "models.json"
-SKINS = ROOT / "tools" / "stand-skins" / "out"
+SKINS = HERE / "models" / "stand-skins" / "out"
 
 
 def main() -> int:

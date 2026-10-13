@@ -1,4 +1,4 @@
-# Wither Storm form 'destroyer-detailed', generated from Cracker's Wither Storm Mod 4.2.1 by tools/wither-storm.
+# Wither Storm form 'destroyer-detailed', generated from Cracker's Wither Storm Mod 4.2.1 by website/models/wither-storm.
 group head heads/head0 3 0
 group head heads/head1 3 0
 group head heads/head2 3 0

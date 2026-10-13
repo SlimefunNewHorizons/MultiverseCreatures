@@ -104,7 +104,7 @@ Neither potion has a vanilla type, so no vanilla recipe can turn them into somet
 Every Stand with a body (Star Platinum, The World, Magician's Red, Crazy Diamond, Killer Queen) and
 DIO himself are drawn with **eleven textured player heads** (head, chest, belly, upper arms,
 forearms, thighs and shins); DIO's armour stand is only his hitbox now. The models ship in the jar
-(`stands/<name>.txt`, BDEngine `/summon` format, made from player skins by `tools/stand-skins`):
+(`stands/<name>.txt`, BDEngine `/summon` format, made from player skins by `website/models/stand-skins`):
 the plugin reads each one as it is, stands it up straight and animates it on its own skeleton (breathing, the head following its
 user, elbows and knees bending, the barrage, every move of DIO's The World).
 

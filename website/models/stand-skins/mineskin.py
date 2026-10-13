@@ -10,7 +10,7 @@ src/main/resources/stands/<name>.txt, in the same format as a BDEngine export, w
 reads like The World's.
 
     set MINESKIN_API_KEY=...            (a free key from https://account.mineskin.org)
-    python tools/stand-skins/mineskin.py star-platinum killer-queen crazy-diamond dio-brando
+    python website/models/stand-skins/mineskin.py star-platinum killer-queen crazy-diamond dio-brando
 
 The skins are uploaded as unlisted.
 """
@@ -27,7 +27,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 OUT = HERE / "out"
-MODELS = HERE.parent.parent / "src" / "main" / "resources" / "stands"
+MODELS = HERE.parents[2] / "src" / "main" / "resources" / "stands"
 API = "https://api.mineskin.org/v2/generate"
 AGENT = "MultiverseCreatures-StandSkins/1.0"
 

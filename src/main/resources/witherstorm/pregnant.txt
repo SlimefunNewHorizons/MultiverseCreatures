@@ -1,4 +1,4 @@
-# Wither Storm form 'pregnant', generated from Cracker's Wither Storm Mod 4.2.1 by tools/wither-storm.
+# Wither Storm form 'pregnant', generated from Cracker's Wither Storm Mod 4.2.1 by website/models/wither-storm.
 group head heads/head0 0.7 0
 group base witherBase 1 0
 group mass mass 1 20

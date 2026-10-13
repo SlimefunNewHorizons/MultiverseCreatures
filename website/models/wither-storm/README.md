@@ -19,7 +19,7 @@ display entity.
 ## Regenerating them
 
 ```powershell
-.\tools\wither-storm\generate.ps1 -Mod "C:\path\to\witherstormmod-1.20.1-4.2.1-all.jar"
+.\website\models\wither-storm\generate.ps1 -Mod "C:\path\to\witherstormmod-1.20.1-4.2.1-all.jar"
 ```
 
 The script decompiles the mod's model classes with Fernflower, lifts the shared builders out of them

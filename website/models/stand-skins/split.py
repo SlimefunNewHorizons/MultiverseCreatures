@@ -14,8 +14,8 @@ squashed by the same amount (the chest is half as tall as the head), which puts 
 where the skin had it. The outer layer (jacket, sleeves, trousers) becomes the head's outer
 layer.
 
-    python tools/stand-skins/split.py      reads tools/stand-skins/source/<name>.png
-                                           writes tools/stand-skins/out/<name>/<nn>_<piece>.png
+    python website/models/stand-skins/split.py      reads website/models/stand-skins/source/<name>.png
+                                           writes website/models/stand-skins/out/<name>/<nn>_<piece>.png
 """
 
 import json
