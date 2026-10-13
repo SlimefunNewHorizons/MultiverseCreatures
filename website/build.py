@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Assembles the GitHub Pages site into _site/.
+"""Assembles the GitHub Pages site into website/_site/.
 
     mvn test                      # writes target/stand-viewer/models.json
-    python tools/site/build.py    # docs/ + the viewer's data -> _site/
-    python -m http.server -d _site
+    python website/build.py       # website/public/ + the viewer's data -> website/_site/
+    python -m http.server -d website/_site
 
-What goes in: everything in docs/, the model data `mvn test` exports (rounded, and without the
-Destroyer's high-detail variant, which is seven megabytes on its own) and the painted Stand skins.
+What goes in: everything in website/public/, the model data `mvn test` exports (rounded, and
+without the Destroyer's high-detail variant, which is seven megabytes on its own) and the painted
+Stand skins from tools/stand-skins/out (split.py and paint.py make them).
 What never goes in: Mojang's textures (the viewer draws stand-in blocks instead).
 """
 import json
@@ -14,8 +15,9 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "_site"
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+OUT = HERE / "_site"
 MODELS = ROOT / "target" / "stand-viewer" / "models.json"
 SKINS = ROOT / "tools" / "stand-skins" / "out"
 
@@ -26,7 +28,7 @@ def main() -> int:
         return 1
     if OUT.exists():
         shutil.rmtree(OUT)
-    shutil.copytree(ROOT / "docs", OUT)
+    shutil.copytree(HERE / "public", OUT)
     (OUT / ".nojekyll").write_text("")
 
     data = json.loads(MODELS.read_text(encoding="utf-8"), parse_float=lambda s: round(float(s), 4))
@@ -45,7 +47,7 @@ def main() -> int:
             shutil.copy2(f, target)
 
     total = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file())
-    print(f"_site ready: {len(data['stands'])} models, {total / 1048576:.1f} MB")
+    print(f"website/_site ready: {len(data['stands'])} models, {total / 1048576:.1f} MB")
     return 0
 
 

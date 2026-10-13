@@ -130,18 +130,18 @@ try {
   console.error('Error al actualizar metadatos de origen:', e.message);
 }
 
-// --- Icono del proyecto (docs/icon.png o docs/icon.svg) -----------------------------------
+// --- Icono del proyecto (website/public/icon.png o icon.svg) -----------------------------------
 try {
   if (!proyecto.icon_url) {
     let buffer = null;
     let mime = '';
     let ext = '';
-    if (existsSync('docs/icon.png')) {
-      buffer = readFileSync('docs/icon.png');
+    if (existsSync('website/public/icon.png')) {
+      buffer = readFileSync('website/public/icon.png');
       mime = 'image/png';
       ext = 'png';
-    } else if (existsSync('docs/icon.svg')) {
-      buffer = readFileSync('docs/icon.svg');
+    } else if (existsSync('website/public/icon.svg')) {
+      buffer = readFileSync('website/public/icon.svg');
       mime = 'image/svg+xml';
       ext = 'svg';
     }
@@ -169,7 +169,7 @@ try {
   const tieneDestacada = galeriaActual.some((item) => item.featured);
 
   let bannerFile = null;
-  if (existsSync('docs/banner.png')) bannerFile = 'docs/banner.png';
+  if (existsSync('website/public/banner.png')) bannerFile = 'website/public/banner.png';
   else if (existsSync('banner.png')) bannerFile = 'banner.png';
 
   if (bannerFile && !tieneDestacada) {

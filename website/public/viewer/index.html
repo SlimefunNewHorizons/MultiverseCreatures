@@ -148,12 +148,12 @@
   <div id="dark"></div>
   <div id="status" class="off"></div>
 </main>
-<!-- Two ways to get the data. On the site, tools/site/build.py writes models.json and skins/ next to this
+<!-- Two ways to get the data. On the site, website/build.py writes models.json and skins/ next to this
      page. From a checkout, `mvn test` writes target/stand-viewer/models.json and models.js: opened straight
      from disk (file://) the page cannot fetch files, but it does run these scripts. Missing ones are skipped. -->
 <script>
 if (location.protocol === "file:") {
-  for (const f of ["models.js", "textures.js"]) document.write('<script src="../../target/stand-viewer/' + f + '"><\/script>');
+  for (const f of ["models.js", "textures.js"]) document.write('<script src="../../../target/stand-viewer/' + f + '"><\/script>');
 }
 </script>
 <script type="importmap">
@@ -333,9 +333,9 @@ const BLOCKS = {
   LIGHT_GRAY_CONCRETE: [0x7d7d73, 0x8c8c82], WHITE_CONCRETE: [0xcfd5d6, 0xf0f6f6], COMMAND_BLOCK: [0xb5784a, 0x8a9696],
 };
 const blockMaterials = new Map();
-// The game's own textures, copied out of a local Minecraft client by tools/stand-viewer/textures.ps1.
+// The game's own textures, copied out of a local Minecraft client by website/textures.ps1.
 // Without them the blocks fall back to the flat stand-ins below.
-const VANILLA = new URL("../../target/stand-viewer/textures/", location.href);
+const VANILLA = new URL("../../../target/stand-viewer/textures/", location.href);
 const vanillaTextures = new Map();
 // The game's textures are Mojang's and never published: only a local checkout looks for them.
 const LOCAL = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname);
@@ -600,7 +600,7 @@ let monsterAnims = null, monsterAnimsLoading = false;
 function loadMonsterAnims(stand) {
   if (monsterAnims || monsterAnimsLoading || typeof stand.anims !== "string") return;
   monsterAnimsLoading = true;
-  firstJson(stand.anims, "../../target/stand-viewer/" + stand.anims).then(({ j }) => {
+  firstJson(stand.anims, "../../../target/stand-viewer/" + stand.anims).then(({ j }) => {
     monsterAnims = j;
     fillPoses();
     refresh();
@@ -721,7 +721,7 @@ function updateInfo() {
     rows.push(["Animation", animSelect.value === "none" ? "—" : animSelect.value]);
     const real = vanilla("obsidian");
     rows.push(["Textures", real ? "Minecraft" : "Stand-in colours"]);
-    if (!real && LOCAL) note = "Run <code>tools/stand-viewer/textures.ps1</code> to draw the blocks with your Minecraft's textures.";
+    if (!real && LOCAL) note = "Run <code>website/textures.ps1</code> to draw the blocks with your Minecraft's textures.";
   } else if (!allBox.checked) {
     rows.push(["Skins", painted(stand) ? "Painted (stand-skins)" : "Mojang"]);
   }
@@ -800,11 +800,11 @@ function firstJson(...paths) {
 // Where the painted skins' png files live, set by whichever manifest answered.
 let skinBase = "skins/";
 const manifestLoad = window.STAND_VIEWER_MANIFEST ? Promise.resolve(window.STAND_VIEWER_MANIFEST)
-    : firstJson("skins/manifest.json", "../../tools/stand-skins/out/manifest.json")
+    : firstJson("skins/manifest.json", "../../../tools/stand-skins/out/manifest.json")
         .then(({ j, path }) => { skinBase = path.replace("manifest.json", ""); return j; })
         .catch(() => { paintedBox.disabled = true; return null; });
 const modelsLoad = window.STAND_VIEWER_DATA ? Promise.resolve(window.STAND_VIEWER_DATA)
-    : firstJson("models.json", "../../target/stand-viewer/models.json").then(({ j }) => j);
+    : firstJson("models.json", "../../../target/stand-viewer/models.json").then(({ j }) => j);
 Promise.all([modelsLoad, manifestLoad])
     .then(([json, m]) => {
   data = json;

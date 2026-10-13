@@ -2,8 +2,8 @@
 # client into target/stand-viewer/textures, next to models.json. They are Mojang's, so they are
 # never committed: run this once on any machine that has the game installed.
 #
-#   .\tools\stand-viewer\textures.ps1                  # newest installed release
-#   .\tools\stand-viewer\textures.ps1 -Version 1.21.11
+#   .\website\textures.ps1                  # newest installed release
+#   .\website\textures.ps1 -Version 1.21.11
 param([string]$Version)
 $ErrorActionPreference = "Stop"
 $versions = Join-Path $env:APPDATA ".minecraft\versions"
@@ -15,7 +15,7 @@ $jar = Join-Path $versions "$Version\$Version.jar"
 if (-not (Test-Path $jar)) { throw "No Minecraft $Version client at $jar" }
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$out = Join-Path $here "..\..\target\stand-viewer\textures"
+$out = Join-Path $here "..\target\stand-viewer\textures"
 New-Item -ItemType Directory -Force $out | Out-Null
 
 $blocks = 'obsidian', 'crying_obsidian', 'black_concrete', 'blackstone', 'blackstone_top', 'polished_blackstone',

@@ -3,7 +3,7 @@
 
 <div align="center">
 
-<img src="docs/banner.svg" alt="MultiverseCreatures" width="100%">
+<img src="website/public/banner.svg" alt="MultiverseCreatures" width="100%">
 
 # ✦ MultiverseCreatures ✦
 

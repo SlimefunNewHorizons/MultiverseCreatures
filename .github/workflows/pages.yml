@@ -1,17 +1,17 @@
 # Sitio de GitHub Pages: la pagina de presentacion, el visor 3D y los ataques animados.
 #
 # QUE HACE
-#   Ejecuta los tests (que exportan los modelos a target/stand-viewer/models.json), arma el sitio con
-#   tools/site/build.py y lo publica.
+#   Ejecuta los tests (que exportan los modelos a target/stand-viewer/models.json), genera las skins
+#   pintadas de los Stands (tools/stand-skins), arma el sitio con website/build.py y lo publica.
+#   Todo el sitio vive en website/: la pagina en website/public, el script y la salida (website/_site).
 name: Sitio (GitHub Pages)
 
 on:
   push:
     branches: [main]
     paths:
-      - 'docs/**'
-      - 'tools/site/**'
-      - 'tools/stand-skins/out/**'
+      - 'website/**'
+      - 'tools/stand-skins/**'
       - 'src/main/resources/stands/**'
       - 'src/main/resources/witherstorm/**'
       - 'src/main/resources/monster/**'
@@ -44,12 +44,17 @@ jobs:
           cache: maven
       - name: Exportar los modelos (mvn test)
         run: mvn -B -ntp test
+      - name: Skins pintadas de los Stands
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 tools/stand-skins/split.py
+          python3 tools/stand-skins/paint.py
       - name: Armar el sitio
-        run: python3 tools/site/build.py
+        run: python3 website/build.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: website/_site
 
   publicar:
     needs: construir

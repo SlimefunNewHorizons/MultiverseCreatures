@@ -36,10 +36,10 @@ No code of the mod is stored here: it is read from the decompiled sources each t
 
 ## Seeing them
 
-`mvn test` writes `target/stand-viewer/models.json`, and the viewer in `docs/viewer/` (the one on the GitHub Pages site) shows every form, in
+`mvn test` writes `target/stand-viewer/models.json`, and the viewer in `website/public/viewer/` (the one on the GitHub Pages site) shows every form, in
 its poses and animations, with its tractor beams and hitboxes.
 
 The viewer draws the blocks, the command block and the wither skeleton skulls with the game's own
-textures once `tools/stand-viewer/textures.ps1` has copied them out of your Minecraft client into
+textures once `website/textures.ps1` has copied them out of your Minecraft client into
 `target/stand-viewer/textures` (they are Mojang's, so they are never committed). Without them it falls
 back to flat stand-in colours.

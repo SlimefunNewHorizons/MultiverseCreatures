@@ -31,7 +31,7 @@ on:
       - 'pom.xml'
       - 'build.gradle'
       - 'README.md'
-      - 'docs/**'
+      - 'website/public/**'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -171,14 +171,12 @@ jobs:
         run: |
           set -euo pipefail
           npm install --no-save @resvg/resvg-js puppeteer@23 || true
-          mkdir -p docs
-          if [ -f docs/icon.svg ] && [ ! -f docs/icon.png ]; then
-            node .github/scripts/svg-to-png.mjs docs/icon.svg docs/icon.png 512 512 || true
+          W=website/public
+          if [ -f $W/icon.svg ] && [ ! -f $W/icon.png ]; then
+            node .github/scripts/svg-to-png.mjs $W/icon.svg $W/icon.png 512 512 || true
           fi
-          if [ -f docs/banner.svg ] && [ ! -f docs/banner.png ]; then
-            node .github/scripts/svg-to-png.mjs docs/banner.svg docs/banner.png 1280 640 || true
-          elif [ -f banner.svg ] && [ ! -f docs/banner.png ]; then
-            node .github/scripts/svg-to-png.mjs banner.svg docs/banner.png 1280 640 || true
+          if [ -f $W/banner.svg ] && [ ! -f $W/banner.png ]; then
+            node .github/scripts/svg-to-png.mjs $W/banner.svg $W/banner.png 1280 640 || true
           fi
 
       - name: Asegurar que el proyecto existe en Modrinth (lo crea si falta)
