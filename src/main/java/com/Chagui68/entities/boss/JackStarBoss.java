@@ -39,6 +39,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -220,6 +221,13 @@ public class JackStarBoss implements Listener {
      * around the synchronous damage call.
      */
     private String outgoingSource;
+    /**
+     * True while the Load Balancer hands a hit's share to the party. Another plugin can answer that
+     * damage by hitting JackStar again from inside it (DrakesRankup's abilities do), which would share
+     * again, and again, until the stack ran out or he died in the middle of it: a hit landed while
+     * sharing is taken whole instead.
+     */
+    private boolean sharing;
     private double outgoingIntended;
     private double dodgeChance;
     /** Size of the invisible stand the suit is hit through; {@link #MODEL_HITBOX_SCALE} is the default. */
@@ -814,9 +822,12 @@ public class JackStarBoss implements Listener {
                 plugin.getVoidCrawler().trySpawn(spawnLoc);
             }
 
-            // Find spawned entity nearby to track
+            // Find the creature that was just summoned: one of the plugin's own, never a player who
+            // happens to stand there (a player taken for a minion was removed with the minions).
             for (Entity e : world.getNearbyEntities(spawnLoc, 2.0, 2.0, 2.0)) {
-                if (e instanceof LivingEntity le && !e.equals(stand) && !e.getScoreboardTags().contains(PART_TAG)) {
+                if (e instanceof LivingEntity le && !(e instanceof Player) && !e.equals(stand)
+                        && !e.getScoreboardTags().contains(PART_TAG) && !e.getScoreboardTags().contains(MINION_TAG)
+                        && e.getScoreboardTags().stream().anyMatch(tag -> tag.startsWith("MSC_"))) {
                     le.addScoreboardTag(MINION_TAG);
                     inst.summonedMinions.add(le.getUniqueId());
                     break;
@@ -1113,11 +1124,16 @@ public class JackStarBoss implements Listener {
 
     /** Makes the party pay its share of an incoming hit. The split itself lives in {@link JackResilience}. */
     private void shareWithParty(ArmorStand stand, List<Player> party, JackResilience.Split split) {
-        if (party.size() <= 1) return;
-        for (Player p : party) {
-            dealToPlayer(stand, p, split.perPartyMember(), "Load Balancer", false);
-            p.spawnParticle(Particle.CRIT, p.getLocation().add(0, 1.0, 0), 5, 0.2, 0.2, 0.2, 0.05);
-            p.sendActionBar(ChatColor.GOLD + "[LOAD BALANCER] " + ChatColor.YELLOW + "Workload shared (-" + String.format("%.1f", split.perPartyMember()) + " HP)");
+        if (party.size() <= 1 || sharing) return;
+        sharing = true;
+        try {
+            for (Player p : party) {
+                dealToPlayer(stand, p, split.perPartyMember(), "Load Balancer", false);
+                p.spawnParticle(Particle.CRIT, p.getLocation().add(0, 1.0, 0), 5, 0.2, 0.2, 0.2, 0.05);
+                p.sendActionBar(ChatColor.GOLD + "[LOAD BALANCER] " + ChatColor.YELLOW + "Workload shared (-" + String.format("%.1f", split.perPartyMember()) + " HP)");
+            }
+        } finally {
+            sharing = false;
         }
     }
 
@@ -2051,10 +2067,12 @@ public class JackStarBoss implements Listener {
             p.removePotionEffect(PotionEffectType.DARKNESS);
         }
 
-        // Cleanup summoned minions
+        // Cleanup summoned minions. A player can never be removed (the server refuses and the death
+        // handler fails with it), and older versions could take one for a minion: they only lose the tag.
         for (UUID minionId : inst.summonedMinions) {
             Entity minion = world.getEntity(minionId);
-            if (minion != null && !(minion instanceof Player)) minion.remove();
+            if (minion instanceof Player player) player.removeScoreboardTag(MINION_TAG);
+            else if (minion != null) minion.remove();
         }
         inst.summonedMinions.clear();
 
@@ -2149,8 +2167,9 @@ public class JackStarBoss implements Listener {
             double incoming = capIncomingDamage(raw, maxDamagePerHit);
             String capNote = incoming < raw ? "cap " + maxDamagePerHit : "";
             List<Player> party = partyOf(stand);
+            // A hit landed from inside the Load Balancer's own share is not split again.
             JackResilience.Resolution hit = JackResilience.resolve(incoming, random.nextDouble(),
-                    JackResilience.effectiveChance(dodgeChance, inst.currentScale), party.size());
+                    JackResilience.effectiveChance(dodgeChance, inst.currentScale), sharing ? 1 : party.size());
             if (hit.dodged()) {
                 triggerMuiDodge(inst, player);
                 recordIncoming(player, raw, 0.0, "ultra instinct dodge");
@@ -2234,11 +2253,12 @@ public class JackStarBoss implements Listener {
     }
 
     private void reduceHealth(ArmorStand stand, double damage) {
+        JackInstance inst = activeInstances.get(stand.getUniqueId());
+        // Dead already: a hit still on its way (from inside a shared one) must not kill him twice.
+        if (inst == null || !stand.isValid()) return;
         stand.setNoDamageTicks(0);
         double currentHealth = MscEntityUtils.getVirtualHealth(stand);
         double newHealth = currentHealth - damage;
-
-        JackInstance inst = activeInstances.get(stand.getUniqueId());
 
         if (newHealth <= 0 && inst != null && inst.livesRemaining > 0) {
             newHealth = 1.0;
@@ -2298,6 +2318,12 @@ public class JackStarBoss implements Listener {
             }
         }
         stand.remove();
+    }
+
+    /** A player an older version took for a minion still carries its tag, which is saved with them. */
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        event.getPlayer().removeScoreboardTag(MINION_TAG);
     }
 
     @EventHandler
