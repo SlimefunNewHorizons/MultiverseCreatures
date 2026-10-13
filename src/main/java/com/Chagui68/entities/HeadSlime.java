@@ -257,7 +257,6 @@ public class HeadSlime implements Listener {
         slime.customName(MscText.title(GREEN, "Head Slime"));
         slime.setCustomNameVisible(true);
         MscEntityUtils.applyAmbientPersistence(plugin, slime);
-        slime.setCollidable(true);
         slime.setCanPickupItems(false);
 
         return true;
@@ -278,6 +277,10 @@ public class HeadSlime implements Listener {
         }
         slime.setAI(true);
         slime.setTarget(null);
+        // These slimes navigate and attach through the custom ticker. Letting vanilla push them
+        // makes every Slime.tick scan nearby entities, which is needlessly expensive in a crowd.
+        // Apply this on restored instances too, so a restart cannot reintroduce the collision cost.
+        slime.setCollidable(false);
 
         activeSlimes.put(slime.getUniqueId(), new HeadSlimeInstance(slime));
     }
