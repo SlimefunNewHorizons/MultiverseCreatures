@@ -49,7 +49,9 @@ import java.util.UUID;
  *     <li><b>gravity-multiplier</b>: players fall and jump with that share of the usual gravity
  *     (an attribute modifier, taken off again when they leave);</li>
  *     <li><b>resistance-effectiveness</b>: the Resistance effect blocks that share of what it
- *     usually would (0.9 = 10% weaker), on ordinary hits and on the bosses' true hits alike.</li>
+ *     usually would (0.9 = 10% weaker), on ordinary hits and on the bosses' true hits alike;</li>
+ *     <li><b>regeneration-speed</b>: the Regeneration effect heals at that share of its pace
+ *     (0.5 = half as fast).</li>
  * </ul>
  * Spectators are left alone: they cannot touch anything, and they have to fly to move at all.
  */
@@ -192,6 +194,15 @@ public final class BossDimensionRules implements Listener {
             }
             default -> event.setCancelled(true);
         }
+    }
+
+    /** The Regeneration effect heals at {@code regeneration-speed} (0.5) of its usual pace inside. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onRegeneration(EntityRegainHealthEvent event) {
+        if (!(event.getEntity() instanceof Player player) || !inside(player)) return;
+        if (event.getRegainReason() != EntityRegainHealthEvent.RegainReason.MAGIC_REGEN) return;
+        double speed = Math.max(0, plugin.getConfig().getDouble("boss-dimension.regeneration-speed", 0.5));
+        event.setAmount(event.getAmount() * speed);
     }
 
     // ------------------------------------------------------------------ hunger

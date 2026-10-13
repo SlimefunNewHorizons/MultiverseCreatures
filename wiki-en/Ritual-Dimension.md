@@ -222,6 +222,8 @@ The dimension is harder to survive in than the overworld. Every rule is a switch
 | `fall-damage-multiplier` | `1.7` | Falls hurt **70% more**. |
 | `fall-true-damage-share` | `0.2` | **20% of a fall's damage is true damage**, dealt the way Mahoraga pierces armour: armour, Protection, Feather Falling, Resistance and other plugins' caps do not stop it. The other 80% is reduced as usual. |
 | `gravity-multiplier` | `0.7` | Players have **30% less gravity**: they jump higher and fall slower. It goes away when they leave. |
+| `resistance-effectiveness` | `0.9` | The **Resistance** effect blocks 10% less: Resistance I blocks 18% instead of 20%. It counts against the bosses' true damage too. |
+| `regeneration-speed` | `0.5` | The **Regeneration** effect heals half as fast. |
 
 Every boss, wherever it is fought, takes at most `max-damage-per-hit` (**10**) from a single hit.
 

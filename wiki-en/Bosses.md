@@ -4,6 +4,8 @@ MultiverseCreatures includes **one final boss** and multiple formidable **minibo
 
 > **Abandoned bosses:** any boss (Sentinel, Nix, Jack, DIO, Kinger, Mahoraga, Garou, the Wither Storm and the Pantheon gods) with no player within `boss-balance.despawn.radius` (50 blocks; `large-radius` 100 for the Sentinel and the Wither Storm's colossal forms) for `delay-ticks` (100, 5 s) vanishes with everything it summoned, so an abandoned fight stops costing the server. Spectators do not count. `enabled: false` turns it off.
 
+> **Hit cap and sharp swords:** no boss takes more than `max-damage-per-hit` (10) from a single hit. On top of that, every boss but Mahoraga and Kinger takes **2% less from a sword for every 5 levels of Sharpness** it has, **50% less at most** (Sharpness 125), taken off after the cap so it always counts (`boss-balance.sword-sharpness-resistance`: `per-5-levels` 0.02, `max` 0.5).
+
 ---
 
 ## 🛡️ THE OBSIDIAN SENTINEL — Final Boss
@@ -386,7 +388,7 @@ As in the mod: **the first form has no beam**, in the next two hunchbacks only t
 3. It **pulls** for `beam.hold-ticks` (120) at the mod's speed, `beam.pull-speed` (0.2 blocks a tick), slower within the last block.
 4. It **rests** for `beam.rest-ticks` (100), and after a bite.
 
-A player held in a pulling beam is **hurt the whole time**: `beam.damage` (2) true damage every `beam.damage-interval-ticks` (10), scaled like the storm's other hits. Several beams on the same player hurt at that one pace. `beam.damage: 0` turns it off.
+A player held in a pulling beam is **hurt the whole time**: `beam.damage` (2) true damage every `beam.damage-interval-ticks` (10), scaled like the storm's other hits, and **Regeneration does not heal** a player while a beam holds them (a high level would otherwise heal faster than the beam hurts). Several beams on the same player hurt at that one pace. `beam.damage: 0` turns it off.
 
 While its beam is on a head turns **slower than a player sprints**: run sideways across the cone and you break free. The hunchbacks only drag the victim they locked onto; the Destroyer and the Devourer drag anything inside the cone. The beam is a translucent cone of purple glass, as in the mod.
 
@@ -432,10 +434,11 @@ Every direct hit it lands is **true damage** (`max-damage-dealt` 20, `true-damag
 
 ### How the fight goes
 
-- **Hitboxes:** the mass and each head are `Interaction` entities that follow the model. Swords deal the weapon's damage, scaled by the attack cooldown, plus Sharpness and **Smite** (the storm is undead like any Wither). Projectiles that enter a box count too.
+- **Hitboxes:** the mass and each head are `Interaction` entities that follow the model. Swords deal the weapon's damage, scaled by the attack cooldown, plus Sharpness and **Smite** (the storm is undead like any Wither), capped at `max-damage-per-hit` (10) and then 2% less for every 5 levels of Sharpness (50% at most). Projectiles that enter a box count too.
+- **Arrows hurt it most:** an arrow has its own cap, `arrow-max-damage-per-hit` (150), and then deals ×`arrow-damage-multiplier` (2): up to 300 from one arrow. The Architect's Deployer's guided arrows add their +68% before that cap. Tridents keep the usual cap.
 - **Injuring the heads:** every projectile that reaches a head counts; after a few (1–2 on the hunchbacks, 3–8 on the colossal forms) the head is **injured** for `injury-ticks` (200): its beam goes dark, it spits a blue skull and takes ×1.5 damage. Whoever injured it **escapes**: the storm leaves them alone for `escape-ticks` (800, the mod's 40 s). With **every** head injured at once the storm is **exposed** for `exposed-ticks` (160) and takes ×`exposed-damage-multiplier` (2).
 - **Playing dead:** the Destroyer and the Devourer, at `play-dead-threshold` (15%), fall to the ground with their jaws hanging for `play-dead-ticks` (200), taking ×1.5... then rise with every head roaring, a blast that hurts (`revive-damage` 12) and throws everyone back, and 10% of their health back. Only once.
-- **Death:** it breaks apart in rays of light as its blocks burst one by one; it drops one Nether Star, its head (a trophy named after the form it fell in) and experience, and cures everyone's sickness.
+- **Death:** it breaks apart in rays of light as its blocks burst one by one; it drops one Nether Star, its head (a trophy named after the form it fell in; `/msc give <player> witherstormhead` gives one too) and experience, and cures everyone's sickness.
 
 ### Performance
 

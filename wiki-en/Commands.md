@@ -159,6 +159,7 @@ Amount defaults to 1 and can be 1–64. Without a target the item goes to the ex
 | `executionerwarrant` |
 | `architectkernel` |
 | `garoucosmiccore` |
+| `witherstormhead` |
 
 ---
 

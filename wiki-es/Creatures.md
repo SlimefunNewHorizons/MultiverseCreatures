@@ -331,7 +331,9 @@ Un reemplazo del Comerciante Errante — el 30% (`SHAGGY_CHANCE`) de los spawns 
 
 Una figura alta y pálida, con brazos tan largos que llegan al suelo, hecha de 80 cabezas de jugador. No hace daño: está ahí para que lo veas de reojo.
 
-Cada `check-interval-seconds` (20) un jugador que está a oscuras (luz en los ojos ≤ `max-light-level`, 7) puede atraerlo, con una probabilidad `chance` del 4%, una vez cada `cooldown-seconds` (15 min). Espera **donde no estás mirando**, en una pose que se adapta al lugar:
+Cada `check-interval-seconds` (20) un jugador que está a oscuras (luz en los ojos ≤ `max-light-level`, 7) puede atraerlo, con una probabilidad `chance` del 4%, una vez cada `cooldown-seconds` (15 min). Primero llegan los **presagios**, durante `omen-seconds` (30), que solo tú oyes y ves: pasos a tu espalda que se paran cuando están cerca, una puerta que se abre y se cierra cerca, las antorchas y faroles a tu alrededor apagándose uno a uno (solo en tu pantalla; vuelven cuando acaba la visita) y quizá, una vez, un **vistazo** de él de pie al borde de tu vista, que desaparece en cuanto te giras. `omen-seconds: 0` los quita, y los comandos nunca los esperan.
+
+Luego espera **donde no estás mirando**, en una pose que se adapta al lugar:
 
 | Dónde estás | Dónde espera | Poses |
 |---|---|---|
@@ -360,7 +362,9 @@ Un sitio solo vale si la pose entera cabe ahí y ni sus ojos ni su pecho están 
 
 Todos terminan igual: cuando está cerca, su cuerpo desaparece y **solo su cara aparece de golpe justo delante de tus ojos**, con la mandíbula abierta y temblando, con un grito (durante `scream-ticks`, 20 ticks, mires a donde mires, mientras vas ralentizado). Luego desaparece en una nube de tinta, con Oscuridad y un instante de Ceguera.
 
-Desde que llega **lo oyes respirar** donde está, y solo tú lo oyes: una respiración lenta y profunda cada pocos segundos mientras espera, con algún olfateo, y respiraciones rápidas cuando va a por ti. Si nadie lo ve en `lurk-seconds` (45), se va sin hacer ruido mientras no miras.
+Desde que llega **lo oyes respirar** donde está, y solo tú lo oyes: una respiración lenta y profunda cada pocos segundos mientras espera, con algún olfateo, y respiraciones rápidas cuando va a por ti. Donde se le vea, **su cabeza gira despacio para seguirte**, y mientras va a por ti tu vista late a oscuras (`darkness-while-coming`). Si nadie lo ve en `lurk-seconds` (45), se va sin hacer ruido mientras no miras, pero deja **huellas** que se alejan durante `trace-seconds` (12), y una puerta, trampilla o valla cerca de donde esperaba se ve abierta (solo para ti).
+
+`sounds.scream` y `sounds.breath` aceptan un sonido de resource pack (p. ej. `myhorror:monster.scream`) para sonar en lugar de la mezcla vanilla; vacío la mantiene.
 
 **Nunca atraviesa bloques.** Todo lo que hace se planea contra los bloques de alrededor antes de empezar, tick a tick: camina hacia ti por una ruta, de pie donde hay espacio, estrecho en un pasillo, agachado bajo un techo bajo y a cuatro patas en un túnel, y sale de un hueco con un tirón cuando no hay espacio para desplegarse despacio. Si no hay ninguna salida (un pozo cerrado, un agujero hondo) parpadea en su lugar.
 

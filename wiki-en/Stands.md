@@ -119,7 +119,7 @@ thorned vines round its user's arm.
 | Weapon | Recipe | Abilities |
 |---|---|---|
 | **Executioner's Guillotine** (netherite axe) | `E C E / · A · / · W ·` — 2 Executioner's Edges, iron chain, netherite axe, Executioner's Warrant | Sentence (+40% below 30% health), Bleed (Wither I), Chains of Judgment (right click), Guillotine Drop (sneak + right click) |
-| **Architect's Deployer** (bow) | `· E · / N K N / · B ·` — echo shard, 2 netherite ingots, Architect Kernel, bow | Guided packets (+20%), sudo rm -rf (sneak + left click, 40 block beam), Failover (below 30% health you jump behind the attacker) |
+| **Architect's Deployer** (bow) | `· E · / N K N / · B ·` — echo shard, 2 netherite ingots, Architect Kernel, bow | Guided packets (+68%), sudo rm -rf (sneak + left click, 40 block beam, 16.8 damage), Failover (below 30% health you jump behind the attacker) |
 
 NIX always drops **1 Executioner's Edge** and a second one 35% of the time (`edge-drop-chance`,
 `edge-bonus-chance`). JACKSTAR still drops his **Architect Kernel**, which besides summoning him is

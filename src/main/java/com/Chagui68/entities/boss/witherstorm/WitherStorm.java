@@ -904,6 +904,8 @@ final class WitherStorm {
                 bite(h, e);
                 continue;
             }
+            // Held in the beam, a player does not heal from Regeneration, so its damage lands.
+            if (e instanceof Player p) boss.hold(p);
             // Held in the beam, a player is hurt the whole time it pulls.
             if (e instanceof Player p && settings().beam().damage() > 0 && !beamCooldown.containsKey(p.getUniqueId())) {
                 beamCooldown.put(p.getUniqueId(), settings().beam().damageInterval());

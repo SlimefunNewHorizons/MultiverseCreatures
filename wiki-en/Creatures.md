@@ -331,7 +331,9 @@ A Wandering Trader replacement — 30% (`SHAGGY_CHANCE`) of trader spawns become
 
 A tall, pale thing with arms long enough to reach the floor, built from 80 player heads. It does no damage: it is there to be seen out of the corner of your eye.
 
-Every `check-interval-seconds` (20) a player standing in the dark (light at the eyes ≤ `max-light-level`, 7) may draw it, at a `chance` of 4%, once every `cooldown-seconds` (15 min). It waits **where you are not looking**, in a pose that suits the place:
+Every `check-interval-seconds` (20) a player standing in the dark (light at the eyes ≤ `max-light-level`, 7) may draw it, at a `chance` of 4%, once every `cooldown-seconds` (15 min). First come the **omens**, for `omen-seconds` (30), heard and seen only by you: steps behind you that stop when they are close, a door opening and closing somewhere near, the torches and lanterns round you going out one by one (only on your screen; they come back when the visit ends), and maybe once a **glimpse** of it standing at the edge of your sight, gone the moment you turn to it. `omen-seconds: 0` skips them, and the commands never wait for them.
+
+Then it waits **where you are not looking**, in a pose that suits the place:
 
 | Where you are | Where it waits | Poses |
 |---|---|---|
@@ -360,7 +362,9 @@ A spot only counts when the whole pose fits there and neither its eyes nor its c
 
 Every behaviour ends the same way: once it is close, its body is gone and **only its face pops up right in front of your eyes**, jaw wide open and shaking, with a scream (for `scream-ticks`, 20 ticks, wherever you look, while you are slowed). Then it vanishes in a puff of ink, with Darkness and a moment of Blindness.
 
-From the moment it comes you can **hear it breathing** where it is, and only you hear it: a slow, deep breath every few seconds while it waits, with a sniff now and then, and quick breaths once it comes for you. Left unseen for `lurk-seconds` (45), it leaves without a sound while you are not looking.
+From the moment it comes you can **hear it breathing** where it is, and only you hear it: a slow, deep breath every few seconds while it waits, with a sniff now and then, and quick breaths once it comes for you. Wherever it is shown, **its head turns slowly to follow you**, and while it comes for you your sight pulses dark (`darkness-while-coming`). Left unseen for `lurk-seconds` (45), it leaves without a sound while you are not looking, but leaves **footprints** leading away for `trace-seconds` (12), and a door, trapdoor or gate near where it waited shows open (only to you).
+
+`sounds.scream` and `sounds.breath` take a resource pack sound (e.g. `myhorror:monster.scream`) to play instead of the vanilla mix; blank keeps it.
 
 **It never goes through blocks.** Everything it does is planned against the blocks round it before it starts, tick by tick: it walks a path to you standing where there is room, narrow in a corridor, crouched under a low ceiling and on all fours in a tunnel, and squeezes out of a nook with a jerk when there is no room to unfold slowly. When there is no way at all (a closed shaft, a deep pit) it blinks instead.
 

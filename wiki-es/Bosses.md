@@ -4,6 +4,8 @@ MultiverseCreatures incluye **un jefe final** y múltiples y formidables **minij
 
 > **Jefes abandonados:** cualquier jefe (Centinela, Nix, Jack, DIO, Kinger, Mahoraga, Garou, la Tormenta Wither y los dioses del Panteón) sin un jugador a menos de `boss-balance.despawn.radius` (50 bloques; `large-radius` 100 para el Centinela y las formas colosales de la Tormenta Wither) durante `delay-ticks` (100, 5 s) desaparece con todo lo que invocó, para que una pelea abandonada no siga gastando el servidor. Los espectadores no cuentan. `enabled: false` lo desactiva.
 
+> **Tope por golpe y espadas afiladas:** ningún jefe recibe más de `max-damage-per-hit` (10) de un solo golpe. Además, todos los jefes menos Mahoraga y Kinger reciben **un 2% menos de una espada por cada 5 niveles de Afilado** que tenga, **un 50% menos como máximo** (Afilado 125), restado después del tope para que siempre cuente (`boss-balance.sword-sharpness-resistance`: `per-5-levels` 0.02, `max` 0.5).
+
 ---
 
 ## 🛡️ EL CENTINELA DE OBSIDIANA — Jefe final
@@ -387,7 +389,7 @@ Como en el mod: **la primera forma no tiene rayo**, en las dos jorobas siguiente
 3. **Tira** durante `beam.hold-ticks` (120) a la velocidad del mod, `beam.pull-speed` (0,2 bloques/tick), más despacio en el último bloque.
 4. **Descansa** `beam.rest-ticks` (100) y también al morder.
 
-Un jugador atrapado en un rayo que tira **recibe daño todo el tiempo**: `beam.damage` (2) de daño verdadero cada `beam.damage-interval-ticks` (10), escalado como los demás golpes de la tormenta. Varios rayos sobre el mismo jugador hacen daño a ese mismo ritmo. `beam.damage: 0` lo desactiva.
+Un jugador atrapado en un rayo que tira **recibe daño todo el tiempo**: `beam.damage` (2) de daño verdadero cada `beam.damage-interval-ticks` (10), escalado como los demás golpes de la tormenta, y **la Regeneración no cura** a un jugador mientras un rayo lo sujeta (un nivel alto curaría más rápido de lo que el rayo hace daño). Varios rayos sobre el mismo jugador hacen daño a ese mismo ritmo. `beam.damage: 0` lo desactiva.
 
 Mientras el rayo está encendido la cabeza gira **más despacio que un jugador corriendo**: cruza el cono corriendo de lado y te sueltas. Las jorobas solo arrastran a la víctima que fijaron; el Destructor y el Devorador arrastran todo lo que entre en el cono. El rayo se ve como un cono translúcido de cristal morado, igual que en el mod.
 
@@ -433,10 +435,11 @@ Todos sus golpes directos son **daño verdadero** (`max-damage-dealt` 20, `true-
 
 ### Cómo se pelea
 
-- **Hitboxes:** la masa y cada cabeza son entidades `Interaction` que siguen al modelo. Las espadas usan el daño del arma, el enfriamiento, Afilado y **Castigo** (la tormenta es no-muerta como cualquier Wither). Los proyectiles que entran en una caja también cuentan.
+- **Hitboxes:** la masa y cada cabeza son entidades `Interaction` que siguen al modelo. Las espadas usan el daño del arma, el enfriamiento, Afilado y **Castigo** (la tormenta es no-muerta como cualquier Wither), con tope de `max-damage-per-hit` (10) y luego un 2% menos por cada 5 niveles de Afilado (un 50% como máximo). Los proyectiles que entran en una caja también cuentan.
+- **Las flechas le duelen más:** una flecha tiene su propio tope, `arrow-max-damage-per-hit` (150), y luego hace ×`arrow-damage-multiplier` (2): hasta 300 de una sola flecha. Las flechas guiadas del Architect's Deployer suman su +68% antes de ese tope. Los tridentes mantienen el tope normal.
 - **Herir las cabezas:** cada proyectil que alcanza una cabeza cuenta; tras unos cuantos (1–2 en las jorobas, 3–8 en las formas colosales) la cabeza queda **herida** `injury-ticks` (200): su rayo se apaga, escupe una calavera azul y recibe ×1,5 de daño. Quien la hirió **escapa**: la tormenta lo deja en paz `escape-ticks` (800, los 40 s del mod). Con **todas** las cabezas heridas a la vez la tormenta queda **expuesta** `exposed-ticks` (160) y recibe ×`exposed-damage-multiplier` (2).
 - **Hacerse el muerto:** el Destructor y el Devorador, al bajar a `play-dead-threshold` (15%), caen al suelo con las mandíbulas rotas durante `play-dead-ticks` (200) recibiendo ×1,5... y se levantan con todas las cabezas rugiendo, una onda que daña (`revive-damage` 12) y lanza a todos, y un 10% de vida recuperada. Solo una vez.
-- **Muerte:** se deshace en rayos de luz mientras sus bloques revientan uno a uno; suelta una estrella del Nether, su cabeza (un trofeo con el nombre de la forma en que cayó) y experiencia, y cura la enfermedad de todos.
+- **Muerte:** se deshace en rayos de luz mientras sus bloques revientan uno a uno; suelta una estrella del Nether, su cabeza (un trofeo con el nombre de la forma en que cayó; `/msc give <jugador> witherstormhead` también da una) y experiencia, y cura la enfermedad de todos.
 
 ### Rendimiento
 

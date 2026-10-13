@@ -4,7 +4,7 @@
 # Version of this file. A server that updates the plugin keeps its own config.yml and the plugin
 # adds whatever keys are missing on start (values you edited are never touched), stamping the new
 # version here. See MscConfigMigration.CONFIG_VERSION — keep the two in step.
-config-version: 9
+config-version: 10
 #
 # SlimeTinker Infinity against every boss except Mahoraga (which adapts on its own):
 #   pierce-infinity-armor: boss hits pierce the full Infinity set (absorption is cleared first)
@@ -132,6 +132,8 @@ boss-dimension:
   # Share of what the Resistance effect usually blocks that it still blocks there (0.9 = 10% weaker:
   # Resistance I blocks 18% instead of 20%). Counts on the bosses' true hits too.
   resistance-effectiveness: 0.9
+  # Pace the Regeneration effect heals at there (0.5 = half as fast).
+  regeneration-speed: 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -612,7 +614,8 @@ entities:
       hold-ticks: 120
       rest-ticks: 100
       # A player held in a beam takes damage the whole time: damage every damage-interval-ticks
-      # (true damage, scaled like the storm's other hits). 0 turns it off.
+      # (true damage, scaled like the storm's other hits); Regeneration does not heal them while held.
+      # 0 turns it off.
       damage: 2.0
       damage-interval-ticks: 10
     # Projectiles injure a head: its beam goes dark for injury-ticks and it takes 1.5x damage, and the

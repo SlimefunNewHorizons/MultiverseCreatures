@@ -508,6 +508,9 @@ public final class WikiCatalogue {
                                 + "20%. It counts against the bosses' true damage too.",
                         "El efecto de Resistencia bloquea un 10% menos de lo normal allí: Resistencia I bloquea un 18% "
                                 + "en vez de un 20%. También cuenta contra el daño verdadero de los jefes."))
+                .source(WikiSource.of(Material.GHAST_TEAR, "Slower Regeneration", "Regeneración más lenta",
+                        "The Regeneration effect heals half as fast there.",
+                        "El efecto de Regeneración cura la mitad de rápido allí."))
                 .build());
         list.add(WikiEntry.info("obsidiansentinel", BOSSES, Material.ARMOR_STAND, NamedTextColor.DARK_GRAY,
                         "The Obsidian Sentinel", "The Obsidian Sentinel")
@@ -597,10 +600,10 @@ public final class WikiCatalogue {
                         "El Jorobado, el Jorobado Creciente, el Jorobado Hinchado, el Destructor y el Devorador. "
                                 + "Evoluciona comiendo bloques, criaturas y jugadores."))
                 .source(WikiSource.of(Material.PURPLE_STAINED_GLASS, "Tractor beam", "Rayo tractor",
-                        "A thin beam is the warning; then it pulls you in and hurts you the whole time. Run sideways "
-                                + "across it to break free.",
-                        "Un rayo fino es el aviso; luego te arrastra y te hace daño todo el tiempo. Corre de lado a "
-                                + "través de él para soltarte."))
+                        "A thin beam is the warning; then it pulls you in and hurts you the whole time, and "
+                                + "Regeneration does not heal you while it holds you. Run sideways across it to break free.",
+                        "Un rayo fino es el aviso; luego te arrastra y te hace daño todo el tiempo, y la Regeneración "
+                                + "no te cura mientras te sujeta. Corre de lado a través de él para soltarte."))
                 .source(WikiSource.of(Material.ARROW, "Weak spots", "Puntos débiles",
                         "Projectiles that hit a head injure it: it takes more damage and leaves you alone for a while. "
                                 + "With every head injured the storm is exposed.",

@@ -448,6 +448,30 @@ public final class WitherStormBoss implements Listener {
         TrueDamage.apply(player, storm.anchor, amount, settings.pierce(), settings.maxDamageDealt());
     }
 
+    /** Until when each player held in a tractor beam is kept from healing by Regeneration. */
+    private final Map<UUID, Long> held = new HashMap<>();
+
+    /** A tractor beam holds {@code player} this tick: no Regeneration for them for half a second. */
+    void hold(Player player) {
+        held.put(player.getUniqueId(), System.currentTimeMillis() + 500);
+    }
+
+    /**
+     * Regeneration does nothing for a player a beam holds: a high enough level heals faster than the
+     * beam hurts, and the beam is meant to hurt the whole time it pulls.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onHeldRegain(org.bukkit.event.entity.EntityRegainHealthEvent event) {
+        if (event.getRegainReason() != org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.MAGIC_REGEN) return;
+        Long until = held.get(event.getEntity().getUniqueId());
+        if (until == null) return;
+        if (until < System.currentTimeMillis()) {
+            held.remove(event.getEntity().getUniqueId());
+            return;
+        }
+        event.setCancelled(true);
+    }
+
     /**
      * The adaptive damage every boss has, on the storm's hits that are not its own true damage: its
      * explosions, its wither skulls and whatever its summons and sickened mobs land. Those are plain

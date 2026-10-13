@@ -123,7 +123,7 @@ espiral de enredaderas con espinas alrededor del brazo de su usuario.
 | Arma | Receta | Habilidades |
 |---|---|---|
 | **Executioner's Guillotine** (hacha de netherita) | `E C E / · A · / · W ·` — 2 Executioner's Edge, cadena de hierro, hacha de netherita, Orden del Verdugo | Sentencia (+40% a objetivos bajo el 30%), Sangrado (Wither I), Cadenas del Juicio (clic derecho), Caída de la Guillotina (shift + clic derecho) |
-| **Architect's Deployer** (arco) | `· E · / N K N / · B ·` — fragmento de eco, 2 lingotes de netherita, Architect Kernel, arco | Paquetes guiados (+20%), sudo rm -rf (shift + clic izquierdo, haz de 40 bloques), Failover (bajo el 30% de vida, saltas tras el atacante) |
+| **Architect's Deployer** (arco) | `· E · / N K N / · B ·` — fragmento de eco, 2 lingotes de netherita, Architect Kernel, arco | Paquetes guiados (+68%), sudo rm -rf (shift + clic izquierdo, haz de 40 bloques, 16.8 de daño), Failover (bajo el 30% de vida, saltas tras el atacante) |
 
 NIX suelta **1 Executioner's Edge** siempre y un segundo con un 35% (`edge-drop-chance`,
 `edge-bonus-chance`). JACKSTAR sigue soltando su **Architect Kernel**, que además de invocarlo

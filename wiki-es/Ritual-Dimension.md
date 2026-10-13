@@ -222,6 +222,8 @@ Sobrevivir en la dimensión es más duro que en el overworld. Cada regla es un i
 | `fall-damage-multiplier` | `1.7` | Las caídas hacen un **70 % más** de daño. |
 | `fall-true-damage-share` | `0.2` | **El 20 % del daño de una caída es daño verdadero**, como el que hace Mahoraga: ni la armadura, ni Protección, ni Caída de pluma, ni Resistencia, ni los topes de otros plugins lo frenan. El otro 80 % se reduce como siempre. |
 | `gravity-multiplier` | `0.7` | Los jugadores tienen un **30 % menos de gravedad**: saltan más alto y caen más despacio. Se quita al salir. |
+| `resistance-effectiveness` | `0.9` | El efecto de **Resistencia** bloquea un 10 % menos: Resistencia I bloquea un 18 % en vez de un 20 %. También cuenta contra el daño verdadero de los jefes. |
+| `regeneration-speed` | `0.5` | El efecto de **Regeneración** cura la mitad de rápido. |
 
 Todos los jefes, donde sea que se peleen, reciben como máximo `max-damage-per-hit` (**10**) por golpe.
 

@@ -132,6 +132,7 @@ final class GiveCatalogue {
             "chaoscore &8- &dRaw Concentrated Chaos Core",
             "scoobycookie &8- &6Mystery Scooby Snack (Food)",
             "executioneredge &8- &4NIX Axe Shard",
+            "witherstormhead &8- &5Wither Storm Boss Trophy",
             "vampireblood &8/ &eunstableblood &8/ &ebearerelixir &8- &4DIO Blood & Elixir");
 
     private static final List<String> PAGE_4 = List.of(
@@ -195,6 +196,8 @@ final class GiveCatalogue {
             new Entry("architectkernel", () -> ArchitectKernel.ARCHITECT_KERNEL),
             new Entry("garoucosmiccore",
                     () -> com.Chagui68.items.components.GarouCosmicCore.GAROU_COSMIC_CORE),
+            new Entry("witherstormhead",
+                    () -> com.Chagui68.items.misc.WitherStormHead.of("the Wither Storm")),
             new Entry("multiversalcore", () -> MultiversalCore.MULTIVERSAL_CORE),
             new Entry("compressedgoldblock", () -> CompressedGoldBlock.COMPRESSED_GOLD_BLOCK),
             new Entry("wheelcore", () -> WheelCore.WHEEL_CORE),
