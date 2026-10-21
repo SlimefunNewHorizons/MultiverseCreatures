@@ -101,7 +101,10 @@ public final class HeadPuppet {
     public void ease(Map<Part, Quaternionf> target, Vector3f lift, float rate, int ticks) {
         for (Part part : Part.values()) {
             Quaternionf now = current.computeIfAbsent(part, p -> new Quaternionf());
-            now.slerp(target.getOrDefault(part, IDENTITY), rate).normalize();
+            Quaternionf to = target.getOrDefault(part, IDENTITY);
+            // Snapped once there: an easing that never quite arrives resends every head every tick.
+            if (Math.abs(now.dot(to)) > 1 - 1e-6f) now.set(to);
+            else now.slerp(to, rate).normalize();
         }
         pose(current, lift, ticks);
     }

@@ -31,6 +31,7 @@ Invoca una sola entidad (o una formación táctica) en la ubicación del ejecuto
 | `merchant` | Comerciante Multiversal ("Shaggy" Comerciante Errante) |
 | `mahoraga` | Minijefe Mahoraga |
 | `kinger` | Minijefe Kinger |
+| `malenia` | Malenia, Espada de Miquella (jefe de block displays de Elden Ring) |
 | `monster` | El Monstruo, enviado al jugador más cercano: espera donde no está mirando |
 | `garou` | Minijefe Garou [Hero Hunter] |
 | `nix` | NIX - El Verdugo (jefe con modelo custom de 27 piezas) |

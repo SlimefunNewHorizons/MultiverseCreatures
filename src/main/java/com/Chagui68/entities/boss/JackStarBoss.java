@@ -574,7 +574,10 @@ public class JackStarBoss implements Listener {
         }
         BossArena.settle(loc);
         stand.teleport(loc);
-        syncDisplays(inst);
+        // Standing still only his head sways, so his suit is refreshed every few ticks, as NIX's and Kinger's.
+        boolean busy = inst.moving || inst.slashAnimTicks > 0 || inst.slamAnimTicks > 0 || inst.move != JackMoves.Move.NONE
+                || ArsenalKit.channeling(inst.arsenal) != null || Math.abs(inst.targetScale - inst.currentScale) > 1e-3f;
+        if (DisplaySuit.shouldSync(busy, inst.tickCount)) syncDisplays(inst);
     }
 
     /** A special attack JackStar could start right now, and how likely he is to pick it. */

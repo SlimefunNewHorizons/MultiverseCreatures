@@ -31,6 +31,7 @@ Summons a single entity (or a tactical formation) at the executor's location. Th
 | `merchant` | Multiverse Merchant ("Shaggy" Wandering Trader) |
 | `mahoraga` | Mahoraga miniboss |
 | `kinger` | Kinger miniboss |
+| `malenia` | Malenia, Blade of Miquella (Elden Ring block-display boss) |
 | `monster` | The Monster, sent to the nearest player: it waits where they are not looking |
 | `garou` | Garou [Hero Hunter] miniboss |
 | `nix` | NIX - The Executioner (custom 27-part model boss) |

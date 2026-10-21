@@ -39,11 +39,11 @@ public class BossInfinityRules implements Listener {
     /** Tags of the bosses and of the pieces their bodies are hit through. Mahoraga is not here. */
     static final Set<String> BOSS_TAGS = Set.of(
             ArmorStandBoss.TAG, JackStarBoss.TAG, JackStarBoss.PART_TAG, NixBoss.TAG, NixBoss.PART_TAG,
-            DioBoss.TAG, DioBoss.STAND_TAG, Kinger.TAG, Kinger.PART_TAG, "MSC_Garou",
+            DioBoss.TAG, DioBoss.STAND_TAG, Kinger.TAG, Kinger.PART_TAG, "MSC_Garou", MaleniaBoss.TAG,
             com.Chagui68.entities.boss.witherstorm.WitherStormBoss.TAG);
 
     /** Bosses whose hits armour still reduces: their damage scales with the player's gear too. */
-    static final Set<String> ARMORED_HIT_TAGS = Set.of(Kinger.TAG, "MSC_Garou");
+    static final Set<String> ARMORED_HIT_TAGS = Set.of(Kinger.TAG, "MSC_Garou", MaleniaBoss.TAG);
 
     private final MultiverseCreatures plugin;
     /** The boss hit being pierced right now and the damage it had before the Infinity cap. */
@@ -90,6 +90,7 @@ public class BossInfinityRules implements Listener {
         else if (tags.contains(NixBoss.TAG) || tags.contains(NixBoss.PART_TAG)) key = "nix-executioner";
         else if (tags.contains(DioBoss.TAG) || tags.contains(DioBoss.STAND_TAG)) key = "dio-brando";
         else if (tags.contains("MSC_Garou")) key = "garou";
+        else if (tags.contains(MaleniaBoss.TAG)) key = "malenia";
         return key == null ? 0 : plugin.getConfig().getDouble("entities." + key + ".max-damage-per-hit", 0);
     }
 

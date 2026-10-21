@@ -205,21 +205,9 @@ public class GarouBoss implements Listener {
         }.runTaskTimer(plugin, 20L, 20L);
     }
 
+    /** Walks the world's players, not every entity in a 56-block cube round him. */
     private Player findNearestValidPlayer(WitherSkeleton garou, double radius) {
-        Player nearest = null;
-        double nearestDistSq = radius * radius;
-        Location loc = garou.getLocation();
-
-        for (Entity e : garou.getNearbyEntities(radius, radius, radius)) {
-            if (e instanceof Player p && MscEntityUtils.isValidTarget(p)) {
-                double distSq = loc.distanceSquared(p.getLocation());
-                if (distSq < nearestDistSq) {
-                    nearestDistSq = distSq;
-                    nearest = p;
-                }
-            }
-        }
-        return nearest;
+        return com.Chagui68.entities.boss.BossArena.findNearestPlayer(garou.getLocation(), radius);
     }
 
     @EventHandler

@@ -652,7 +652,8 @@ public class ArmorStandBoss implements Listener, BossHost {
 
                 updatePhase(instance);
 
-                syncBossBarPlayers(instance);
+                // Once a second, like every other boss: a login or a world change corrects itself in time.
+                if (instance.clock % 20 == 0) syncBossBarPlayers(instance);
                 instance.bossBar.setProgress(MscEntityUtils.calculateVirtualProgress(stand.getHealth(), stand.getMaxHealth()));
 
                 updateBossMusic(instance, stand.getLocation());

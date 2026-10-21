@@ -95,6 +95,7 @@ public class MultiverseCreatures extends JavaPlugin {
     private ChaosMage chaosMage;
     private EnderKnight enderKnight;
     private Kinger kinger;
+    private com.Chagui68.entities.boss.MaleniaBoss malenia;
     private com.Chagui68.entities.monster.MonsterStalker monsterStalker;
     private com.Chagui68.listener.bossdimension.BossDimensionRules bossDimensionRules;
     private NixBoss nixBoss;
@@ -203,6 +204,7 @@ public class MultiverseCreatures extends JavaPlugin {
         chaosMage = new ChaosMage(this);
         enderKnight = new EnderKnight(this);
         kinger = new Kinger(this);
+        malenia = new com.Chagui68.entities.boss.MaleniaBoss(this);
         monsterStalker = new com.Chagui68.entities.monster.MonsterStalker(this);
         nixBoss = new NixBoss(this);
         jackStarBoss = new JackStarBoss(this);
@@ -345,6 +347,7 @@ public class MultiverseCreatures extends JavaPlugin {
         if (monsterStalker != null) monsterStalker.stopAll();
         if (bossDimensionRules != null) bossDimensionRules.stopTasks();
         if (kinger != null) kinger.stopTasks();
+        if (malenia != null) malenia.stopTasks();
         if (nixBoss != null) nixBoss.stopTasks();
         if (jackStarBoss != null) jackStarBoss.stopTasks();
         if (dioBoss != null) dioBoss.stopTasks();
@@ -468,6 +471,10 @@ public class MultiverseCreatures extends JavaPlugin {
 
     public Kinger getKinger() {
         return kinger;
+    }
+
+    public com.Chagui68.entities.boss.MaleniaBoss getMalenia() {
+        return malenia;
     }
 
     public NixBoss getNixBoss() {

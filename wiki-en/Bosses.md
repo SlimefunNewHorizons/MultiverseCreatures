@@ -2,7 +2,7 @@
 
 MultiverseCreatures includes **one final boss** and multiple formidable **minibosses and custom-modeled bosses**. All bosses are spawned via `/msc spawn <type>` (OP-only) and have configurable health/damage/cooldowns in `config.yml`.
 
-> **Abandoned bosses:** any boss (Sentinel, Nix, Jack, DIO, Kinger, Mahoraga, Garou, the Wither Storm and the Pantheon gods) with no player within `boss-balance.despawn.radius` (50 blocks; `large-radius` 100 for the Sentinel and the Wither Storm's colossal forms) for `delay-ticks` (100, 5 s) vanishes with everything it summoned, so an abandoned fight stops costing the server. Spectators do not count. `enabled: false` turns it off.
+> **Abandoned bosses:** any boss (Sentinel, Nix, Jack, DIO, Kinger, Malenia, Mahoraga, Garou, the Wither Storm and the Pantheon gods) with no player within `boss-balance.despawn.radius` (50 blocks; `large-radius` 100 for the Sentinel and the Wither Storm's colossal forms) for `delay-ticks` (100, 5 s) vanishes with everything it summoned, so an abandoned fight stops costing the server. Spectators do not count. `enabled: false` turns it off.
 
 > **Hit cap and sharp swords:** no boss takes more than `max-damage-per-hit` (10) from a single hit. On top of that, every boss but Mahoraga and Kinger takes **2% less from a sword for every 5 levels of Sharpness** it has, **50% less at most** (Sharpness 125), taken off after the cap so it always counts (`boss-balance.sword-sharpness-resistance`: `per-5-levels` 0.02, `max` 0.5).
 
@@ -224,6 +224,36 @@ A living chess king: an invisible ArmorStand dressed in a 15-piece ItemDisplay s
 **Persistence:** tagged `MSC_Kinger`, so it survives plugin reloads and is picked up again on startup — a reload reattaches the suit it already spawned instead of building a second, overlapping body, and rebuilds its boss bar.
 
 **Death:** removes all suit displays and broadcasts one of the chess-themed `kinger.death-messages` ("checked by the King", "knocked off the board", "lost the game"...).
+
+---
+
+## 🗡️ Malenia, Blade of Miquella — Boss (Elden Ring)
+
+The block-display model of `/msc debug model malenia`, fighting with the same attacks. An invisible ArmorStand (tagged `MSC_Malenia`) carries her hitbox, health and boss bar; her body stands beside it and is moved by its transformation as she walks and turns, so her hundreds of pieces are never teleported one by one (only when she strays 6 blocks from them). Her 1623 pieces are posed every 2 ticks during an attack, every 4 while she walks or sways in her stance, and not at all while no player is within aggro range. Her body is not saved with the world: after a restart or a chunk reload the stand is dressed again.
+
+| Stat | Default |
+|---|---|
+| Health | `malenia.health` (1500) |
+| Hit cap | `malenia.max-damage-per-hit` (10) |
+| Hitbox | `malenia.hitbox-scale` (1.3 — 0.65 × 2.57 blocks) |
+| Aggro range / move speed | `malenia.aggro-range` (30) · `malenia.move-speed` (0.3) |
+| Blade / slashes / landing | `malenia.blade-damage` (12) · `malenia.slash-damage` (4) · `malenia.ring-damage` (10) |
+| Lifesteal | `malenia.lifesteal` (0.5 — every hit she lands heals her by half of it) |
+| Cooldowns | `malenia.attack-cooldown-ticks` (20) · `malenia.waterfowl-cooldown-ticks` (400) |
+| Spawn | `/msc spawn malenia` |
+
+### Attacks
+
+She walks to the nearest player and picks an attack by distance:
+
+- **Three-slash combo** or **Whirlwind** (≤3.5 blocks).
+- **Lunging thrust** (≤6.5 blocks): she crosses 4.4 blocks.
+- **Leaping slam** (≤10 blocks): a somersault that lands 4.5 blocks ahead and shakes the ground.
+- **Waterfowl Dance** (below half health, ≤6 blocks, every 20 s at most): three airborne flurries with the air round her full of slashes, ending in a landing.
+
+Her **blade** hits whoever it passes through, once per swing. The **slashes** of the Whirlwind and the Waterfowl Dance hit everyone within 2.6 blocks every 4 ticks. A **landing** hits everyone within 4 blocks and launches them. Her damage scales with the player's gear, like Kinger's and Garou's. Only players hurt her; fire, falls and explosions do nothing.
+
+**Death:** removes her body and bar, drops 500 XP and broadcasts one of `malenia.death-messages`.
 
 ---
 

@@ -2,7 +2,7 @@
 
 MultiverseCreatures incluye **un jefe final** y múltiples y formidables **minijefes y jefes con modelos personalizados**. Todos los jefes se invocan con `/msc spawn <tipo>` (solo OP) y tienen salud/daño/cooldowns configurables en `config.yml`.
 
-> **Jefes abandonados:** cualquier jefe (Centinela, Nix, Jack, DIO, Kinger, Mahoraga, Garou, la Tormenta Wither y los dioses del Panteón) sin un jugador a menos de `boss-balance.despawn.radius` (50 bloques; `large-radius` 100 para el Centinela y las formas colosales de la Tormenta Wither) durante `delay-ticks` (100, 5 s) desaparece con todo lo que invocó, para que una pelea abandonada no siga gastando el servidor. Los espectadores no cuentan. `enabled: false` lo desactiva.
+> **Jefes abandonados:** cualquier jefe (Centinela, Nix, Jack, DIO, Kinger, Malenia, Mahoraga, Garou, la Tormenta Wither y los dioses del Panteón) sin un jugador a menos de `boss-balance.despawn.radius` (50 bloques; `large-radius` 100 para el Centinela y las formas colosales de la Tormenta Wither) durante `delay-ticks` (100, 5 s) desaparece con todo lo que invocó, para que una pelea abandonada no siga gastando el servidor. Los espectadores no cuentan. `enabled: false` lo desactiva.
 
 > **Tope por golpe y espadas afiladas:** ningún jefe recibe más de `max-damage-per-hit` (10) de un solo golpe. Además, todos los jefes menos Mahoraga y Kinger reciben **un 2% menos de una espada por cada 5 niveles de Afilado** que tenga, **un 50% menos como máximo** (Afilado 125), restado después del tope para que siempre cuente (`boss-balance.sword-sharpness-resistance`: `per-5-levels` 0.02, `max` 0.5).
 
@@ -224,6 +224,36 @@ Un rey de ajedrez viviente: un ArmorStand invisible vestido con un traje de 15 p
 **Persistencia:** etiquetado `MSC_Kinger`, por lo que sobrevive a recargas del plugin y se retoma al iniciar — al recargar se vuelven a enganchar las piezas que ya había creado, en vez de construir un segundo cuerpo superpuesto, y se reconstruye su barra de jefe.
 
 **Muerte:** elimina todos los displays del traje y transmite uno de los `kinger.death-messages` temáticos de ajedrez ("checked by the King", "knocked off the board", "lost the game"...).
+
+---
+
+## 🗡️ Malenia, Espada de Miquella — Jefe (Elden Ring)
+
+El modelo de block displays de `/msc debug model malenia`, peleando con los mismos ataques. Un ArmorStand invisible (etiquetado `MSC_Malenia`) lleva su hitbox, su salud y su barra de jefe; su cuerpo está a su lado y se mueve por su transformación cuando camina y gira, así que sus cientos de piezas nunca se teletransportan una a una (solo cuando se aleja 6 bloques de ellas). Sus 1623 piezas se posan cada 2 ticks durante un ataque, cada 4 mientras camina o se mece en guardia, y nada mientras no haya un jugador en su rango de agresión. Su cuerpo no se guarda con el mundo: tras un reinicio o al recargar el chunk, el stand se vuelve a vestir.
+
+| Estadística | Por defecto |
+|---|---|
+| Salud | `malenia.health` (1500) |
+| Tope por golpe | `malenia.max-damage-per-hit` (10) |
+| Hitbox | `malenia.hitbox-scale` (1.3 — 0.65 × 2.57 bloques) |
+| Rango de agresión / velocidad | `malenia.aggro-range` (30) · `malenia.move-speed` (0.3) |
+| Espada / tajos / aterrizaje | `malenia.blade-damage` (12) · `malenia.slash-damage` (4) · `malenia.ring-damage` (10) |
+| Robo de vida | `malenia.lifesteal` (0.5 — cada golpe que da la cura la mitad de su daño) |
+| Enfriamientos | `malenia.attack-cooldown-ticks` (20) · `malenia.waterfowl-cooldown-ticks` (400) |
+| Invocación | `/msc spawn malenia` |
+
+### Ataques
+
+Camina hacia el jugador más cercano y elige un ataque según la distancia:
+
+- **Combo de tres tajos** o **Torbellino** (≤3.5 bloques).
+- **Estocada** (≤6.5 bloques): cruza 4.4 bloques.
+- **Salto demoledor** (≤10 bloques): una voltereta que aterriza 4.5 bloques más allá y sacude el suelo.
+- **Danza del Ave Acuática** (por debajo de media vida, ≤6 bloques, cada 20 s como mucho): tres ráfagas en el aire con el aire lleno de tajos a su alrededor, y un aterrizaje al final.
+
+Su **espada** golpea a quien atraviesa, una vez por tajo. Los **tajos** del Torbellino y de la Danza golpean a todos a menos de 2.6 bloques cada 4 ticks. Un **aterrizaje** golpea a todos a menos de 4 bloques y los lanza. Su daño escala con el equipo del jugador, como el de Kinger y Garou. Solo los jugadores le hacen daño; el fuego, las caídas y las explosiones no.
+
+**Muerte:** elimina su cuerpo y su barra, suelta 500 de XP y transmite uno de los `malenia.death-messages`.
 
 ---
 

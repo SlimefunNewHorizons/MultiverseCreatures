@@ -436,6 +436,27 @@ entities:
       - "&d%player% was outplayed by the chess piece"
 
   # -------------------------------------------------------------------------
+  # Malenia, Blade of Miquella - Elden Ring (/msc spawn malenia)
+  # -------------------------------------------------------------------------
+  malenia:
+    enabled: true
+    health: 1500.0
+    max-damage-per-hit: 10.0      # cap on the damage Malenia can receive from a single hit
+    hitbox-scale: 1.3             # invisible stand she is hit through (0.65 x 2.57 blocks)
+    aggro-range: 30.0
+    move-speed: 0.3
+    blade-damage: 12.0            # her sword, once per swing on each player it passes through
+    slash-damage: 4.0             # the slashes round her in the Whirlwind and Waterfowl Dance, every 4 ticks
+    ring-damage: 10.0             # landing from the leap or the Waterfowl Dance
+    lifesteal: 0.5                # share of every hit she lands that heals her
+    attack-cooldown-ticks: 20
+    waterfowl-cooldown-ticks: 400 # the Waterfowl Dance, only below half health
+    death-messages:
+      - "&c%player% was cut down by Malenia, Blade of Miquella"
+      - "&c%player% could not dodge the Waterfowl Dance"
+      - "&c%player% has never known defeat... until Malenia"
+
+  # -------------------------------------------------------------------------
   # DIO - JoJo's Bizarre Adventure, with his Stand The World (/msc spawn dio)
   # -------------------------------------------------------------------------
   dio-brando:

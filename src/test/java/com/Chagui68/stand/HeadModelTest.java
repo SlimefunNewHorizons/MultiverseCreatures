@@ -107,6 +107,9 @@ class HeadModelTest {
             puppet.ease(punch, new Vector3f(), 0.4f, 1);
         }
         assertEquals(0, angleBetween(puppet.shown(Part.ARM_R), target), 1e-3f, "it ends in the pose");
+        assertEquals(target, puppet.shown(Part.ARM_R), "it lands exactly on the pose");
+        puppet.ease(punch, new Vector3f(), 0.4f, 1);
+        assertEquals(target, puppet.shown(Part.ARM_R), "a settled pose stops changing, so its heads are not resent");
     }
 
     private static float angleBetween(Quaternionf a, Quaternionf b) {

@@ -300,6 +300,14 @@ public final class MaleniaRig {
 
     /** Every bone's matrix at {@code tick} of {@code move}: parent, then its pivot, its turn (yaw, pitch, roll) and back. */
     public static Matrix4f[] bones(Move move, float tick) {
+        return bones(move, tick, new Matrix4f());
+    }
+
+    /**
+     * {@link #bones(Move, float)} with the whole body first placed by {@code carry}: where the boss
+     * stands and faces relative to its displays, so walking and turning never teleport them.
+     */
+    public static Matrix4f[] bones(Move move, float tick, Matrix4f carry) {
         Matrix4f[] world = new Matrix4f[Bone.values().length];
         float[] travel = sample(move.travel(), tick);
         float[] legs = null;
@@ -316,7 +324,7 @@ public final class MaleniaRig {
             } else {
                 turn = sample(null, tick);
             }
-            Matrix4f m = bone.parent == null ? new Matrix4f().translation(travel[0], travel[1], travel[2])
+            Matrix4f m = bone.parent == null ? new Matrix4f(carry).translate(travel[0], travel[1], travel[2])
                     : new Matrix4f(world[bone.parent.ordinal()]);
             Vector3f p = bone.pivot;
             m.translate(p).rotateY((float) Math.toRadians(turn[1])).rotateX((float) Math.toRadians(turn[0]))
@@ -382,7 +390,12 @@ public final class MaleniaRig {
 
     /** Where every piece is at {@code tick} of {@code move}. */
     public static List<Transformation> pose(Move move, float tick, List<Piece> pieces, int[] owners) {
-        Matrix4f[] world = bones(move, tick);
+        return pose(move, tick, pieces, owners, new Matrix4f());
+    }
+
+    /** {@link #pose(Move, float, List, int[])} with the body placed by {@code carry} ({@link #bones(Move, float, Matrix4f)}). */
+    public static List<Transformation> pose(Move move, float tick, List<Piece> pieces, int[] owners, Matrix4f carry) {
+        Matrix4f[] world = bones(move, tick, carry);
         Flow flow = flow(move, tick, world);
         List<Transformation> out = new ArrayList<>(pieces.size());
         for (int i = 0; i < pieces.size(); i++) {
@@ -450,7 +463,6 @@ public final class MaleniaRig {
         Location feet = eye.clone().add(-Math.sin(look) * 8 + Math.sin(facing) * 3, 0, Math.cos(look) * 8 - Math.cos(facing) * 3);
         List<BlockDisplay> body = MaleniaModel.spawn(pieces, feet, yaw);
         int step = 2;
-        Particle.DustOptions gold = new Particle.DustOptions(Color.fromRGB(255, 214, 120), 1.1f);
         new BukkitRunnable() {
             int tick = 0;
 
@@ -463,36 +475,46 @@ public final class MaleniaRig {
                     return;
                 }
                 float t = Math.min(tick, move.ticks());
-                Matrix4f[] world = bones(move, t);
                 List<Transformation> posed = pose(move, t, pieces, owners);
                 for (int i = 0; i < body.size(); i++) MaleniaModel.animate(body.get(i), posed.get(i), step);
-                Location root = toWorld(feet, yaw, world[Bone.ROOT.ordinal()].transformPosition(new Vector3f(0, .05f, 0)));
-                for (int[] trail : move.trails()) {
-                    if (t == trail[0] || t == trail[0] + 1) feet.getWorld().playSound(root, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1f, 1.3f);
-                    if (t >= trail[0] && t <= trail[1]) {
-                        Vector3f tip = world[Bone.HAND_R.ordinal()].transformPosition(MaleniaModel.bladePoint(1f));
-                        feet.getWorld().spawnParticle(Particle.DUST, toWorld(feet, yaw, tip), 4, .05, .05, .05, 0, gold);
-                    }
-                }
-                for (int[] range : move.slashes()) {
-                    if (t >= range[0] && t <= range[1]) {
-                        Location centre = toWorld(feet, yaw, world[Bone.ROOT.ordinal()].transformPosition(new Vector3f(0, 1.3f, 0)));
-                        feet.getWorld().spawnParticle(Particle.SWEEP_ATTACK, centre, 5, 1.4, 1.0, 1.4, 0);
-                        if (t % 4 == 0) feet.getWorld().playSound(centre, Sound.ENTITY_PLAYER_ATTACK_SWEEP, .7f, 1.6f);
-                    }
-                }
-                for (int at : move.rings()) {
-                    if (at > t - step && at <= t) {
-                        feet.getWorld().playSound(root, Sound.ENTITY_GENERIC_EXPLODE, .8f, 1.4f);
-                        feet.getWorld().spawnParticle(Particle.SWEEP_ATTACK, root, 14, 1.6, .1, 1.6, 0);
-                    }
-                }
+                effects(feet, yaw, move, t, bones(move, t), step);
             }
         }.runTaskTimer(plugin, 1L, step);
     }
 
+    private static final Particle.DustOptions GOLD = new Particle.DustOptions(Color.fromRGB(255, 214, 120), 1.1f);
+
+    /**
+     * What {@code move} sounds and looks like at {@code t}, played every {@code step} ticks for displays
+     * at {@code feet} facing {@code yaw} whose bones are {@code world}: sword trails, the slashes filling
+     * the air round her, the shockwaves.
+     */
+    static void effects(Location feet, float yaw, Move move, float t, Matrix4f[] world, int step) {
+        Location root = toWorld(feet, yaw, world[Bone.ROOT.ordinal()].transformPosition(new Vector3f(0, .05f, 0)));
+        for (int[] trail : move.trails()) {
+            if (t == trail[0] || t == trail[0] + 1) feet.getWorld().playSound(root, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1f, 1.3f);
+            if (t >= trail[0] && t <= trail[1]) {
+                Vector3f tip = world[Bone.HAND_R.ordinal()].transformPosition(MaleniaModel.bladePoint(1f));
+                feet.getWorld().spawnParticle(Particle.DUST, toWorld(feet, yaw, tip), 4, .05, .05, .05, 0, GOLD);
+            }
+        }
+        for (int[] range : move.slashes()) {
+            if (t >= range[0] && t <= range[1]) {
+                Location centre = toWorld(feet, yaw, world[Bone.ROOT.ordinal()].transformPosition(new Vector3f(0, 1.3f, 0)));
+                feet.getWorld().spawnParticle(Particle.SWEEP_ATTACK, centre, 5, 1.4, 1.0, 1.4, 0);
+                if (t % 4 == 0) feet.getWorld().playSound(centre, Sound.ENTITY_PLAYER_ATTACK_SWEEP, .7f, 1.6f);
+            }
+        }
+        for (int at : move.rings()) {
+            if (at > t - step && at <= t) {
+                feet.getWorld().playSound(root, Sound.ENTITY_GENERIC_EXPLODE, .8f, 1.4f);
+                feet.getWorld().spawnParticle(Particle.SWEEP_ATTACK, root, 14, 1.6, .1, 1.6, 0);
+            }
+        }
+    }
+
     /** A point of the model in the world: turned by the display's yaw and moved to its feet. */
-    private static Location toWorld(Location feet, float yaw, Vector3f p) {
+    static Location toWorld(Location feet, float yaw, Vector3f p) {
         Vector3f turned = new Quaternionf().rotateY((float) Math.toRadians(-yaw)).transform(new Vector3f(p));
         return feet.clone().add(turned.x, turned.y, turned.z);
     }

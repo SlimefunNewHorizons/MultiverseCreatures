@@ -11,7 +11,9 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Creation and viewer bookkeeping for the plugin's boss bars.
@@ -56,8 +58,10 @@ public final class MscBossBar {
 
     private static void update(BossBar bar, Collection<? extends Player> candidates, World world,
                                Location center, double rangeSq) {
+        // getPlayers() builds a new list on every call: read it once, not once per candidate.
+        Set<Player> viewers = new HashSet<>(bar.getPlayers());
         List<Player> stale = new ArrayList<>();
-        for (Player viewer : bar.getPlayers()) {
+        for (Player viewer : viewers) {
             if (!viewer.isOnline() || !stays(viewer, world, center, rangeSq)) {
                 stale.add(viewer);
             }
@@ -66,7 +70,7 @@ public final class MscBossBar {
             bar.removePlayer(viewer);
         }
         for (Player player : candidates) {
-            if (!bar.getPlayers().contains(player) && stays(player, world, center, rangeSq)) {
+            if (!viewers.contains(player) && stays(player, world, center, rangeSq)) {
                 bar.addPlayer(player);
             }
         }
