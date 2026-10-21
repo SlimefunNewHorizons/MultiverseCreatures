@@ -2,6 +2,7 @@ package com.Chagui68.items.recipes;
 
 import com.Chagui68.items.armor.EightHandledWheel;
 import com.Chagui68.items.armor.ObsidianBastion;
+import com.Chagui68.items.armor.Worldbinder;
 import com.Chagui68.items.components.BoneMarrow;
 import com.Chagui68.items.components.ChaosCore;
 import com.Chagui68.items.components.ChaosFragment;
@@ -98,6 +99,7 @@ public class RecipeManager {
         safely("registerCompressedGoldBlock", RecipeManager::registerCompressedGoldBlock);
         safely("registerMultiversalCore", RecipeManager::registerMultiversalCore);
         safely("registerSentinelGrimoire", RecipeManager::registerSentinelGrimoire);
+        safely("registerWorldbinder", RecipeManager::registerWorldbinder);
         safely("registerExecutionerWarrant", RecipeManager::registerExecutionerWarrant);
         safely("registerExecutionerGuillotine", RecipeManager::registerExecutionerGuillotine);
         safely("registerArchitectDeployer", RecipeManager::registerArchitectDeployer);
@@ -436,6 +438,32 @@ public class RecipeManager {
         recipe.setIngredient('S', exact(StarCore.STAR_CORE.clone()));
         recipe.setIngredient('R', exact(SentinelCore.SENTINEL_CORE.clone()));
         Bukkit.addRecipe(recipe);
+    }
+
+    /**
+     * Worldbinder (apex armor set): each Obsidian Bastion piece is reforged around a Multiversal Core
+     * with Refined Netherite. The crown also takes a Veilwalker Mantle (Unseen) and the cuirass a
+     * Marrow Aegis (Rebound).
+     */
+    private static void registerWorldbinder() {
+        RecipeChoice core = exact(MultiversalCore.MULTIVERSAL_CORE.clone());
+        RecipeChoice refined = exact(RefinedNetherite.REFINED_NETHERITE.clone());
+        ItemStack[][] pieces = {
+                {Worldbinder.HELMET, ObsidianBastion.HELMET, VeilwalkerMantle.VEILWALKER_MANTLE},
+                {Worldbinder.CHESTPLATE, ObsidianBastion.CHESTPLATE, MarrowAegis.MARROW_AEGIS},
+                {Worldbinder.LEGGINGS, ObsidianBastion.LEGGINGS, RefinedNetherite.REFINED_NETHERITE},
+                {Worldbinder.BOOTS, ObsidianBastion.BOOTS, RefinedNetherite.REFINED_NETHERITE},
+        };
+        String[] names = {"helmet", "chestplate", "leggings", "boots"};
+        for (int i = 0; i < pieces.length; i++) {
+            ShapedRecipe recipe = new ShapedRecipe(key("worldbinder_" + names[i]), pieces[i][0].clone());
+            recipe.shape(" M ", "RBR", " X ");
+            recipe.setIngredient('M', core);
+            recipe.setIngredient('R', refined);
+            recipe.setIngredient('B', exact(pieces[i][1].clone()));
+            recipe.setIngredient('X', exact(pieces[i][2].clone()));
+            Bukkit.addRecipe(recipe);
+        }
     }
 
     // Sentinel Grimoire (apex weapon): Multiversal Core + Sentinel Core + books

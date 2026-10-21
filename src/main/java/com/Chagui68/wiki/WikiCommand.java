@@ -6,6 +6,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -20,9 +21,16 @@ import java.util.Locale;
  * /mscwiki &lt;page&gt;    a page straight away, such as /mscwiki venomfang
  * /mscwiki hand      the page of the item in your hand
  * /mscwiki en|es     switch the language and open the home page
+ * /mscwiki portal    preview the ritual portal in front of you for five seconds
  * </pre>
  */
 public final class WikiCommand implements TabExecutor {
+
+    private final Plugin plugin;
+
+    public WikiCommand(Plugin plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
@@ -41,6 +49,10 @@ public final class WikiCommand implements TabExecutor {
             WikiLang chosen = wanted.equals("es") ? WikiLang.ES : WikiLang.EN;
             WikiLang.set(player, chosen);
             player.openInventory(WikiMenu.home(chosen).getInventory());
+            return true;
+        }
+        if (wanted.equals("portal")) {
+            PortalPreview.show(plugin, player);
             return true;
         }
         WikiEntry entry = wanted.equals("hand")
@@ -70,6 +82,7 @@ public final class WikiCommand implements TabExecutor {
         out.add("hand");
         out.add("en");
         out.add("es");
+        out.add("portal");
         for (WikiEntry entry : WikiCatalogue.entries()) {
             out.add(entry.id());
         }

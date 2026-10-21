@@ -171,6 +171,10 @@ public class RitualStructure {
         return 5.0;
     }
 
+    public static Map<Location, Material> getStructureBlocks() {
+        return STRUCTURE_BLOCKS;
+    }
+
     public static Map<Location, Material> getCandleLocations() {
         return CANDLE_LOCATIONS;
     }

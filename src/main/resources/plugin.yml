@@ -19,8 +19,12 @@ commands:
     permission: msc.stand
   mscwiki:
     description: Opens the in-game wiki (English and Spanish) with every item, recipe and drop
-    usage: /mscwiki [page|hand|en|es]
+    usage: /mscwiki [page|hand|en|es|portal]
     permission: msc.wiki
+  mscevent:
+    description: Event teams - create one, invite players, leave, and more; ranked when an event boss falls
+    usage: /mscevent team <create|join|add|remove|leader|disband|leave|list|info>
+    permission: msc.event
 
 permissions:
   msc.admin:
@@ -31,6 +35,9 @@ permissions:
     default: true
   msc.wiki:
     description: Allows opening the in-game wiki with /mscwiki
+    default: true
+  msc.event:
+    description: Allows using /mscevent to join and run event teams
     default: true
   msc.admin.bypass:
     description: Bypasses the protected boss-dimension build and teleport rules

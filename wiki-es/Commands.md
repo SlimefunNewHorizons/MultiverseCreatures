@@ -12,6 +12,7 @@ Todos los comandos usan la raíz **`/msc`**. **Permiso:** `msc.admin` (OP del se
 /msc kill [tipo|all] [radio]   Purga criaturas de MSC de forma segura
 /msc debug [jugador]           Desglosa el daño de cada jefe hacia y desde un jugador
 /msc debug geometry [jefe]     Dibuja la hitbox y las articulaciones de un jefe, o reproduce su caminar
+/msc debug model malenia [ataque] Muestra a Malenia, o uno de sus ataques
 /msc reload                    Recarga config.yml, fusiona los defaults nuevos y sincroniza entidades y jefes
 ```
 
@@ -35,6 +36,7 @@ Invoca una sola entidad (o una formación táctica) en la ubicación del ejecuto
 | `nix` | NIX - El Verdugo (jefe con modelo custom de 27 piezas) |
 | `dio` | DIO con su Stand The World (jefe de JoJo's Bizarre Adventure) |
 | `witherstorm` | WITHER STORM, nacido de su vórtice en su primera forma (Cracker's Wither Storm Mod) |
+| `witherstormevent` | WITHER STORM EVENT: jefe de evento con más vida, crecimiento más rápido, cinco ataques destructivos y ranking de daño (ver `/mscevent`) |
 | `witherstorm2` … `witherstorm5` | WITHER STORM ya crecido: Joroba Creciente, Joroba Hinchada, Destructor, Devorador |
 | `armorstand` | EL CENTINELA DE OBSIDIANA, jefe final |
 | `jack` | JACK STAR — El Arquitecto del Sistema (5 fases, 3 vidas) |
@@ -94,6 +96,10 @@ La cantidad por defecto es 1 y puede ser de 1 a 64. Sin destino el objeto va al 
 | `obsidianbastionchestplate` |
 | `obsidianbastionleggings` |
 | `obsidianbastionboots` |
+| `worldbinderhelmet` |
+| `worldbinderchestplate` |
+| `worldbinderleggings` |
+| `worldbinderboots` |
 | `marrowaegis` |
 | `veilwalkermantle` |
 | `frostheartoffhand` |
@@ -238,6 +244,23 @@ Las secciones sin datos se omiten; si aún no te ha tocado ningún jefe el coman
 
 ---
 
+## /msc debug model malenia [attack]
+
+Genera el modelo de Malenia (block displays) delante de ti, mirándote, durante 30 segundos. No se guarda en el mundo ni aparece ningún jefe: solo sirve para revisar el modelo y sus ataques.
+
+Indica un ataque para verla ejecutarlo de perfil, a ocho bloques, con una pose cada dos ticks:
+
+- **`idle`**: su guardia, respirando, con la hoja meciéndose.
+- **`combo`**: tres tajos avanzando.
+- **`thrust`**: una estocada larga a fondo.
+- **`waterfowl`**: la Danza del Ave Acuática — salta y gira en el aire en tres ráfagas, su hoja trazando círculos completos mientras recorre el área, el aire lleno de cortes, y aterriza.
+- **`whirlwind`**: cuatro giros por el suelo con la hoja extendida.
+- **`leap`**: una voltereta que acaba en un tajo descendente que sacude el suelo.
+
+El visor 3D del sitio reproduce los mismos ataques con sus estelas y cortes.
+
+---
+
 ## /msc debug geometry [kinger|nix|jack|sentinel] [walk]
 
 Dibuja en el mundo la **hitbox real** de un jefe y las **articulaciones** sobre las que giran sus extremidades durante diez segundos, siguiéndolo mientras se mueve. Apunta al jefe de ese tipo más cercano en 32 bloques (omite el nombre para cualquier jefe vestido); la geometría se dibuja con partículas, así que no aparece ni queda nada en el mundo.
@@ -296,7 +319,7 @@ Teletransporta al ejecutor entre mundos/dimensiones. Se usa para probar el andam
 
 ---
 
-## /mscwiki [página|hand|en|es]
+## /mscwiki [página|hand|en|es|portal]
 
 Abre la wiki dentro del juego, para todos los jugadores (`msc.wiki`, concedido por defecto).
 
@@ -304,6 +327,21 @@ Abre la wiki dentro del juego, para todos los jugadores (`msc.wiki`, concedido p
 - Cada página muestra el ítem con su lore, su receta tal como la tiene el servidor (mesa de crafteo, horno, alto horno, soporte para pociones o intercambio), quién lo suelta con la probabilidad del propio servidor y en qué se usa. Haz clic en un ingrediente para abrir su página.
 - Inglés y español: se abre en el idioma del cliente y la bandera de la esquina lo cambia (la elección se guarda en el jugador).
 - `/mscwiki venomfang` abre una página directamente; `/mscwiki hand` abre la del ítem que sostienes; `/mscwiki es` o `/mscwiki en` cambia el idioma.
+- `/mscwiki portal` muestra el portal del ritual a un bloque delante de ti durante 5 segundos (solo block displays, no se coloca nada). Si algo estorba, el chat avisa de que no hay espacio.
+
+## /mscevent team <subcomando>
+
+Equipos de evento, para todos los jugadores (`msc.event`, concedido por defecto). Un jugador está en un equipo como mucho; la ayuda y el autocompletado solo ofrecen lo que puedes hacer en ese momento.
+
+| Eres | Subcomandos |
+|---|---|
+| Sin equipo | `create <nombre>` (3-16 letras, dígitos o `_`; lo lideras tú), `join <equipo>` (solo si te invitaron), `list`, `info [equipo]` |
+| Miembro | `leave`, `list`, `info [equipo]` |
+| Líder | `add <jugador>` (lo invita), `remove <miembro>`, `leader <miembro>` (cede el liderazgo), `disband`, `leave` (lidera el siguiente miembro; si eras el último, se disuelve), `list`, `info [equipo]` |
+
+Los equipos se guardan en `plugins/MultiverseCreatures/event-teams.yml`; las invitaciones duran hasta que el servidor se reinicia.
+
+Cuando cae el **Wither Storm Event** (`/msc spawn witherstormevent`), el chat de todo el servidor muestra el top 3 de equipos (el daño de sus miembros sumado) y el top 3 de jugadores por daño hecho al jefe. El Wither Storm del evento tiene un 25% más de vida, crece un 30% más rápido y suma cinco ataques destructivos: Void Meteors, Rift Trench, Crumbling Quake, Skull Nova y Annihilation Beam.
 
 ## Permisos
 

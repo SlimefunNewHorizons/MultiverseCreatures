@@ -59,6 +59,47 @@ The set bonus is re-checked on join/quit/item-break and broadcasts "set bonus ac
 
 ---
 
+### Worldbinder (4-piece apex Netherite set)
+
+> "Every world bends. Not one of them breaks its wearer."
+
+The Obsidian Bastion reforged around a Multiversal Core. The item lore only carries the story; every effect is listed here and in `/mscwiki`.
+
+| Piece | Material |
+|---|---|
+| Crown | NETHERITE_HELMET |
+| Cuirass | NETHERITE_CHESTPLATE |
+| Greaves | NETHERITE_LEGGINGS |
+| Sabatons | NETHERITE_BOOTS |
+
+All 4 pieces ship pre-enchanted with **Protection IV · Blast Protection IV · Thorns III · Unbreaking III** and are unbreakable.
+
+### Full set bonus
+
+| Effect | Value |
+|---|---|
+| Max Health | **+50%** |
+| Damage taken | **-30%** (any source) |
+| Boss true damage | **-25%** (on top of the -30%) |
+| Damage dealt | **+35%** to any entity (melee and projectiles) |
+| Movement speed | **+25%** on land and in water |
+| Fire / Lava / Drowning | Immune |
+| Potions | Effects last **20% longer**; Instant Health and Regeneration heal **20% more**; Resistance blocks **20% more**; Strength adds **20% more** |
+
+### Abilities (full set)
+
+| Ability | Chance | Effect |
+|---|---|---|
+| **Rebound** | 15% per hit taken from an entity | The hit is cancelled and dealt back to the attacker **+20%** |
+| **Defy Death** | 5% on a lethal hit | You survive on half a heart and are **invulnerable for 3 s** (60 s cooldown) |
+| **Unseen** | 10% per hit taken from an entity | **Fully invisible** for 5 s, armor and held items included (30 s cooldown) |
+
+- **Give:** `/msc give worldbinderhelmet` (and `worldbinderchestplate` / `worldbinderleggings` / `worldbinderboots`)
+- **Craft:** each piece is its Obsidian Bastion piece in the centre, a Multiversal Core above, Refined Netherite on both sides and, below: Veilwalker Mantle (Crown), Marrow Aegis (Cuirass) or Refined Netherite (Greaves and Sabatons).
+- **Theme:** Multiverse
+
+---
+
 ## 🛡️ Off-hand Relics
 
 All three off-hand relics only work in the off-hand slot and use unique `msc_<item>` tags.

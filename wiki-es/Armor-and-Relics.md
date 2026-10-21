@@ -59,6 +59,47 @@ El bono de set se re-comprueba al entrar/salir/romper el objeto y transmite mens
 
 ---
 
+### Worldbinder (set ápice de 4 piezas de Netherita)
+
+> "Every world bends. Not one of them breaks its wearer."
+
+El Bastión de Obsidiana reforjado alrededor de un Núcleo Multiversal. El lore del ítem solo cuenta su historia; todos los efectos están aquí y en `/mscwiki`.
+
+| Pieza | Material |
+|---|---|
+| Crown | NETHERITE_HELMET |
+| Cuirass | NETHERITE_CHESTPLATE |
+| Greaves | NETHERITE_LEGGINGS |
+| Sabatons | NETHERITE_BOOTS |
+
+Las 4 piezas vienen encantadas con **Protección IV · Protección contra explosiones IV · Espinas III · Irrompibilidad III** y son irrompibles.
+
+### Bono de set completo
+
+| Efecto | Valor |
+|---|---|
+| Vida máxima | **+50%** |
+| Daño recibido | **-30%** (cualquier fuente) |
+| Daño verdadero de jefes | **-25%** (además del -30%) |
+| Daño infligido | **+35%** a cualquier entidad (cuerpo a cuerpo y proyectiles) |
+| Velocidad de movimiento | **+25%** en tierra y en agua |
+| Fuego / Lava / Ahogamiento | Inmune |
+| Pociones | Los efectos duran **20% más**; Curación instantánea y Regeneración curan **20% más**; Resistencia bloquea **20% más**; Fuerza suma **20% más** |
+
+### Habilidades (set completo)
+
+| Habilidad | Probabilidad | Efecto |
+|---|---|---|
+| **Rebote** | 15% por golpe recibido de una entidad | El golpe se anula y vuelve al atacante **+20%** |
+| **Desafiar a la muerte** | 5% ante un golpe letal | Sobrevives con medio corazón e **invulnerable 3 s** (enfriamiento 60 s) |
+| **Invisible** | 10% por golpe recibido de una entidad | **Totalmente invisible** 5 s, armadura y objetos en mano incluidos (enfriamiento 30 s) |
+
+- **Give:** `/msc give worldbinderhelmet` (y `worldbinderchestplate` / `worldbinderleggings` / `worldbinderboots`)
+- **Crafteo:** cada pieza lleva su pieza del Bastión de Obsidiana en el centro, un Núcleo Multiversal arriba, Netherita Refinada a ambos lados y, abajo: Veilwalker Mantle (Crown), Marrow Aegis (Cuirass) o Netherita Refinada (Greaves y Sabatons).
+- **Tema:** Multiverso
+
+---
+
 ## 🛡️ Reliquias de mano secundaria
 
 Las tres reliquias de mano secundaria solo funcionan en la ranura de mano secundaria y usan etiquetas `msc_<objeto>` únicas.

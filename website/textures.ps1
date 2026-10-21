@@ -1,4 +1,4 @@
-# Copies the vanilla textures the model viewer draws the Wither Storm with out of your own Minecraft
+# Copies the vanilla textures the model viewer draws block models with (the Wither Storm, Malenia) out of your own Minecraft
 # client into target/stand-viewer/textures, next to models.json. They are Mojang's, so they are
 # never committed: run this once on any machine that has the game installed.
 #
@@ -20,7 +20,11 @@ New-Item -ItemType Directory -Force $out | Out-Null
 
 $blocks = 'obsidian', 'crying_obsidian', 'black_concrete', 'blackstone', 'blackstone_top', 'polished_blackstone',
     'gray_concrete', 'purple_concrete', 'magenta_concrete', 'amethyst_block', 'light_gray_concrete', 'white_concrete',
-    'command_block_front', 'command_block_back', 'command_block_side'
+    'command_block_front', 'command_block_back', 'command_block_side',
+    'gold_block', 'raw_gold_block', 'red_wool', 'red_terracotta', 'red_concrete', 'white_terracotta',
+    'iron_block', 'quartz_block_side', 'quartz_block_top', 'black_wool', 'yellow_terracotta', 'orange_terracotta',
+    'terracotta', 'brown_terracotta', 'brown_concrete', 'sandstone_top', 'red_concrete_powder', 'orange_concrete',
+    'mushroom_stem', 'nether_wart_block', 'redstone_block', 'purple_stained_glass', 'magenta_stained_glass'
 $wanted = @{}
 foreach ($b in $blocks) { $wanted["assets/minecraft/textures/block/$b.png"] = "$b.png" }
 $wanted["assets/minecraft/textures/entity/skeleton/wither_skeleton.png"] = "wither_skeleton.png"

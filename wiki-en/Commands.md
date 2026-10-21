@@ -12,6 +12,7 @@ All commands use the **`/msc`** root. **Permission:** `msc.admin` (server OP by 
 /msc kill [type|all] [radius]  Safely kill/purge MSC custom creatures
 /msc debug [player]            Break down each boss's damage to and from a player
 /msc debug geometry [boss]     Draw a boss's hitbox and joints, or replay its walk
+/msc debug model malenia [attack] Show Malenia, or watch one of her attacks
 /msc reload                    Reload config.yml, merge new defaults and sync entities and bosses
 ```
 
@@ -35,6 +36,7 @@ Summons a single entity (or a tactical formation) at the executor's location. Th
 | `nix` | NIX - The Executioner (custom 27-part model boss) |
 | `dio` | DIO with his Stand The World (JoJo's Bizarre Adventure boss) |
 | `witherstorm` | THE WITHER STORM, born out of its vortex in its first form (Cracker's Wither Storm Mod) |
+| `witherstormevent` | The WITHER STORM EVENT: event boss with more health, faster growth, five destructive attacks and a damage ranking (see `/mscevent`) |
 | `witherstorm2` … `witherstorm5` | THE WITHER STORM already grown: Growing Hunchback, Swollen Hunchback, Destroyer, Devourer |
 | `armorstand` | THE OBSIDIAN SENTINEL final boss |
 | `jack` | JACK STAR — The System Architect (5 phases, 3 lives) |
@@ -94,6 +96,10 @@ Amount defaults to 1 and can be 1–64. Without a target the item goes to the ex
 | `obsidianbastionchestplate` |
 | `obsidianbastionleggings` |
 | `obsidianbastionboots` |
+| `worldbinderhelmet` |
+| `worldbinderchestplate` |
+| `worldbinderleggings` |
+| `worldbinderboots` |
 | `marrowaegis` |
 | `veilwalkermantle` |
 | `frostheartoffhand` |
@@ -238,6 +244,23 @@ Sections with nothing recorded are skipped; if no boss has touched the player ye
 
 ---
 
+## /msc debug model malenia [attack]
+
+Spawns Malenia's block-display model in front of you, facing you, for 30 seconds. Nothing is saved with the world and no boss is spawned: it is only there to judge the model and her attacks.
+
+Name an attack to watch her play it side on, eight blocks away, posed every two ticks:
+
+- **`idle`**: her stance, breathing, the blade swaying.
+- **`combo`**: three slashes, stepping in.
+- **`thrust`**: a long lunging thrust.
+- **`waterfowl`**: the Waterfowl Dance — she leaps and whirls through the air in three flurries, her blade sweeping whole circles as she circles the area, the air filling with slashes, then lands.
+- **`whirlwind`**: four turns across the ground with her blade held out.
+- **`leap`**: a flip into an overhead slam that shakes the ground.
+
+The 3D viewer on the site plays the same attacks with their sword trails and slashes.
+
+---
+
 ## /msc debug geometry [kinger|nix|jack|sentinel] [walk]
 
 Draws a boss's **real hitbox** and the **joints its limbs swing around** in the world for ten seconds, following it as it moves. It targets the nearest boss of that kind within 32 blocks (omit the name for any dressed boss); the geometry is drawn with particles, so nothing is spawned and nothing is left behind.
@@ -296,7 +319,7 @@ Teleports the executor across worlds/dimensions. Used for testing the boss dimen
 
 ---
 
-## /mscwiki [page|hand|en|es]
+## /mscwiki [page|hand|en|es|portal]
 
 Opens the in-game wiki, for every player (`msc.wiki`, granted by default).
 
@@ -304,6 +327,21 @@ Opens the in-game wiki, for every player (`msc.wiki`, granted by default).
 - Each item page shows the item with its lore, its recipe as the server has it (crafting table, furnace, blast furnace, brewing stand or merchant trade), who drops it with the server's own chance, and what it is used in. Click an ingredient to open its page.
 - English and Spanish: it opens in the client's language and the flag in the corner switches it (the choice is kept on the player).
 - `/mscwiki venomfang` opens a page directly; `/mscwiki hand` opens the page of the item you hold; `/mscwiki es` or `/mscwiki en` switches the language.
+- `/mscwiki portal` shows the ritual portal one block in front of you for 5 seconds (block displays only, nothing is placed). If something is in the way, the chat says there is no space.
+
+## /mscevent team <subcommand>
+
+Event teams, for every player (`msc.event`, granted by default). A player is in one team at most; the help and tab completion only offer what you can do right now.
+
+| You are | Subcommands |
+|---|---|
+| In no team | `create <name>` (3-16 letters, digits or `_`; you lead it), `join <team>` (only once invited), `list`, `info [team]` |
+| A member | `leave`, `list`, `info [team]` |
+| The leader | `add <player>` (invites them), `remove <member>`, `leader <member>` (hands the team over), `disband`, `leave` (the next member leads; the last one out disbands it), `list`, `info [team]` |
+
+Teams are saved in `plugins/MultiverseCreatures/event-teams.yml`; invites last until the server restarts.
+
+When the **Wither Storm Event** (`/msc spawn witherstormevent`) falls, the chat of the whole server shows the top 3 teams (their members' damage added up) and the top 3 players by damage dealt to it. The event storm has 25% more health, grows 30% faster and adds five destructive attacks: Void Meteors, Rift Trench, Crumbling Quake, Skull Nova and Annihilation Beam.
 
 ## Permissions
 

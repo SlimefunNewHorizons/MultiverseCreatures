@@ -2,6 +2,7 @@ package com.Chagui68.wiki;
 
 import com.Chagui68.items.armor.EightHandledWheel;
 import com.Chagui68.items.armor.ObsidianBastion;
+import com.Chagui68.items.armor.Worldbinder;
 import com.Chagui68.items.components.*;
 import com.Chagui68.items.food.HeadSlimeGelatin;
 import com.Chagui68.items.food.ScoobyCookie;
@@ -181,6 +182,23 @@ public final class WikiCatalogue {
         list.add(WikiEntry.item("obsidianbastionchestplate", ARMOR, () -> ObsidianBastion.CHESTPLATE).about(bastionEn, bastionEs).build());
         list.add(WikiEntry.item("obsidianbastionleggings", ARMOR, () -> ObsidianBastion.LEGGINGS).about(bastionEn, bastionEs).build());
         list.add(WikiEntry.item("obsidianbastionboots", ARMOR, () -> ObsidianBastion.BOOTS).about(bastionEn, bastionEs).build());
+        String worldbinderEn = "Full set: +50% max health, 30% less damage taken, 25% less boss true damage,"
+                + " +35% damage dealt, +25% speed on land and in water, immune to fire, lava and drowning."
+                + " Potions last 20% longer, and healing, Regeneration, Resistance and Strength work 20% better."
+                + " Rebound (15%): a hit is reflected back 20% stronger. Defy Death (5%): survive a lethal hit"
+                + " and stay invulnerable for 3 s (60 s cooldown). Unseen (10% when hit): fully invisible,"
+                + " armor and held items included, for 5 s (30 s cooldown).";
+        String worldbinderEs = "Set completo: +50% de vida máxima, 30% menos de daño recibido, 25% menos de daño"
+                + " verdadero de jefes, +35% de daño infligido, +25% de velocidad en tierra y agua, inmunidad al"
+                + " fuego, la lava y el ahogamiento. Las pociones duran 20% más, y la curación, Regeneración,"
+                + " Resistencia y Fuerza rinden 20% más. Rebote (15%): refleja un golpe 20% más fuerte. Desafiar"
+                + " a la muerte (5%): sobrevive a un golpe letal y queda invulnerable 3 s (enfriamiento 60 s). Invisible"
+                + " (10% al recibir golpe): totalmente invisible, armadura y objetos incluidos, durante 5 s"
+                + " (enfriamiento 30 s).";
+        list.add(WikiEntry.item("worldbinderhelmet", ARMOR, () -> Worldbinder.HELMET).about(worldbinderEn, worldbinderEs).build());
+        list.add(WikiEntry.item("worldbinderchestplate", ARMOR, () -> Worldbinder.CHESTPLATE).about(worldbinderEn, worldbinderEs).build());
+        list.add(WikiEntry.item("worldbinderleggings", ARMOR, () -> Worldbinder.LEGGINGS).about(worldbinderEn, worldbinderEs).build());
+        list.add(WikiEntry.item("worldbinderboots", ARMOR, () -> Worldbinder.BOOTS).about(worldbinderEn, worldbinderEs).build());
         list.add(WikiEntry.item("marrowaegis", ARMOR, () -> MarrowAegis.MARROW_AEGIS).build());
         list.add(WikiEntry.item("frostheartoffhand", ARMOR, () -> FrostHeartOffhand.FROST_HEART_OFFHAND).build());
         list.add(WikiEntry.item("veilwalkermantle", ARMOR, () -> VeilwalkerMantle.VEILWALKER_MANTLE).build());
@@ -621,6 +639,44 @@ public final class WikiCatalogue {
                                 + "de Filo, un 50% como máximo."))
                 .source(WikiSource.of(Material.NETHER_STAR, "Loot", "Botín",
                         "One Nether Star and the Wither Storm Head.", "Una Estrella del Nether y la Wither Storm Head."))
+                .build());
+        list.add(WikiEntry.info("witherstormevent", BOSSES, Material.CRYING_OBSIDIAN, NamedTextColor.LIGHT_PURPLE,
+                        "Wither Storm Event", "Wither Storm Event")
+                .about("The Wither Storm of the server's events: 25% more health, it grows 30% faster and it has five "
+                                + "destructive attacks of its own. When it falls, the chat ranks who hurt it most.",
+                        "El Wither Storm de los eventos del servidor: 25% más de vida, crece un 30% más rápido y tiene "
+                                + "cinco ataques destructivos propios. Cuando cae, el chat muestra quién le hizo más daño.")
+                .source(WikiSource.of(Material.CLOCK, "When", "Cuándo",
+                        "Only during server events. Everything on the Wither Storm's page holds for it too.",
+                        "Solo durante los eventos del servidor. Todo lo de la página del Wither Storm vale también para él."))
+                .source(WikiSource.of(Material.FIRE_CHARGE, "Void Meteors", "Void Meteors",
+                        "Red circles appear round you and a meteor crashes into each. Step out of the circles.",
+                        "Aparecen círculos rojos a tu alrededor y cae un meteoro en cada uno. Sal de los círculos."))
+                .source(WikiSource.of(Material.TNT, "Rift Trench", "Rift Trench",
+                        "Red sparks run along the ground towards you, then it blows open along that line. Move sideways.",
+                        "Unas chispas rojas avanzan por el suelo hacia ti y luego revienta a lo largo de esa línea. "
+                                + "Apártate hacia un lado."))
+                .source(WikiSource.of(Material.CRACKED_DEEPSLATE_BRICKS, "Crumbling Quake", "Crumbling Quake",
+                        "A ring of collapse rolls outward from under the storm, tearing up the ground. Run from it.",
+                        "Un anillo de derrumbe se expande desde debajo de la tormenta y arranca el suelo. Huye de él."))
+                .source(WikiSource.of(Material.WITHER_SKELETON_SKULL, "Skull Nova", "Skull Nova",
+                        "Three waves of blue wither skulls fly out in every direction. Hide behind solid blocks.",
+                        "Tres oleadas de calaveras wither azules salen en todas direcciones. Escóndete tras bloques sólidos."))
+                .source(WikiSource.of(Material.END_ROD, "Annihilation Beam", "Annihilation Beam",
+                        "It stops, charges and sweeps a beam across the ground through you. Run the other way.",
+                        "Se detiene, carga y barre el suelo con un rayo que pasa por ti. Corre hacia el otro lado."))
+                .source(WikiSource.of(Material.GOLD_INGOT, "Ranking", "Ranking",
+                        "When it falls, the whole server sees the top 3 teams (their members' damage added up) and the "
+                                + "top 3 players by damage dealt to it.",
+                        "Cuando cae, todo el servidor ve el top 3 de equipos (el daño de sus miembros sumado) y el top 3 "
+                                + "de jugadores por daño hecho al jefe."))
+                .source(WikiSource.of(Material.WHITE_BANNER, "Teams: /mscevent team", "Equipos: /mscevent team",
+                        "With no team: create <name>, join <team> (once invited), list, info. As a member: leave. As "
+                                + "the leader: add <player> to invite, remove <member>, leader <member> to hand the team "
+                                + "over, disband. If the leader leaves, the next member leads.",
+                        "Sin equipo: create <nombre>, join <equipo> (si te invitaron), list, info. Como miembro: leave. "
+                                + "Como líder: add <jugador> para invitar, remove <miembro>, leader <miembro> para ceder el "
+                                + "liderazgo, disband. Si el líder se va, lidera el siguiente miembro."))
                 .build());
         list.add(WikiEntry.info("pantheonaltar", BOSSES, Material.CHISELED_QUARTZ_BLOCK, NamedTextColor.YELLOW,
                         "The Pantheon Altar", "El Altar del Panteón")

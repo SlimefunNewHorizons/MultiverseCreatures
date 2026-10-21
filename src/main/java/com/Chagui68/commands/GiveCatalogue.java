@@ -2,6 +2,7 @@ package com.Chagui68.commands;
 
 import com.Chagui68.items.armor.EightHandledWheel;
 import com.Chagui68.items.armor.ObsidianBastion;
+import com.Chagui68.items.armor.Worldbinder;
 import com.Chagui68.items.components.ArchitectKernel;
 import com.Chagui68.items.components.BoneMarrow;
 import com.Chagui68.items.components.ChaosCore;
@@ -184,6 +185,10 @@ final class GiveCatalogue {
             new Entry("obsidianbastionchestplate", () -> ObsidianBastion.CHESTPLATE),
             new Entry("obsidianbastionleggings", () -> ObsidianBastion.LEGGINGS),
             new Entry("obsidianbastionboots", () -> ObsidianBastion.BOOTS),
+            new Entry("worldbinderhelmet", () -> Worldbinder.HELMET),
+            new Entry("worldbinderchestplate", () -> Worldbinder.CHESTPLATE),
+            new Entry("worldbinderleggings", () -> Worldbinder.LEGGINGS),
+            new Entry("worldbinderboots", () -> Worldbinder.BOOTS),
             // Off-hand misc
             new Entry("frostheartoffhand", () -> FrostHeartOffhand.FROST_HEART_OFFHAND),
             new Entry("marrowaegis", () -> MarrowAegis.MARROW_AEGIS),

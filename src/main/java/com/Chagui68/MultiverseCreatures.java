@@ -28,6 +28,7 @@ import com.Chagui68.entities.ZombieHorseTrap;
 import com.Chagui68.items.recipes.RecipeManager;
 import com.Chagui68.listener.armor.EightHandledWheelHandler;
 import com.Chagui68.listener.armor.ObsidianBastionHandler;
+import com.Chagui68.listener.armor.WorldbinderHandler;
 import com.Chagui68.listener.bossdimension.BossDimensionBlockHandler;
 import com.Chagui68.listener.bossdimension.BossDimensionCommandHandler;
 import com.Chagui68.listener.bossdimension.BossInvocationManager;
@@ -101,6 +102,7 @@ public class MultiverseCreatures extends JavaPlugin {
     private DioBoss dioBoss;
     /** The Wither Storm of Cracker's Wither Storm Mod, summoned with the Wither's own structure. */
     private com.Chagui68.entities.boss.witherstorm.WitherStormBoss witherStormBoss;
+    private com.Chagui68.event.EventTeams eventTeams;
     private JackInvocationManager jackInvocationManager;
     /** DrakesBosses' gods, summoned at the Pantheon Altars of the Boss Dimension. */
     private PantheonInvocationManager pantheonInvocationManager;
@@ -111,6 +113,7 @@ public class MultiverseCreatures extends JavaPlugin {
     private WirtsLanternHandler wirtsLanternHandler;
     private MantisClawsHandler mantisClawsHandler;
     private ObsidianBastionHandler obsidianBastionHandler;
+    private WorldbinderHandler worldbinderHandler;
     private FrostHeartOffhandHandler frostHeartOffhandHandler;
     /** The population recount, the only task the plugin itself starts. */
     private BukkitTask recountTask;
@@ -253,6 +256,8 @@ public class MultiverseCreatures extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MarrowAegisHandler(this), this);
         obsidianBastionHandler = new ObsidianBastionHandler(this);
         getServer().getPluginManager().registerEvents(obsidianBastionHandler, this);
+        worldbinderHandler = new WorldbinderHandler(this);
+        getServer().getPluginManager().registerEvents(worldbinderHandler, this);
         frostHeartOffhandHandler = new FrostHeartOffhandHandler(this);
         getServer().getPluginManager().registerEvents(frostHeartOffhandHandler, this);
         getServer().getPluginManager().registerEvents(new SkyfireTalismanHandler(this), this);
@@ -279,9 +284,13 @@ public class MultiverseCreatures extends JavaPlugin {
         getCommand("stand").setTabCompleter(standCommand);
         getServer().getPluginManager().registerEvents(new com.Chagui68.wiki.WikiListener(), this);
         getServer().getPluginManager().registerEvents(new com.Chagui68.items.LegacyItemRefresher(), this);
-        com.Chagui68.wiki.WikiCommand wikiCommand = new com.Chagui68.wiki.WikiCommand();
+        com.Chagui68.wiki.WikiCommand wikiCommand = new com.Chagui68.wiki.WikiCommand(this);
         getCommand("mscwiki").setExecutor(wikiCommand);
         getCommand("mscwiki").setTabCompleter(wikiCommand);
+        eventTeams = new com.Chagui68.event.EventTeams(new java.io.File(getDataFolder(), "event-teams.yml"), getLogger());
+        com.Chagui68.event.EventCommand eventCommand = new com.Chagui68.event.EventCommand(eventTeams);
+        getCommand("mscevent").setExecutor(eventCommand);
+        getCommand("mscevent").setTabCompleter(eventCommand);
 
         // The last line of a good start: the version compatibility check on GitHub waits for it.
         getLogger().info("MultiverseCreatures " + getPluginMeta().getVersion() + " ready on "
@@ -345,6 +354,7 @@ public class MultiverseCreatures extends JavaPlugin {
         if (wirtsLanternHandler != null) wirtsLanternHandler.stopTasks();
         if (mantisClawsHandler != null) mantisClawsHandler.stopTasks();
         if (obsidianBastionHandler != null) obsidianBastionHandler.stopTasks();
+        if (worldbinderHandler != null) worldbinderHandler.stopTasks();
         if (frostHeartOffhandHandler != null) frostHeartOffhandHandler.stopTasks();
     }
 
@@ -474,6 +484,11 @@ public class MultiverseCreatures extends JavaPlugin {
 
     public com.Chagui68.entities.boss.witherstorm.WitherStormBoss getWitherStormBoss() {
         return witherStormBoss;
+    }
+
+    /** The teams of {@code /mscevent team}, ranked when an event boss falls. */
+    public com.Chagui68.event.EventTeams getEventTeams() {
+        return eventTeams;
     }
 
     /** Whether any of the arena bosses, or a summoned DrakesBosses god, is fighting in {@code world}. */

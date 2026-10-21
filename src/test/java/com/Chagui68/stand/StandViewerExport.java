@@ -86,6 +86,8 @@ public final class StandViewerExport {
         }
         // The Wither Storm's five forms, drawn with block displays.
         json.append(',').append(com.Chagui68.entities.boss.witherstorm.WitherStormViewerExport.entries());
+        // Malenia's two phases, drawn with block displays like the storm, and her revival.
+        json.append(',').append(com.Chagui68.entities.boss.MaleniaViewerExport.entries());
         // Concept models: a BDEngine export kept head for head, posed with its own rig.
         json.append(',').append(ConceptViewerExport.entry());
         json.append("]}");
@@ -104,7 +106,7 @@ public final class StandViewerExport {
      */
     private static void writeScript(Path out, String models) throws IOException {
         StringBuilder js = new StringBuilder("window.STAND_VIEWER_DATA = ").append(models).append(";\n");
-        Path skins = Path.of("tools", "stand-skins", "out");
+        Path skins = Path.of("website", "models", "stand-skins", "out");
         Path manifest = skins.resolve("manifest.json");
         if (Files.isRegularFile(manifest)) {
             js.append("window.STAND_VIEWER_MANIFEST = ").append(Files.readString(manifest, StandardCharsets.UTF_8).strip()).append(";\n");

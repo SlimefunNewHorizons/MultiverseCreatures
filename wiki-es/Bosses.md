@@ -441,6 +441,24 @@ Todos sus golpes directos son **daño verdadero** (`max-damage-dealt` 20, `true-
 - **Hacerse el muerto:** el Destructor y el Devorador, al bajar a `play-dead-threshold` (15%), caen al suelo con las mandíbulas rotas durante `play-dead-ticks` (200) recibiendo ×1,5... y se levantan con todas las cabezas rugiendo, una onda que daña (`revive-damage` 12) y lanza a todos, y un 10% de vida recuperada. Solo una vez.
 - **Muerte:** se deshace en rayos de luz mientras sus bloques revientan uno a uno; suelta una estrella del Nether, su cabeza (un trofeo con el nombre de la forma en que cayó; `/msc give <jugador> witherstormhead` también da una) y experiencia, y cura la enfermedad de todos.
 
+### 🏆 Wither Storm Event
+
+Una versión de evento de la tormenta, con el mismo modelo y todo lo anterior, que inicia un administrador con `/msc spawn witherstormevent` (la estructura del Wither nunca la invoca). Su barra de jefe dice **WITHER STORM EVENT**.
+
+- **25% más de vida** en todas las formas (`health` × el `health-multiplier` de la forma × 1,25).
+- **Crece un 30% más rápido:** lo que come cuenta ×1,3 para el `evolve-at` de cada forma.
+- **Cinco ataques destructivos propios**, desde su primera forma, mezclados con los ataques especiales de arriba. Cada uno arranca el suelo donde golpea (si `grief-blocks` está activo y `mobGriefing` lo permite) y se lo da de comer a la masa, así que también la hacen crecer:
+
+| Ataque | Qué pasa | Cómo sobrevivir | Clave |
+|---|---|---|---|
+| **Void Meteors** | Tres círculos rojos alrededor de cada víctima (uno bajo sus pies) y luego un meteoro del vacío cae en cada uno, uno tras otro. | Sal de los círculos antes de que caiga la estela de fuego. | `debris-damage` ×1,5 (12) |
+| **Rift Trench** | Una línea de chispas rojas va de debajo de la tormenta hacia una víctima y luego el suelo revienta a lo largo de ella, explosión tras explosión. | Apártate de la línea hacia un lado. A cada jugador le golpea una vez. | `eruption-damage` (12) |
+| **Crumbling Quake** | La tormenta frena y un anillo de derrumbe se expande desde debajo de ella, arrancando el suelo a su paso. | Huye de él o ponte detrás del anillo cuando haya pasado. A cada jugador le golpea una vez. | `roar-damage` (10) |
+| **Skull Nova** | Todas las cabezas escupen calaveras wither cargadas (azules) en todas direcciones: tres oleadas de unas 30 calaveras. | Cúbrete detrás de bloques sólidos. | — (el daño de las propias calaveras) |
+| **Annihilation Beam** | La tormenta se queda quieta, carga un segundo y barre el suelo con un rayo del vacío que pasa por una víctima y revienta donde toca. | Mira hacia dónde va el pie del rayo y corre al lado contrario. A cada jugador le golpea una vez. | `singularity-damage` (16) |
+
+- **Ranking:** cuenta el daño que le hace cada jugador. Cuando muere, el chat de **todo el servidor** muestra el **top 3 de equipos** (el daño de sus miembros sumado) y el **top 3 de jugadores**. Los equipos se crean con [`/mscevent team`](./Commands.md#mscevent-team-subcomando); los jugadores sin equipo cuentan igual en el ranking de jugadores. El conteo se guarda en memoria, así que un reinicio en mitad del combate lo empieza de cero.
+
 ### Rendimiento
 
 El cuerpo viaja como pasajero del ancla (un armor stand marcador invisible, `MSC_WitherStorm`), que guarda la forma, la vida y lo comido: tras un reinicio la tormenta se reconstruye donde estaba, y ninguna pieza del cuerpo es persistente. Moverla cuesta un solo paquete; las piezas animadas se reenvían cada 3 ticks y solo si se movieron más de 3 cm o 1°, y el cuerpo gira en pasos que el cliente suaviza durante medio segundo. El Destructor usa la masa de baja resolución del mod (180 displays); `high-detail: true` dibuja la completa (548). Sin jugadores a menos de 50 bloques (100 en el Destructor y el Devorador) durante 5 s se va con sus invocaciones (`boss-balance.despawn`).

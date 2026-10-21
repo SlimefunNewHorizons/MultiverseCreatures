@@ -282,7 +282,7 @@ public final class WikiMenu implements InventoryHolder {
         }
         if (lore.isEmpty()) {
             lore.addAll(WikiText.paragraph(GRAY, "", lang.pick(
-                    "An admin can give it with /msc give.", "Un administrador puede darlo con /msc give.")));
+                    "Only an admin can hand it out.", "Solo un administrador puede entregarlo.")));
         }
         return button(Material.WRITABLE_BOOK, WikiText.title(GOLD, lang.pick("How to get it", "Cómo conseguirlo")), lore);
     }

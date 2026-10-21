@@ -148,7 +148,12 @@ final class WitherStorm {
         final org.bukkit.NamespacedKey form = new org.bukkit.NamespacedKey("multiversecreatures", "witherstorm_form");
         final org.bukkit.NamespacedKey consumed = new org.bukkit.NamespacedKey("multiversecreatures", "witherstorm_consumed");
         final org.bukkit.NamespacedKey playedDead = new org.bukkit.NamespacedKey("multiversecreatures", "witherstorm_played_dead");
+        final org.bukkit.NamespacedKey event = new org.bukkit.NamespacedKey("multiversecreatures", "witherstorm_event");
     }
+
+    /** The Wither Storm Event's health and growth against a plain storm's. */
+    static final double EVENT_HEALTH = 1.25;
+    static final double EVENT_GROWTH = 1.3;
 
     private static final float DEG = (float) (Math.PI / 180.0);
     /** Ticks between two animation frames; the client slides the boxes over the frame. */
@@ -178,6 +183,13 @@ final class WitherStorm {
     final WitherStormBoss boss;
     final ArmorStand anchor;
     final String ownerTag;
+    /** Whether this is the Wither Storm Event, which ranks who hurt it most. */
+    final boolean event;
+    /**
+     * What each player dealt to the event storm.
+     * shortcut: kept in memory only, so a restart mid-fight starts the ranking over; save it on the anchor if that matters.
+     */
+    final Map<UUID, Double> damageBy = new HashMap<>();
     private final WitherStormSpecials specials;
 
     WitherStormForm form;
@@ -228,9 +240,10 @@ final class WitherStorm {
     private final List<UUID> sickened = new ArrayList<>();
     private final List<UUID> phantoms = new ArrayList<>();
 
-    WitherStorm(WitherStormBoss boss, ArmorStand anchor, WitherStormForm form, State state) {
+    WitherStorm(WitherStormBoss boss, ArmorStand anchor, WitherStormForm form, State state, boolean event) {
         this.boss = boss;
         this.anchor = anchor;
+        this.event = event;
         this.ownerTag = WitherStormBoss.OWNER_PREFIX + anchor.getUniqueId().toString().replace("-", "");
         this.form = form;
         this.state = state;
@@ -589,7 +602,7 @@ final class WitherStorm {
         }
         specials.tick();
         WitherStormForm next = form.next();
-        if (next != null && consumed >= settings().form(form).evolveAt()) {
+        if (next != null && consumed * (event ? EVENT_GROWTH : 1.0) >= settings().form(form).evolveAt()) {
             startEvolution(next);
         }
     }
@@ -1053,7 +1066,7 @@ final class WitherStorm {
      * flying into a mouth (or into the mass for {@code head} -1). With griefing off the ground stays
      * and the storm still eats the lump.
      */
-    private void tear(int head, Block hit, int radius, int visuals) {
+    void tear(int head, Block hit, int radius, int visuals) {
         List<Block> lump = new ArrayList<>();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dy = -radius; dy <= radius; dy++) {
@@ -1418,7 +1431,7 @@ final class WitherStorm {
             oldBody = body;
             oldBody.shrink(25);
             double before = maxHealth;
-            maxHealth = boss.maxHealthFor(evolvingTo);
+            maxHealth = boss.maxHealthFor(evolvingTo, event);
             health = Math.min(maxHealth, health + (maxHealth - before));
             growth = 0.15f;
             removeHitboxes();
@@ -1557,6 +1570,7 @@ final class WitherStorm {
             }
         }
         cureSickened();
+        if (event) com.Chagui68.event.EventRanking.announce(damageBy, boss.plugin().getEventTeams());
         specials.dismiss();
         discard();
         anchor.remove();
@@ -1613,6 +1627,7 @@ final class WitherStorm {
         if (exposedTicks > 0) factor *= settings().exposedMultiplier();
         if (state == State.PLAYING_DEAD) factor *= 1.5;
         double dealt = Math.min(amount * factor, cap) * after;
+        if (event && attacker != null) damageBy.merge(attacker.getUniqueId(), Math.min(dealt, health), Double::sum);
         health = Math.max(0, health - dealt);
         hitEffect(h);
         if (h != null) {
@@ -1771,7 +1786,7 @@ final class WitherStorm {
     }
 
     private String title() {
-        String name = ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "WITHER STORM" + ChatColor.DARK_GRAY + " - "
+        String name = ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + (event ? "WITHER STORM EVENT" : "WITHER STORM") + ChatColor.DARK_GRAY + " - "
                 + ChatColor.LIGHT_PURPLE + form.displayName();
         return switch (state) {
             case FORMING -> name + ChatColor.GRAY + " (forming)";

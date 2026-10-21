@@ -440,6 +440,24 @@ Every direct hit it lands is **true damage** (`max-damage-dealt` 20, `true-damag
 - **Playing dead:** the Destroyer and the Devourer, at `play-dead-threshold` (15%), fall to the ground with their jaws hanging for `play-dead-ticks` (200), taking ×1.5... then rise with every head roaring, a blast that hurts (`revive-damage` 12) and throws everyone back, and 10% of their health back. Only once.
 - **Death:** it breaks apart in rays of light as its blocks burst one by one; it drops one Nether Star, its head (a trophy named after the form it fell in; `/msc give <player> witherstormhead` gives one too) and experience, and cures everyone's sickness.
 
+### 🏆 Wither Storm Event
+
+An event version of the storm, with the same model and everything above, started by an admin with `/msc spawn witherstormevent` (it is never summoned by the Wither structure). Its boss bar reads **WITHER STORM EVENT**.
+
+- **25% more health** in every form (`health` × the form's `health-multiplier` × 1.25).
+- **Grows 30% faster:** what it eats counts ×1.3 towards each form's `evolve-at`.
+- **Five destructive attacks of its own**, from its first form, mixed in with the special attacks above. Each one tears the ground it hits out (when `grief-blocks` is on and `mobGriefing` allows it) and feeds it to the mass, so they also make it grow:
+
+| Attack | What happens | How to survive it | Key |
+|---|---|---|---|
+| **Void Meteors** | Three red circles round every victim (one under their feet), then a meteor of the void crashes into each, one after another. | Step out of the circles before the trail of fire comes down. | `debris-damage` ×1.5 (12) |
+| **Rift Trench** | A line of red sparks runs from under the storm towards a victim, then the ground blows open along it, blast after blast. | Move sideways off the line. Each player is hit once. | `eruption-damage` (12) |
+| **Crumbling Quake** | The storm slows down and a ring of collapse rolls outward from under it, tearing the ground as it goes. | Run away from it or get behind the ring once it has passed. Each player is hit once. | `roar-damage` (10) |
+| **Skull Nova** | Every head spits charged (blue) wither skulls in every direction: three waves, about 30 skulls each. | Take cover behind solid blocks. | — (the skulls' own damage) |
+| **Annihilation Beam** | The storm holds still, charges for a second and sweeps a beam of the void across the ground through a victim, blowing it apart where it lands. | Watch where the beam's foot is going and run the other way. Each player is hit once. | `singularity-damage` (16) |
+
+- **Ranking:** it counts the damage every player deals to it. When it dies, the chat of the **whole server** shows the **top 3 teams** (their members' damage added up) and the **top 3 players**. Teams are made with [`/mscevent team`](./Commands.md#mscevent-team-subcommand); players in no team still count in the player ranking. The tally is kept in memory, so a restart mid-fight starts it over.
+
 ### Performance
 
 The body rides the anchor (an invisible marker armour stand, `MSC_WitherStorm`), which keeps its form, health and what it has eaten: after a restart the storm is rebuilt where it was, and no piece of the body is persistent. Moving it costs one packet; animated pieces are sent again every 3 ticks and only when they moved more than 3 cm or 1°, and the body turns in steps the client smooths over half a second. The Destroyer uses the mod's low-detail mass (180 displays); `high-detail: true` draws the full one (548). With no player within 50 blocks (100 for the Destroyer and the Devourer) for 5 s it leaves with its summons (`boss-balance.despawn`).

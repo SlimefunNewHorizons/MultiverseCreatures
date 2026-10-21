@@ -80,7 +80,9 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
     private static final List<String> GIVE_TARGETS = List.of("@a", "@p", "@r", "@s");
 
     /** What {@code /msc debug} can draw instead of reporting damage. */
-    private static final List<String> DEBUG_ACTIONS = List.of("geometry");
+    private static final List<String> DEBUG_ACTIONS = List.of("geometry", "model");
+    private static final List<String> MODEL_TARGETS = List.of("malenia");
+    private static final long MODEL_PREVIEW_TICKS = 600L;
 
     /** What {@code /msc debug geometry <boss>} accepts after the boss. */
     private static final List<String> GEOMETRY_MODES = List.of("walk");
@@ -754,6 +756,30 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             handleGeometry(sender, args);
             return;
         }
+        if (args.length > 1 && args[1].equalsIgnoreCase("model")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage(RED + "Only a player can preview a model.");
+                return;
+            }
+            if (args.length < 3 || !args[2].equalsIgnoreCase("malenia")) {
+                sender.sendMessage(RED + "Usage: /msc debug model malenia [attack]");
+                return;
+            }
+            if (args.length > 3) {
+                var attack = com.Chagui68.entities.boss.MaleniaRig.move(args[3].toLowerCase());
+                if (attack == null) {
+                    sender.sendMessage(RED + "Malenia's attacks: " + String.join(", ",
+                            com.Chagui68.entities.boss.MaleniaRig.MOVES.stream().map(m -> m.id()).toList()));
+                    return;
+                }
+                com.Chagui68.entities.boss.MaleniaRig.preview(plugin, player, attack);
+                sender.sendMessage(GREEN + "Malenia plays " + attack.label() + " in front of you.");
+                return;
+            }
+            com.Chagui68.entities.boss.MaleniaModel.preview(plugin, player, MODEL_PREVIEW_TICKS);
+            sender.sendMessage(GREEN + "Malenia's model stands in front of you for 30 seconds.");
+            return;
+        }
 
         Player target;
         if (args.length > 1) {
@@ -872,6 +898,8 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
                 addMatching(completions, KILL_RADII, args[2]);
             } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("geometry")) {
                 addMatching(completions, GEOMETRY_TARGETS, args[2]);
+            } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("model")) {
+                addMatching(completions, MODEL_TARGETS, args[2]);
             } else if (subCommand.equals("music")
                     && (args[1].equalsIgnoreCase("play") || args[1].equalsIgnoreCase("disc"))) {
                 addMatching(completions, plugin.getMusicManager().getSongNames(), args[2]);
@@ -885,12 +913,15 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             } else if (subCommand.equals("give")) {
                 addMatching(completions, GIVE_TARGETS, args[3]);
                 addMatchingPlayers(completions, args[3]);
+            } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("model")) {
+                addMatching(completions, com.Chagui68.entities.boss.MaleniaRig.MOVES.stream().map(m -> m.id()).toList(), args[3]);
             } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("geometry")
                     && !args[2].equalsIgnoreCase("sentinel")) {
                 // Only the three dressed models have limbs to walk: the Sentinel is the stand itself.
                 addMatching(completions, GEOMETRY_MODES, args[3]);
             }
         }
+
 
         if (args.length == 5 && subCommand.equals("troll") && TROLL_ENTITIES.contains(args[2].toLowerCase())) {
             addMatching(completions, plugin.getMonsterStalker().animations(), args[4]);

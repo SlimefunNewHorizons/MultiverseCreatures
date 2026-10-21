@@ -50,7 +50,7 @@ Cada spawn de mob vanilla tiene una probabilidad configurable de ser reemplazado
 
 ## 📚 Páginas
 
-- [Jefes](./Bosses.md) — El Centinela de Obsidiana, la Tormenta Wither, Mahoraga
+- [Jefes](./Bosses.md) — El Centinela de Obsidiana, la Tormenta Wither y el Wither Storm Event, Mahoraga
 - [Dimensión del Ritual](./Ritual-Dimension.md) — El mundo privado del jefe: cómo entrar e invocar al Centinela
 - [La Flecha y los Stands](./Stands.md) — Arquero de la Flecha, la sangre de DIO y los vampiros, los seis Stands, Sheer Heart Attack, armas de NIX y Jack Star
 - [Criaturas](./Creatures.md) — Todos los mobs que reemplazan spawns naturales + el ejército ZombieHorseTrap
@@ -60,6 +60,6 @@ Cada spawn de mob vanilla tiene una probabilidad configurable de ser reemplazado
 - [Componentes](./Components.md) — Los 16 drops de crafteo y qué mob proporciona cada uno
 - [Música](./Music.md) — Canciones NBS incluidas, discos de jukebox y el Disc Trader, créditos de canciones
 - [Recetas](./Recipes.md) — Todas las recetas de crafteo personalizadas (formas, ingredientes, niveles)
-- [Comandos](./Commands.md) — Referencia completa de `/msc` (spawn, give, attack, music, dimtp, kill, debug, reload)
+- [Comandos](./Commands.md) — Referencia completa de `/msc` (spawn, give, attack, music, dimtp, kill, debug, reload), `/mscwiki` y los equipos de evento de `/mscevent team`
 - [Zona Técnica](./dev/Home.md) — Arquitectura del código, convenciones, tests y cómo ampliar el proyecto
 - [Instalación](./Installation.md) — Instalación paso a paso, requisitos, solución de problemas

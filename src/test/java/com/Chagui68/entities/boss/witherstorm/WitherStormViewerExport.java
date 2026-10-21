@@ -163,8 +163,10 @@ public final class WitherStormViewerExport {
             Vector3f dir = new Vector3f(mouth).sub(centre).normalize();
             if (!first) out.append(',');
             first = false;
-            out.append(String.format(Locale.ROOT, "{\"o\":[%.3f,%.3f,%.3f],\"d\":[%.4f,%.4f,%.4f],\"l\":%.2f,\"r\":%.2f}",
-                    mouth.x, mouth.y, mouth.z, dir.x, dir.y, dir.z, form.beamRange(), form.beamEndRadius()));
+            // w: the width at the mouth, as WitherStorm.drawBeams sizes it.
+            float start = Math.max(0.15f, WitherStormModel.width(part, g) * 0.18f);
+            out.append(String.format(Locale.ROOT, "{\"o\":[%.3f,%.3f,%.3f],\"d\":[%.4f,%.4f,%.4f],\"l\":%.2f,\"r\":%.2f,\"w\":%.3f}",
+                    mouth.x, mouth.y, mouth.z, dir.x, dir.y, dir.z, form.beamRange(), form.beamEndRadius(), start));
         }
         return out.append(']').toString();
     }

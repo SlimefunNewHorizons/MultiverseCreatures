@@ -278,6 +278,7 @@ final class CommandMenu {
         header("MSC DEBUG - BOSS DAMAGE");
         line(" &7Usage: &e/msc debug [player]");
         line(" &7Usage: &e/msc debug geometry [kinger|nix|jack|sentinel] [walk]");
+        line(" &7Usage: &e/msc debug model malenia [attack]");
         line("");
         line(" &6&lInfo&8:");
         line("   &e• &fGeometry draws the hitbox the boss really uses and the");
@@ -286,6 +287,8 @@ final class CommandMenu {
         line("   &e• &fAppend &ewalk&f to replay that model's walk cycle on a rig");
         line("      &fin front of you: watch the knees and elbows fold without");
         line("      &fspawning a boss.");
+        line("   &e• &fModel shows a boss model in front of you for 30 seconds;");
+        line("      &fname an attack (&ewaterfowl&f, &ecombo&f...) to watch Malenia play it.");
         line("   &e• &fShows what the Obsidian Sentinel, Nix and Jack Star did to a");
         line("      &fplayer and what they took back, per boss.");
         line("   &e• &fTargets the player you are looking at, or a named player.");

@@ -1,896 +1,1910 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Model Viewer · MultiverseCreatures</title>
-<meta name="description" content="Every Stand and every form of the Wither Storm in 3D, with its poses, animations, tractor beams and hitboxes.">
-<link rel="icon" href="../icon.svg">
-<style>
-  :root {
-    --bg: #101216; --viewport: #15171c; --panel: #1b1e25; --panel-2: #232731; --line: #2e333f;
-    --text: #e6e8ec; --muted: #9aa3b2; --faint: #6b7383; --accent: #f2c230; --accent-ink: #1b1600;
-    --radius: 8px; --sidebar: 300px;
-    color-scheme: dark;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
-    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  body { display: grid; grid-template-columns: var(--sidebar) 1fr; overflow: hidden; }
-
-  /* ---------------------------------------------------------------- sidebar */
-  aside { display: flex; flex-direction: column; min-height: 0; background: var(--panel);
-    border-right: 1px solid var(--line); }
-  header { padding: 16px 16px 12px; border-bottom: 1px solid var(--line); }
-  header h1 { margin: 0; font-size: 16px; color: var(--accent); letter-spacing: .2px; }
-  header .back { display: inline-block; margin-top: 4px; color: var(--muted); font-size: 12px; text-decoration: none; }
-  header .back:hover { color: var(--accent); }
-  header p { margin: 2px 0 0; color: var(--faint); font-size: 12px; }
-  .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 0 12px; }
-  section { padding: 12px 16px; border-bottom: 1px solid var(--line); }
-  section:last-child { border-bottom: 0; }
-  h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px;
-    color: var(--muted); }
-  .off { display: none !important; }
-
-  input[type=search], select, button { width: 100%; background: var(--panel-2); color: var(--text);
-    border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font: inherit; }
-  input[type=search]:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
-  button { cursor: pointer; }
-  button:hover { border-color: #444b5a; }
-
-  /* model list */
-  #models { position: relative; margin-top: 8px; display: flex; flex-direction: column; gap: 2px; }
-  .group { margin: 8px 0 2px; color: var(--faint); font-size: 11px; display: flex; justify-content: space-between; }
-  .group:first-child { margin-top: 0; }
-  .model { text-align: left; border: 1px solid transparent; background: transparent; padding: 6px 9px; color: var(--text); }
-  .model:hover { background: var(--panel-2); border-color: transparent; }
-  .model[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
-  .empty { color: var(--faint); padding: 6px 2px; }
-
-  /* fields */
-  .field { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 8px; margin-top: 6px; }
-  .field:first-of-type { margin-top: 0; }
-  .field span { color: var(--muted); }
-
-  /* toggles */
-  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0;
-    color: var(--text); cursor: pointer; }
-  .toggle small { display: block; color: var(--faint); font-size: 11px; }
-  .toggle input { appearance: none; flex: none; width: 32px; height: 18px; border-radius: 9px; background: #3a404c;
-    position: relative; cursor: pointer; transition: background .15s; margin: 0; }
-  .toggle input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
-    border-radius: 50%; background: #cfd3da; transition: transform .15s; }
-  .toggle input:checked { background: var(--accent); }
-  .toggle input:checked::after { transform: translateX(14px); background: var(--accent-ink); }
-  .toggle input:disabled { opacity: .4; cursor: not-allowed; }
-  .toggle input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  .segmented { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-  .segmented button { padding: 6px 0; }
-
-  /* stats */
-  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
-  dt { color: var(--muted); }
-  dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .note { margin: 8px 0 0; color: var(--faint); font-size: 11px; }
-  code { font: 11px ui-monospace, Consolas, monospace; color: var(--muted); }
-
-  /* ---------------------------------------------------------------- viewport */
-  main { position: relative; min-width: 0; min-height: 0; background: var(--viewport); }
-  main canvas { display: block; position: absolute; inset: 0; }
-  .chip { position: absolute; top: 12px; left: 12px; padding: 6px 10px; border-radius: var(--radius);
-    background: rgba(16, 18, 22, .78); border: 1px solid var(--line); pointer-events: none; max-width: calc(100% - 24px); }
-  .chip b { display: block; font-size: 14px; }
-  .chip span { color: var(--muted); font-size: 12px; }
-  .hint { position: absolute; right: 12px; bottom: 10px; color: var(--faint); font-size: 11px; pointer-events: none; }
-  /* The Darkness a player is left in as the Monster vanishes. */
-  #dark { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .25s;
-    background: radial-gradient(circle, rgba(0,0,0,.35) 0%, rgba(0,0,0,.92) 70%); }
-  #status { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center;
-    color: var(--muted); }
-  #status code { font-size: 12px; color: var(--accent); }
-
-  /* ---------------------------------------------------------------- narrow screens */
-  @media (max-width: 760px) {
-    body { display: flex; flex-direction: column-reverse; overflow: auto; height: auto; min-height: 100%; }
-    main { height: 58vh; flex: none; }
-    aside { border-right: 0; border-top: 1px solid var(--line); }
-    .scroll { overflow: visible; }
-    #models { max-height: 220px; overflow-y: auto; }
-    .hint { display: none; }
-  }
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Model Viewer · MultiverseCreatures</title>
+    <meta name="description"
+          content="Every Stand, boss and Wither Storm form of MultiverseCreatures in 3D: their poses and animations, the Wither Storm's beams and hitboxes, and Malenia's revival.">
+    <meta name="theme-color" content="#0b0a12">
+    <link rel="icon" href="../icon.svg">
+    <link rel="stylesheet" href="viewer.css">
+    <script type="importmap">
+        { "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        } }
+    </script>
+    <!-- Opened straight from disk (file://) the page cannot fetch files, but it does run script tags: `mvn test`
+         writes the models as target/stand-viewer/models.js and website/textures.ps1 the textures as textures.js. -->
+    <script>
+        if (location.protocol === "file:") {
+            for (const f of ["models.js", "textures.js"]) document.write('<script src="../../../target/stand-viewer/' + f + '"><\/script>');
+        }
+        // three.js comes from a CDN: if the viewer has not started after a while, say why instead of spinning.
+        setTimeout(() => {
+            const overlay = document.getElementById("overlay");
+            if (!overlay || overlay.classList.contains("gone") || overlay.classList.contains("error")) return;
+            overlay.classList.add("error");
+            document.getElementById("overlayText").textContent = "The viewer could not start. It loads three.js from cdn.jsdelivr.net: check the connection and reload. From a checkout, run mvn test once first.";
+        }, 20000);
+    </script>
 </head>
 <body>
-<aside>
-  <header>
-    <h1>Model Viewer</h1>
-    <a class="back" href="../">&larr; MultiverseCreatures</a>
-    <p>MultiverseCreatures · Stands and bosses as the game draws them</p>
-  </header>
-  <div class="scroll">
-    <section>
-      <h2>Model</h2>
-      <input type="search" id="search" placeholder="Search models" autocomplete="off" aria-label="Search models">
-      <div id="models" role="list"></div>
-    </section>
-    <section>
-      <h2>Pose</h2>
-      <label class="field"><span>Pose</span><select id="pose" autocomplete="off"></select></label>
-      <label class="field" id="animLabel"><span>Animation</span><select id="anim" autocomplete="off"></select></label>
-    </section>
-    <section>
-      <h2>Show</h2>
-      <label class="toggle"><span>Turn slowly</span><input type="checkbox" id="spin" checked></label>
-      <label class="toggle" id="allLabel"><span>All Stands side by side</span><input type="checkbox" id="all"></label>
-      <label class="toggle" id="paintedLabel"><span>Painted skins<small>website/models/stand-skins on The World's eleven heads</small></span><input type="checkbox" id="painted"></label>
-      <label class="toggle" id="playerLabel"><span>Player<small>A player standing in front, to scale</small></span><input type="checkbox" id="player" checked></label>
-      <label class="toggle" id="beamLabel"><span>Tractor beams<small>At each form's default reach</small></span><input type="checkbox" id="beams" checked></label>
-      <label class="toggle" id="boxLabel"><span>Hitboxes<small>The mass (yellow) and one per head (blue)</small></span><input type="checkbox" id="boxes"></label>
-    </section>
-    <section>
-      <h2>Camera</h2>
-      <div class="segmented">
-        <button id="front">Front</button><button id="side">Side</button><button id="back">Back</button><button id="top">Top</button>
-      </div>
-    </section>
-    <section>
-      <h2>Details</h2>
-      <dl id="stats"></dl>
-      <p class="note" id="note"></p>
-    </section>
-  </div>
-</aside>
-<main id="viewport">
-  <div class="chip"><b id="chipName">Loading…</b><span id="chipGroup"></span></div>
-  <div class="hint">Drag to orbit · right-drag to pan · scroll to zoom</div>
-  <div id="dark"></div>
-  <div id="status" class="off"></div>
-</main>
-<!-- Two ways to get the data. On the site, website/build.py writes models.json and skins/ next to this
-     page. From a checkout, `mvn test` writes target/stand-viewer/models.json and models.js: opened straight
-     from disk (file://) the page cannot fetch files, but it does run these scripts. Missing ones are skipped. -->
-<script>
-if (location.protocol === "file:") {
-  for (const f of ["models.js", "textures.js"]) document.write('<script src="../../../target/stand-viewer/' + f + '"><\/script>');
-}
-</script>
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-} }
-</script>
+<header class="topbar">
+    <button class="icon-btn narrow-only" id="libraryToggle" aria-label="Open the model library" aria-controls="library"
+            aria-expanded="false">
+        <svg viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+    </button>
+    <a class="brand" href="../"><img src="../icon.svg" alt=""><span>MultiverseCreatures</span></a>
+    <span class="crumb">Model Viewer</span>
+    <div class="topbar-end">
+        <span class="count" id="modelCount"></span>
+        <button class="icon-btn" id="helpButton" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.2-2.5 3.9M12 17.2h.01"/>
+            </svg>
+        </button>
+    </div>
+</header>
+
+<div class="layout">
+    <aside class="library" id="library" aria-label="Model library">
+        <label class="search">
+            <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="6.5"/>
+                <path d="m16 16 4.5 4.5"/>
+            </svg>
+            <input type="search" id="search" placeholder="Search models" autocomplete="off" aria-label="Search models">
+            <kbd>/</kbd>
+        </label>
+        <div class="chips" id="chips" role="group" aria-label="Filter by group"></div>
+        <nav class="list" id="list" aria-label="Models"></nav>
+    </aside>
+    <div class="scrim narrow-only" id="scrim" hidden></div>
+
+    <main class="stage" id="stage">
+        <div class="title-card">
+            <span class="badge" id="badge"></span>
+            <h1 id="title">Loading…</h1>
+            <p id="subtitle"></p>
+        </div>
+
+        <div class="toolbar" role="toolbar" aria-label="View">
+            <button class="tool" data-view="fit" title="Frame the model (F)" aria-label="Frame the model">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>
+                </svg>
+            </button>
+            <span class="sep"></span>
+            <button class="tool text" data-view="front" title="Front (1)">Front</button>
+            <button class="tool text" data-view="side" title="Side (2)">Side</button>
+            <button class="tool text" data-view="back" title="Back (3)">Back</button>
+            <button class="tool text" data-view="top" title="Top (4)">Top</button>
+            <span class="sep"></span>
+            <button class="tool" id="spin" aria-pressed="true" title="Turn slowly (A)" aria-label="Turn slowly">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/>
+                </svg>
+            </button>
+            <button class="tool" id="gridToggle" aria-pressed="true" title="Floor grid (G)" aria-label="Floor grid">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+                </svg>
+            </button>
+            <button class="tool" id="shot" title="Save a screenshot (P)" aria-label="Save a screenshot">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/>
+                    <circle cx="12" cy="13" r="3.5"/>
+                </svg>
+            </button>
+            <button class="tool" id="fullscreen" title="Full screen" aria-label="Full screen">
+                <svg viewBox="0 0 24 24">
+                    <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="playbar" id="playbar" hidden>
+            <button class="play" id="play" aria-label="Play">
+                <svg class="i-play" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <svg class="i-pause" viewBox="0 0 24 24">
+                    <path d="M7 5h4v14H7zM13 5h4v14h-4z"/>
+                </svg>
+            </button>
+            <select id="anim" aria-label="Animation"></select>
+            <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Timeline">
+            <span class="time" id="time">0.0 s</span>
+            <select id="speed" aria-label="Playback speed">
+                <option value="0.25">0.25×</option>
+                <option value="0.5">0.5×</option>
+                <option value="1" selected>1×</option>
+                <option value="2">2×</option>
+            </select>
+        </div>
+
+        <div class="dark" id="dark"></div>
+        <div class="overlay" id="overlay">
+            <div class="spinner"></div>
+            <p id="overlayText">Loading models…</p></div>
+        <p class="hint">Drag to orbit · right-drag to pan · scroll to zoom</p>
+    </main>
+
+    <aside class="inspector" id="inspector" aria-label="Model settings">
+        <section id="poseSection">
+            <h2>Pose</h2>
+            <div class="pills" id="poses" role="group" aria-label="Pose"></div>
+        </section>
+        <section id="showSection">
+            <h2>Show</h2>
+            <label class="toggle"
+                   id="playerRow"><span>Player<small>A player to scale, or where the pose puts one</small></span><input
+                    type="checkbox" id="player" checked></label>
+            <label class="toggle"
+                   id="paintedRow"><span>Painted skins<small>The skins from website/models/stand-skins</small></span><input
+                    type="checkbox" id="painted"></label>
+            <label class="toggle"
+                   id="beamsRow"><span>Tractor beams<small>At each form's default reach</small></span><input
+                    type="checkbox" id="beams" checked></label>
+            <label class="toggle"
+                   id="boxesRow"><span>Hitboxes<small>The mass (yellow) and one per head (blue)</small></span><input
+                    type="checkbox" id="boxes"></label>
+        </section>
+        <section>
+            <h2>Details</h2>
+            <dl class="stats" id="stats"></dl>
+            <p class="note" id="note"></p>
+        </section>
+    </aside>
+</div>
+
+<dialog class="help" id="help">
+    <h2>Keyboard shortcuts</h2>
+    <dl>
+        <dt><kbd>Space</kbd></dt>
+        <dd>Play or pause the animation</dd>
+        <dt><kbd>←</kbd> <kbd>→</kbd></dt>
+        <dd>Step the animation a tick</dd>
+        <dt><kbd>↑</kbd> <kbd>↓</kbd></dt>
+        <dd>Previous or next model</dd>
+        <dt><kbd>F</kbd></dt>
+        <dd>Frame the model</dd>
+        <dt><kbd>1</kbd>–<kbd>4</kbd></dt>
+        <dd>Front, side, back and top views</dd>
+        <dt><kbd>A</kbd></dt>
+        <dd>Turn slowly</dd>
+        <dt><kbd>G</kbd></dt>
+        <dd>Floor grid</dd>
+        <dt><kbd>P</kbd></dt>
+        <dd>Save a screenshot</dd>
+        <dt><kbd>/</kbd></dt>
+        <dd>Search the models</dd>
+    </dl>
+    <form method="dialog">
+        <button class="btn">Close</button>
+    </form>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script type="module">
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import * as THREE from "three";
+    import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 
-const viewport = document.getElementById("viewport");
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.shadowMap.enabled = true;
-viewport.prepend(renderer.domElement);
+    // ================================================================================================
+    // Materials: blocks (the game's textures, or stand-in colours) and skins
+    // ================================================================================================
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x15171c);
-const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 4000);
-function resize() {
-  const w = Math.max(1, viewport.clientWidth), h = Math.max(1, viewport.clientHeight);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-}
-resize();
-new ResizeObserver(resize).observe(viewport);
-camera.position.set(0, 1.2, 4.2);
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0.95, 0);
-controls.update();
+    // What the models are drawn with: block materials (the game's own textures on a local checkout,
+    // stand-in colours anywhere else) and player-head skins.
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.6));
-const sun = new THREE.DirectionalLight(0xffffff, 1.6);
-sun.position.set(3, 6, 4);
-sun.castShadow = true;
-scene.add(sun);
-let grid = new THREE.GridHelper(12, 12, 0x3a404c, 0x262a33);
-scene.add(grid);
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
 
-const loader = new THREE.TextureLoader();
-loader.setCrossOrigin("anonymous");
-const skins = new Map();
-function skin(url) {
-  if (!skins.has(url)) {
-    const tex = loader.load(url, undefined, undefined, () => { tex.userData.failed = true; refresh(); });
-    tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
-    skins.set(url, tex);
-  }
-  return skins.get(url);
-}
+    /** Called when a texture fails, so the model can be drawn again with what is left. */
+    let onChange = () => {
+    };
 
-// A player head: a 0.5 cube hanging below its anchor, its skin's face on -z.
-// Box faces are +x, -x, +y, -y, +z, -z; each gets its 8x8 square of the 64x64 skin.
-function headGeometry(layer) {
-  const size = layer ? 0.5 * 1.125 : 0.5;
-  const g = new THREE.BoxGeometry(size, size, size);
-  g.translate(0, -0.25, 0);
-  const ox = layer ? 32 : 0;
-  const faces = [[0, 8], [16, 8], [8, 0], [16, 0], [24, 8], [8, 8]];
-  const uv = g.attributes.uv;
-  faces.forEach(([px, py], f) => {
-    const u0 = (px + ox) / 64, u1 = (px + ox + 8) / 64, v0 = 1 - py / 64, v1 = 1 - (py + 8) / 64;
-    const quad = [[u0, v0], [u1, v0], [u0, v1], [u1, v1]];
-    for (let i = 0; i < 4; i++) uv.setXY(f * 4 + i, quad[i][0], quad[i][1]);
-  });
-  return g;
-}
-const HEAD = headGeometry(false), HAT = headGeometry(true);
-
-// A player, the way the game draws one: each part a box with its two layers of a 64x64 skin, facing -z,
-// feet on y = 0. Sizes and offsets are skin pixels; [w, h, d, x, y, u, v, overlay u, overlay v].
-const STEVE = "https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb";
-const PLAYER_PARTS = [
-  [8, 8, 8, 0, 24, 0, 0, 32, 0],      // head, hat
-  [8, 12, 4, 0, 12, 16, 16, 16, 32],  // body, jacket
-  [4, 12, 4, 6, 12, 40, 16, 40, 32],  // right arm (+x while it faces -z)
-  [4, 12, 4, -6, 12, 32, 48, 48, 48], // left arm
-  [4, 12, 4, 2, 0, 0, 16, 0, 32],     // right leg
-  [4, 12, 4, -2, 0, 16, 48, 0, 48],   // left leg
-];
-function cuboid(w, h, d, u, v, grow) {
-  const g = new THREE.BoxGeometry((w + grow) / 16, (h + grow) / 16, (d + grow) / 16);
-  // Box faces are +x, -x, +y, -y, +z, -z: the skin's right side, left side, top, bottom, back and front.
-  const faces = [[u, v + d, d, h], [u + d + w, v + d, d, h], [u + d, v, w, d], [u + d + w, v, w, d],
-    [u + 2 * d + w, v + d, w, h], [u + d, v + d, w, h]];
-  const uv = g.attributes.uv;
-  faces.forEach(([px, py, fw, fh], f) => {
-    const u0 = px / 64, u1 = (px + fw) / 64, v0 = 1 - py / 64, v1 = 1 - (py + fh) / 64;
-    const quad = [[u0, v0], [u1, v0], [u0, v1], [u1, v1]];
-    for (let i = 0; i < 4; i++) uv.setXY(f * 4 + i, quad[i][0], quad[i][1]);
-  });
-  return g;
-}
-function buildPlayer(at) {
-  const tex = skin(STEVE), failed = tex.userData.failed;
-  const base = new THREE.MeshStandardMaterial(failed ? { color: 0x3a7bd5 } : { map: tex });
-  const over = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.5 });
-  const group = new THREE.Group();
-  for (const [w, h, d, x, y, u, v, ou, ov] of PLAYER_PARTS) {
-    const part = new THREE.Mesh(cuboid(w, h, d, u, v, 0), base);
-    part.position.set(x / 16, (y + h / 2) / 16, 0);
-    group.add(part);
-    if (!failed) {
-      const layer = new THREE.Mesh(cuboid(w, h, d, ou, ov, w === 8 && h === 8 ? 1 : 0.5), over);
-      layer.position.copy(part.position);
-      group.add(layer);
+    function onTexturesChange(callback) {
+        onChange = callback;
     }
-  }
-  // The game draws a player at 0.9375 of its model: 1.875 blocks tall. Turned round to face +z,
-  // then by the scene's yaw (180 faces the model).
-  group.scale.setScalar(0.9375);
-  group.rotation.y = Math.PI + THREE.MathUtils.degToRad(at[3] || 0);
-  group.position.set(at[0], at[1], at[2]);
-  return group;
-}
 
-// What a concept pose rests on, from its scene: the blocks round it (stone you can see through, chests,
-// a pit in the floor), or for an older scene without blocks a ceiling or a chest under its anchor.
-function propsOf(scene) {
-  const group = new THREE.Group(), [x, y, z] = scene.anchor;
-  const stone = new THREE.MeshStandardMaterial(
-      { color: 0x6b7078, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide });
-  const edges = new THREE.LineBasicMaterial({ color: 0xa0a6b0, transparent: true, opacity: 0.55 });
-  const block = (x0, y0, z0, w, h, d, material) => {
-    const geometry = new THREE.BoxGeometry(w, h, d);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(x0 + w / 2, y0 + h / 2, z0 + d / 2);
-    const lines = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), edges);
-    lines.position.copy(mesh.position);
-    group.add(mesh, lines);
-  };
-  // A chest (or a double chest): planks, a darker lid line and the latch on its front (+z).
-  const chest = (x0, y0, z0, w, d) => {
-    const body = new THREE.Mesh(new THREE.BoxGeometry(w - 0.125, 0.875, d - 0.125),
-        new THREE.MeshStandardMaterial({ color: 0x9c6b30, roughness: 0.9 }));
-    body.position.set(x0 + w / 2, y0 + 0.4375, z0 + d / 2);
-    const lid = new THREE.Mesh(new THREE.BoxGeometry(w - 0.12, 0.04, d - 0.12), new THREE.MeshStandardMaterial({ color: 0x5a3a16 }));
-    lid.position.set(x0 + w / 2, y0 + 0.6, z0 + d / 2);
-    const latch = new THREE.Mesh(new THREE.BoxGeometry(0.125, 0.25, 0.06), new THREE.MeshStandardMaterial({ color: 0xc8c8c8 }));
-    latch.position.set(x0 + w / 2, y0 + 0.55, z0 + d - 0.04);
-    group.add(body, lid, latch);
-  };
-  if (scene.world) {
-    for (const [x0, y0, z0, x1, y1, z1, isChest] of scene.world.blocks) {
-      if (isChest) chest(x0, y0, z0, x1 - x0, z1 - z0);
-      else block(x0, y0, z0, x1 - x0, y1 - y0, z1 - z0, stone);
+    function pixelated(t) {
+        t.magFilter = THREE.NearestFilter;
+        t.minFilter = THREE.NearestFilter;
+        t.colorSpace = THREE.SRGBColorSpace;
+        return t;
     }
-    const pit = new THREE.MeshBasicMaterial({ color: 0x050608, transparent: true, opacity: 0.55, depthWrite: false });
-    for (const [hx, hy, hz] of scene.world.holes) block(hx, hy, hz, 1, 1, 1, pit);
-  } else if (scene.place === "ceiling") {
-    block(x - 2.5, y, z - 2.5, 5, 1, 5, stone);
-  } else if (scene.place === "block") {
-    chest(x - 0.5, y - 1, z - 0.5, 1, 1);
-  }
-  return group;
-}
 
-function place(object, p) {
-  object.position.set(p.t[0], p.t[1], p.t[2]);
-  object.quaternion.set(p.q[0], p.q[1], p.q[2], p.q[3]);
-  object.scale.set(p.s[0], p.s[1], p.s[2]);
-}
+    // ------------------------------------------------------------------ blocks
 
-// ------------------------------------------------------------------ block displays
+    /** A base and a speckle colour per block, for the 16×16 stand-in textures. */
+    const BLOCKS = {
+        OBSIDIAN: [0x0f0b17, 0x2c1f45],
+        BLACK_CONCRETE: [0x08090d, 0x14161c],
+        CRYING_OBSIDIAN: [0x200a3a, 0x9b3cff],
+        BLACKSTONE: [0x2a2329, 0x3d343c],
+        POLISHED_BLACKSTONE: [0x353038, 0x48414b],
+        GRAY_CONCRETE: [0x36393d, 0x44474c],
+        PURPLE_CONCRETE: [0x64209c, 0x7a2bbd],
+        MAGENTA_CONCRETE: [0xa9309f, 0xd65ccb],
+        AMETHYST_BLOCK: [0x8561bf, 0xb08ce8],
+        LIGHT_GRAY_CONCRETE: [0x7d7d73, 0x8c8c82],
+        WHITE_CONCRETE: [0xcfd5d6, 0xf0f6f6],
+        COMMAND_BLOCK: [0xb5784a, 0x8a9696],
+        GOLD_BLOCK: [0xf1c232, 0xfdf55f],
+        RAW_GOLD_BLOCK: [0xc6922b, 0xe0b240],
+        YELLOW_TERRACOTTA: [0xba8523, 0xc89634],
+        RED_WOOL: [0xa12722, 0xb83a33],
+        RED_CONCRETE: [0x8e2121, 0x9c2727],
+        RED_CONCRETE_POWDER: [0xa83632, 0xb8433d],
+        RED_TERRACOTTA: [0x8f3d2e, 0x9e4a39],
+        NETHER_WART_BLOCK: [0x722b2b, 0x8a3434],
+        REDSTONE_BLOCK: [0xaf1905, 0xd02a12],
+        ORANGE_TERRACOTTA: [0xa15325, 0xb06030],
+        TERRACOTTA: [0x985e43, 0xa66a4e],
+        BROWN_TERRACOTTA: [0x4d3323, 0x5a3d2b],
+        BROWN_CONCRETE: [0x603b1f, 0x6c4426],
+        WHITE_TERRACOTTA: [0xd1b2a1, 0xdcc0b0],
+        SMOOTH_SANDSTONE: [0xd8cb9b, 0xe0d5a8],
+        MUSHROOM_STEM: [0xcbc4b9, 0xddd6cb],
+        IRON_BLOCK: [0xd8d8d8, 0xeeeeee],
+        QUARTZ_BLOCK: [0xece6df, 0xf6f2ec],
+        BLACK_WOOL: [0x15151a, 0x23232a],
+        ORANGE_CONCRETE: [0xe06100, 0xf07413],
+    };
+    /** Blocks with a sheen: they catch the key light the way metal would. */
+    const METAL = new Set(["GOLD_BLOCK", "RAW_GOLD_BLOCK", "IRON_BLOCK"]);
 
-// A block display draws its block in the unit cube from its origin; a skull item hangs below it.
-const BLOCK = new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5);
-const SKULL = new THREE.BoxGeometry(0.5, 0.5, 0.5).translate(0, -0.25, 0);
-// The blocks the forms are drawn with: a base and a speckle colour for a 16x16 texture.
-const BLOCKS = {
-  OBSIDIAN: [0x0f0b17, 0x2c1f45], BLACK_CONCRETE: [0x08090d, 0x14161c], CRYING_OBSIDIAN: [0x200a3a, 0x9b3cff],
-  BLACKSTONE: [0x2a2329, 0x3d343c], POLISHED_BLACKSTONE: [0x353038, 0x48414b], GRAY_CONCRETE: [0x36393d, 0x44474c],
-  PURPLE_CONCRETE: [0x64209c, 0x7a2bbd], MAGENTA_CONCRETE: [0xa9309f, 0xd65ccb], AMETHYST_BLOCK: [0x8561bf, 0xb08ce8],
-  LIGHT_GRAY_CONCRETE: [0x7d7d73, 0x8c8c82], WHITE_CONCRETE: [0xcfd5d6, 0xf0f6f6], COMMAND_BLOCK: [0xb5784a, 0x8a9696],
-};
-const blockMaterials = new Map();
-// The game's own textures, copied out of a local Minecraft client by website/textures.ps1.
-// Without them the blocks fall back to the flat stand-ins below.
-const VANILLA = new URL("../../../target/stand-viewer/textures/", location.href);
-const vanillaTextures = new Map();
-// The game's textures are Mojang's and never published: only a local checkout looks for them.
-const LOCAL = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname);
-function vanilla(name) {
-  if (!LOCAL && !(window.STAND_VIEWER_TEXTURES && window.STAND_VIEWER_TEXTURES[name])) return null;
-  if (!vanillaTextures.has(name)) {
-    const embedded = window.STAND_VIEWER_TEXTURES && window.STAND_VIEWER_TEXTURES[name];
-    const tex = loader.load(embedded || new URL(name + ".png", VANILLA).href, t => {
-      // Animated textures (the command block's) are frame strips: show the first frame.
-      const { width, height } = t.image;
-      if (height > width) { t.repeat.set(1, width / height); t.offset.set(0, 1 - width / height); }
-    }, undefined, () => { tex.userData.failed = true; blockMaterials.clear(); skullMaterials = null; refresh(); });
-    tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
-    vanillaTextures.set(name, tex);
-  }
-  const tex = vanillaTextures.get(name);
-  return tex.userData.failed ? null : tex;
-}
-// Which texture each face of a block uses, in BoxGeometry's order: +x, -x, +y, -y, +z, -z.
-// A command block faces north (-z) with its back to the south.
-function blockFaces(name) {
-  const lower = name.toLowerCase();
-  if (name === "COMMAND_BLOCK") {
-    const side = "command_block_side";
-    return [side, side, side, side, "command_block_back", "command_block_front"];
-  }
-  if (name === "BLACKSTONE") return [lower, lower, "blackstone_top", "blackstone_top", lower, lower];
-  return [lower, lower, lower, lower, lower, lower];
-}
-function vanillaMaterial(name, glow) {
-  const maps = blockFaces(name).map(vanilla);
-  if (maps.some(m => !m)) return null;
-  // Brightness 15 in the game draws a block fully lit, whatever the light round it: unlit here.
-  return maps.map(map => glow ? new THREE.MeshBasicMaterial({ map }) : new THREE.MeshStandardMaterial({ map, roughness: 0.9 }));
-}
-function seeded(seed) { return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296; }
-function texture(draw) {
-  const c = document.createElement("canvas"); c.width = c.height = 16;
-  draw(c.getContext("2d"));
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-const hex = n => "#" + n.toString(16).padStart(6, "0");
-function blockMaterial(name, glow) {
-  const key = name + glow;
-  if (!blockMaterials.has(key)) {
-    const real = vanillaMaterial(name, glow);
-    if (real) { blockMaterials.set(key, real); return real; }
-    const [base, speck] = BLOCKS[name] || [0x101010, 0x202020];
-    const rand = seeded([...name].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
-    const map = texture(g => {
-      g.fillStyle = hex(base); g.fillRect(0, 0, 16, 16);
-      g.fillStyle = hex(speck);
-      if (name === "COMMAND_BLOCK") {
-        g.fillRect(3, 3, 10, 10); g.fillStyle = hex(base); g.fillRect(5, 5, 6, 6);
-      } else {
-        for (let i = 0; i < 40; i++) g.fillRect(Math.floor(rand() * 16), Math.floor(rand() * 16), 1 + Math.floor(rand() * 2), 1);
-      }
+    // The game's textures are Mojang's and never published: only a local checkout looks for the copies
+    // website/textures.ps1 makes in target/stand-viewer/textures (and, for a page opened from disk, the
+    // same textures as data URLs in textures.js).
+    const LOCAL = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+    const VANILLA = new URL("../../../target/stand-viewer/textures/", location.href);
+    const vanillaTextures = new Map();
+
+    function vanilla(name) {
+        const embedded = window.STAND_VIEWER_TEXTURES && window.STAND_VIEWER_TEXTURES[name];
+        if (!LOCAL && !embedded) return null;
+        if (!vanillaTextures.has(name)) {
+            const tex = loader.load(embedded || new URL(name + ".png", VANILLA).href, t => {
+                // Animated textures (the command block's) are frame strips: show the first frame.
+                const {width, height} = t.image;
+                if (height > width) {
+                    t.repeat.set(1, width / height);
+                    t.offset.set(0, 1 - width / height);
+                }
+            }, undefined, () => {
+                tex.userData.failed = true;
+                blockMaterials.clear();
+                skullMaterials = null;
+                onChange();
+            });
+            vanillaTextures.set(name, pixelated(tex));
+        }
+        const tex = vanillaTextures.get(name);
+        return tex.userData.failed ? null : tex;
+    }
+
+    /** Whether the game's own textures are drawn (a local checkout that ran website/textures.ps1). */
+    function usingGameTextures() {
+        return !!vanilla("obsidian");
+    }
+
+    /** Which texture each face of a block uses, in BoxGeometry's order: +x, -x, +y, -y, +z, -z. */
+    function blockFaces(name) {
+        const lower = name.toLowerCase();
+        if (name === "COMMAND_BLOCK") {
+            const side = "command_block_side";
+            return [side, side, side, side, "command_block_back", "command_block_front"];
+        }
+        if (name === "BLACKSTONE") return [lower, lower, "blackstone_top", "blackstone_top", lower, lower];
+        if (name === "QUARTZ_BLOCK") return ["quartz_block_side", "quartz_block_side", "quartz_block_top", "quartz_block_top", "quartz_block_side", "quartz_block_side"];
+        if (name === "SMOOTH_SANDSTONE") return Array(6).fill("sandstone_top");
+        return Array(6).fill(lower);
+    }
+
+    function seeded(seed) {
+        return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+    }
+
+    const hex = n => "#" + n.toString(16).padStart(6, "0");
+
+    function canvasTexture(draw) {
+        const c = document.createElement("canvas");
+        c.width = c.height = 16;
+        draw(c.getContext("2d"));
+        return pixelated(new THREE.CanvasTexture(c));
+    }
+
+    function standIn(name) {
+        const [base, speck] = BLOCKS[name] || [0x3a3a3a, 0x4a4a4a];
+        const rand = seeded([...name].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7));
+        return canvasTexture(g => {
+            g.fillStyle = hex(base);
+            g.fillRect(0, 0, 16, 16);
+            g.fillStyle = hex(speck);
+            if (name === "COMMAND_BLOCK") {
+                g.fillRect(3, 3, 10, 10);
+                g.fillStyle = hex(base);
+                g.fillRect(5, 5, 6, 6);
+            } else {
+                for (let i = 0; i < 40; i++) g.fillRect(Math.floor(rand() * 16), Math.floor(rand() * 16), 1 + Math.floor(rand() * 2), 1);
+            }
+        });
+    }
+
+    const blockMaterials = new Map();
+
+    /** The material of a block display: lit like any block, or fully lit for a glowing one (brightness 15). */
+    function blockMaterial(name, glow) {
+        const key = name + (glow ? "+" : "");
+        if (!blockMaterials.has(key)) {
+            const maps = blockFaces(name).map(vanilla);
+            const real = maps.every(m => m);
+            const make = map => glow ? new THREE.MeshBasicMaterial({map})
+                : new THREE.MeshStandardMaterial({
+                    map,
+                    roughness: METAL.has(name) ? 0.45 : 0.9,
+                    metalness: METAL.has(name) ? 0.15 : 0
+                });
+            blockMaterials.set(key, real ? maps.map(make) : make(standIn(name)));
+        }
+        return blockMaterials.get(key);
+    }
+
+    // ------------------------------------------------------------------ skins
+
+    const skins = new Map();
+
+    /** A player skin by URL; a failed one is marked, and the model drawn again without it. */
+    function skin(url) {
+        if (!skins.has(url)) {
+            const tex = loader.load(url, undefined, undefined, () => {
+                tex.userData.failed = true;
+                onChange();
+            });
+            skins.set(url, pixelated(tex));
+        }
+        return skins.get(url);
+    }
+
+    /**
+     * The wither skeleton skull the game's heads hold: its own texture on a local checkout, or a stand-in
+     * drawn on its 8x8 grid: mottled charcoal bone, two square eye sockets, the nose and a row of teeth.
+     */
+    let skullMaterials;
+
+    function skullFaces() {
+        if (!skullMaterials) {
+            const real = vanilla("wither_skeleton");
+            if (real) {
+                skullMaterials = new THREE.MeshStandardMaterial({map: real, roughness: 0.9});
+                return skullMaterials;
+            }
+            const bone = g => {
+                const rand = seeded(19);
+                g.fillStyle = "#3b3b3b";
+                g.fillRect(0, 0, 16, 16);
+                for (let i = 0; i < 26; i++) {
+                    g.fillStyle = rand() < 0.5 ? "#2e2e2e" : "#474747";
+                    g.fillRect(Math.floor(rand() * 8) * 2, Math.floor(rand() * 8) * 2, 2, 2);
+                }
+            };
+            const side = canvasTexture(bone);
+            const face = canvasTexture(g => {
+                bone(g);
+                const px = (x, y, w, h, c) => {
+                    g.fillStyle = c;
+                    g.fillRect(x * 2, y * 2, w * 2, h * 2);
+                };
+                px(1, 3, 2, 2, "#0b0b0b");
+                px(5, 3, 2, 2, "#0b0b0b");
+                px(3, 5, 2, 1, "#161616");
+                px(1, 6, 6, 1, "#121212");
+                for (const x of [1, 3, 5]) px(x, 6, 1, 1, "#555555");
+            });
+            const plain = new THREE.MeshStandardMaterial({map: side, roughness: 0.9});
+            skullMaterials = [plain, plain, plain, plain, plain, new THREE.MeshStandardMaterial({
+                map: face,
+                roughness: 0.9
+            })];
+        }
+        return skullMaterials;
+    }
+
+    // ================================================================================================
+    // Builders: player heads, block displays, a player, props, beams, hitboxes
+    // ================================================================================================
+
+    // Turns the exported pieces into meshes the way the game draws them: player heads, block displays,
+    // a player to scale, and the extras a model can show (props, tractor beams, hitboxes).
+
+    /** Puts a piece where its exported transform says: position, rotation, scale. */
+    function place(object, p) {
+        object.position.set(p.t[0], p.t[1], p.t[2]);
+        object.quaternion.set(p.q[0], p.q[1], p.q[2], p.q[3]);
+        object.scale.set(p.s[0], p.s[1], p.s[2]);
+    }
+
+    // ------------------------------------------------------------------ player heads
+
+    // A player head: a 0.5 cube hanging below its anchor, its skin's face on -z. Box faces are +x, -x, +y,
+    // -y, +z, -z; each gets its 8×8 square of the 64×64 skin.
+    function headGeometry(layer) {
+        const size = layer ? 0.5 * 1.125 : 0.5;
+        const g = new THREE.BoxGeometry(size, size, size).translate(0, -0.25, 0);
+        const ox = layer ? 32 : 0;
+        const faces = [[0, 8], [16, 8], [8, 0], [16, 0], [24, 8], [8, 8]];
+        const uv = g.attributes.uv;
+        faces.forEach(([px, py], f) => {
+            const u0 = (px + ox) / 64, u1 = (px + ox + 8) / 64, v0 = 1 - py / 64, v1 = 1 - (py + 8) / 64;
+            [[u0, v0], [u1, v0], [u0, v1], [u1, v1]].forEach((q, i) => uv.setXY(f * 4 + i, q[0], q[1]));
+        });
+        return g;
+    }
+
+    const HEAD = headGeometry(false), HAT = headGeometry(true);
+
+    /** A figure of player heads (a Stand, a concept) in one pose: each head with its skin, placed by its transform or matrix. */
+    function buildHeads(pieces) {
+        const group = new THREE.Group(), meshes = [];
+        for (const p of pieces) {
+            const tex = skin(p.skin), failed = tex.userData.failed;
+            const head = new THREE.Group();
+            head.add(new THREE.Mesh(HEAD, new THREE.MeshStandardMaterial(failed ? {color: 0xd4a62a} : {
+                map: tex,
+                roughness: 0.85
+            })));
+            if (!failed) head.add(new THREE.Mesh(HAT, new THREE.MeshStandardMaterial({
+                map: tex,
+                transparent: true,
+                alphaTest: 0.5,
+                roughness: 0.85
+            })));
+            if (p.m) {
+                // The export's own matrix, row major, shear and all.
+                head.matrixAutoUpdate = false;
+                head.matrix.set(...p.m, 0, 0, 0, 1);
+            } else {
+                place(head, p);
+            }
+            group.add(head);
+            meshes.push(head);
+        }
+        group.userData.meshes = meshes;
+        return group;
+    }
+
+    // ------------------------------------------------------------------ a player
+
+    const STEVE = "https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb";
+    // Each part in skin pixels: [w, h, d, x, y, u, v, overlay u, overlay v], facing -z, feet on y = 0.
+    const PLAYER_PARTS = [
+        [8, 8, 8, 0, 24, 0, 0, 32, 0], [8, 12, 4, 0, 12, 16, 16, 16, 32], [4, 12, 4, 6, 12, 40, 16, 40, 32],
+        [4, 12, 4, -6, 12, 32, 48, 48, 48], [4, 12, 4, 2, 0, 0, 16, 0, 32], [4, 12, 4, -2, 0, 16, 48, 0, 48],
+    ];
+
+    function cuboid(w, h, d, u, v, grow) {
+        const g = new THREE.BoxGeometry((w + grow) / 16, (h + grow) / 16, (d + grow) / 16);
+        // Box faces are +x, -x, +y, -y, +z, -z: the skin's right side, left side, top, bottom, back and front.
+        const faces = [[u, v + d, d, h], [u + d + w, v + d, d, h], [u + d, v, w, d], [u + d + w, v, w, d],
+            [u + 2 * d + w, v + d, w, h], [u + d, v + d, w, h]];
+        const uv = g.attributes.uv;
+        faces.forEach(([px, py, fw, fh], f) => {
+            const u0 = px / 64, u1 = (px + fw) / 64, v0 = 1 - py / 64, v1 = 1 - (py + fh) / 64;
+            [[u0, v0], [u1, v0], [u0, v1], [u1, v1]].forEach((q, i) => uv.setXY(f * 4 + i, q[0], q[1]));
+        });
+        return g;
+    }
+
+    /** A player as the game draws one (1.875 blocks tall) at {x, y, z, yaw}; a yaw of 180 faces the model. */
+    function buildPlayer([x, y, z, yaw = 0]) {
+        const tex = skin(STEVE), failed = tex.userData.failed;
+        const base = new THREE.MeshStandardMaterial(failed ? {color: 0x3a7bd5} : {map: tex, roughness: 0.9});
+        const over = new THREE.MeshStandardMaterial({map: tex, transparent: true, alphaTest: 0.5, roughness: 0.9});
+        const group = new THREE.Group();
+        for (const [w, h, d, px, py, u, v, ou, ov] of PLAYER_PARTS) {
+            const part = new THREE.Mesh(cuboid(w, h, d, u, v, 0), base);
+            part.position.set(px / 16, (py + h / 2) / 16, 0);
+            group.add(part);
+            if (!failed) {
+                const layer = new THREE.Mesh(cuboid(w, h, d, ou, ov, w === 8 && h === 8 ? 1 : 0.5), over);
+                layer.position.copy(part.position);
+                group.add(layer);
+            }
+        }
+        group.scale.setScalar(0.9375);
+        group.rotation.y = Math.PI + THREE.MathUtils.degToRad(yaw);
+        group.position.set(x, y, z);
+        return group;
+    }
+
+    // ------------------------------------------------------------------ a concept pose's surroundings
+
+    /** What a concept pose rests on: the blocks round it (stone you can see through, chests, a pit), or a ceiling or chest under its anchor. */
+    function propsOf(scene) {
+        const group = new THREE.Group(), [x, y, z] = scene.anchor;
+        const stone = new THREE.MeshStandardMaterial({
+            color: 0x6b7078,
+            transparent: true,
+            opacity: 0.3,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+        const edges = new THREE.LineBasicMaterial({color: 0xa0a6b0, transparent: true, opacity: 0.55});
+        const block = (x0, y0, z0, w, h, d, material) => {
+            const geometry = new THREE.BoxGeometry(w, h, d);
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x0 + w / 2, y0 + h / 2, z0 + d / 2);
+            const lines = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), edges);
+            lines.position.copy(mesh.position);
+            group.add(mesh, lines);
+        };
+        const chest = (x0, y0, z0, w, d) => {
+            const body = new THREE.Mesh(new THREE.BoxGeometry(w - 0.125, 0.875, d - 0.125), new THREE.MeshStandardMaterial({
+                color: 0x9c6b30,
+                roughness: 0.9
+            }));
+            body.position.set(x0 + w / 2, y0 + 0.4375, z0 + d / 2);
+            const lid = new THREE.Mesh(new THREE.BoxGeometry(w - 0.12, 0.04, d - 0.12), new THREE.MeshStandardMaterial({color: 0x5a3a16}));
+            lid.position.set(x0 + w / 2, y0 + 0.6, z0 + d / 2);
+            const latch = new THREE.Mesh(new THREE.BoxGeometry(0.125, 0.25, 0.06), new THREE.MeshStandardMaterial({color: 0xc8c8c8}));
+            latch.position.set(x0 + w / 2, y0 + 0.55, z0 + d - 0.04);
+            group.add(body, lid, latch);
+        };
+        if (scene.world) {
+            for (const [x0, y0, z0, x1, y1, z1, isChest] of scene.world.blocks) {
+                if (isChest) chest(x0, y0, z0, x1 - x0, z1 - z0);
+                else block(x0, y0, z0, x1 - x0, y1 - y0, z1 - z0, stone);
+            }
+            const pit = new THREE.MeshBasicMaterial({
+                color: 0x050608,
+                transparent: true,
+                opacity: 0.55,
+                depthWrite: false
+            });
+            for (const [hx, hy, hz] of scene.world.holes) block(hx, hy, hz, 1, 1, 1, pit);
+        } else if (scene.place === "ceiling") {
+            block(x - 2.5, y, z - 2.5, 5, 1, 5, stone);
+        } else if (scene.place === "block") {
+            chest(x - 0.5, y - 1, z - 0.5, 1, 1);
+        }
+        return group;
+    }
+
+    // ------------------------------------------------------------------ block displays
+
+    // A block display draws its block in the unit cube from its origin; a skull item hangs below it.
+    const BLOCK = new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5);
+    const BLOCK_CENTRED = new THREE.BoxGeometry(1, 1, 1);
+    const SKULL = new THREE.BoxGeometry(0.5, 0.5, 0.5).translate(0, -0.25, 0);
+    const SKULL_TEXTURED = (() => {
+        const g = new THREE.BoxGeometry(0.5, 0.5, 0.5).translate(0, -0.25, 0);
+        const faces = [[0, 8], [16, 8], [8, 0], [16, 0], [24, 8], [8, 8]];
+        const uv = g.attributes.uv;
+        faces.forEach(([px, py], f) => {
+            const u0 = px / 64, u1 = (px + 8) / 64, v0 = 1 - py / 32, v1 = 1 - (py + 8) / 32;
+            [[u0, v0], [u1, v0], [u0, v1], [u1, v1]].forEach((q, i) => uv.setXY(f * 4 + i, q[0], q[1]));
+        });
+        return g;
+    })();
+
+    /** Block displays: one mesh per piece, in order, so an animation can move each one; a null piece is left out. */
+    function buildBlocks(pieces) {
+        const group = new THREE.Group(), meshes = [];
+        for (const p of pieces) {
+            if (!p) {
+                meshes.push(null);
+                continue;
+            }
+            let mesh;
+            if (p.k === "s") {
+                const faces = skullFaces();
+                mesh = new THREE.Mesh(Array.isArray(faces) ? SKULL : SKULL_TEXTURED, faces);
+            } else {
+                mesh = new THREE.Mesh(BLOCK, blockMaterial(p.m, p.g));
+            }
+            place(mesh, p);
+            group.add(mesh);
+            meshes.push(mesh);
+        }
+        group.userData.meshes = meshes;
+        return group;
+    }
+
+    /** Stained glass at full brightness, as the beam's block displays draw it: the game's texture, or its colour. */
+    function glassMaterial(name, color) {
+        const map = vanilla(name);
+        return new THREE.MeshBasicMaterial(map ? {map, transparent: true, depthWrite: false}
+            : {color, transparent: true, opacity: 0.5, depthWrite: false});
+    }
+
+    /** Ticks the beams' particles take to start over: longer than any of them lives. */
+    const BEAM_LOOP = 120;
+    let beamTick = 0;
+
+    /**
+     * The Wither Storm's tractor beams in a pose, pulling, built as WitherStormBody.beam builds them: three
+     * boxes of purple stained glass widening from the mouth to the far end, a magenta core down the
+     * middle, sides kept level; and WitherStorm.drawBeams' reverse portal particles, four every six
+     * ticks somewhere along each beam.
+     */
+    function beamsOf(model, pose) {
+        const group = new THREE.Group(), particles = [];
+        const purple = glassMaterial("purple_stained_glass", 0x7f3fb2), magenta = glassMaterial("magenta_stained_glass", 0xb24cd8);
+        const rand = seeded(77);
+        const segments = 3;
+        for (const b of (model.beams && model.beams[pose]) || []) {
+            const o = new THREE.Vector3(...b.o), z = new THREE.Vector3(...b.d).normalize();
+            const x = new THREE.Vector3(0, 1, 0).cross(z);
+            if (x.lengthSq() < 1e-6) x.set(1, 0, 0);
+            x.normalize();
+            const y = new THREE.Vector3().crossVectors(z, x);
+            const facing = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
+            const start = b.w || 0.15, end = b.r * 2;
+            for (let i = 0; i <= segments; i++) {
+                const core = i === segments;
+                const from = core ? 0 : b.l * i / segments, to = core ? b.l : b.l * (i + 1) / segments;
+                const width = core ? Math.max(0.08, start * 0.6) : start + (end - start) * (i + 0.5) / segments;
+                const box = new THREE.Mesh(BLOCK_CENTRED, core ? magenta : purple);
+                box.quaternion.copy(facing);
+                box.scale.set(width, width, Math.max(0.01, to - from));
+                box.position.copy(o).addScaledVector(z, (from + to) / 2);
+                box.renderOrder = core ? 1 : 2;
+                group.add(box);
+            }
+            for (let t = 0; t < BEAM_LOOP; t += 6) {
+                spawnParticles(particles, rand, "portal", t, o.clone().addScaledVector(z, b.l * rand()), 4, [0.5, 0.5, 0.5], 0.02);
+            }
+        }
+        particleSprites(particles, group);
+        group.userData.particles = particles;
+        return group;
+    }
+
+    /** The hitboxes: the mass in yellow, one per head in blue. */
+    function hitboxesOf(model) {
+        const group = new THREE.Group();
+        (model.hitboxes || []).forEach((b, i) => {
+            const box = new THREE.Box3(new THREE.Vector3(b[0], b[1], b[2]), new THREE.Vector3(b[3], b[4], b[5]));
+            group.add(new THREE.Box3Helper(box, i === 0 ? 0xf2c230 : 0x3fd7ff));
+        });
+        return group;
+    }
+
+    // ================================================================================================
+    // Motion: frames, the Monster's visits and attacks on a skeleton, on one clock of ticks
+    // ================================================================================================
+
+    // The animations a model can play, all on one clock of game ticks (20 a second):
+    //  - frames: exported poses of every block, three ticks apart (the Wither Storm);
+    //  - visit:  the Monster's behaviours, posed here from its rig every tick;
+    //  - move:   an attack: keyframes per bone of a skeleton, posed here every frame (Malenia), with its
+    //            effects: the sword's trail, slashes filling the air round her, shockwaves.
+
+    const TICK_MS = 50;
+
+    /** The animations of {@code entry} in {@code pose}: [{id, label, ticks, smooth?, size?, build?, apply(tick, group)}]. */
+    function animationsOf(entry, pose, monsterAnims, dark) {
+        const out = [];
+        for (const [id, frames] of Object.entries(entry.frames || {})) {
+            out.push({
+                id, label: id, ticks: frames.length * 3,
+                apply(tick, group) {
+                    const f = frames[Math.min(frames.length - 1, Math.floor(tick / 3))];
+                    f.forEach((p, i) => {
+                        const mesh = group.userData.meshes[i];
+                        if (p && mesh) place(mesh, p);
+                    });
+                },
+            });
+        }
+        for (const [id, move] of Object.entries(entry.moves || {})) {
+            out.push(moveAnimation(entry, id, move));
+        }
+        const visits = monsterAnims && monsterAnims[pose];
+        for (const [id, visit] of Object.entries(visits || {})) {
+            out.push({
+                id, label: BEHAVIORS[id] || id, ticks: visit.length + AFTER_TICKS,
+                apply(tick, group) {
+                    poseFrame(entry, visit[Math.min(tick, visit.length - 1)], group.userData.meshes, group.userData.player, dark);
+                },
+                stop() {
+                    dark.style.opacity = 0;
+                },
+            });
+        }
+        return out;
+    }
+
+    // ------------------------------------------------------------------ attacks on a skeleton
+
+    /** Three numbers of a keyframe track at {@code tick}: held before its first key and after its last, eased between (0 smooth, 1 linear, 2 snap). */
+    function sampleTrack(keys, tick) {
+        if (!keys || !keys.length) return [0, 0, 0];
+        if (tick <= keys[0][0]) return keys[0].slice(1, 4);
+        for (let i = 0; i < keys.length - 1; i++) {
+            const a = keys[i], b = keys[i + 1];
+            if (tick <= b[0]) {
+                let x = (tick - a[0]) / (b[0] - a[0]);
+                x = b[4] === 1 ? x : b[4] === 2 ? 1 - Math.pow(1 - x, 3) : x * x * (3 - 2 * x);
+                return [a[1] + (b[1] - a[1]) * x, a[2] + (b[2] - a[2]) * x, a[3] + (b[3] - a[3]) * x];
+            }
+        }
+        return keys[keys.length - 1].slice(1, 4);
+    }
+
+    /**
+     * How the cape (or the hair) trails her, as the game's MaleniaRig.follow: it streams back the faster
+     * she travels, falls or spins, sways a little at rest, and lags behind when her body turns.
+     */
+    function follow(rig, move, tick, hair) {
+        const before = Math.max(0, tick - 1);
+        const now = sampleTrack(move.travel, tick), then = sampleTrack(move.travel, before);
+        const yaw = name => {
+            const i = rig.index[name];
+            return sampleTrack(move.bones[i], tick)[1] - sampleTrack(move.bones[i], before)[1];
+        };
+        const speed = Math.hypot(now[0] - then[0], now[2] - then[2]);
+        const fall = Math.max(0, then[1] - now[1]);
+        const spin = Math.abs(yaw("ROOT"));
+        const turning = yaw("CHEST") + yaw("PELVIS");
+        const lift = hair ? Math.min(60, speed * 110 + fall * 50 + spin * 0.4) + 3 * Math.sin(tick * 0.17)
+            : Math.min(60, speed * 140 + fall * 60 + spin * 0.4) + 4 * Math.sin(tick * 0.15);
+        const lag = Math.max(-30, Math.min(30, -turning * (hair ? 1.2 : 1.5)));
+        return [lift, lag, 0];
+    }
+
+    /** How she moves at tick, as the game's MaleniaRig.motion. */
+    function motion(rig, move, tick) {
+        const before = Math.max(0, tick - 1);
+        const now = sampleTrack(move.travel, tick), then = sampleTrack(move.travel, before);
+        const at = (name, t, k) => sampleTrack(move.bones[rig.index[name]], t)[k];
+        const dx = now[0] - then[0], dz = now[2] - then[2];
+        const rootYaw = at("ROOT", tick, 1), pelvisYaw = at("PELVIS", tick, 1);
+        const yaw = rad(rootYaw + pelvisYaw);
+        return {
+            speed: Math.hypot(dx, dz),
+            sideways: dx * Math.cos(yaw) - dz * Math.sin(yaw),
+            forward: dx * Math.sin(yaw) + dz * Math.cos(yaw),
+            fall: Math.max(0, then[1] - now[1]),
+            spin: Math.abs(rootYaw - at("ROOT", before, 1)),
+            height: now[1],
+            distance: Math.hypot(now[0], now[2]),
+            turning: at("CHEST", tick, 1) - at("CHEST", before, 1) + pelvisYaw - at("PELVIS", before, 1)
+        };
+    }
+
+    /** Her legs (thigh R, shin R, thigh L, shin L pitches), as MaleniaRig.legs: stride, stay upright, crouch, tuck in the air. */
+    function legs(rig, move, tick) {
+        const m = motion(rig, move, tick);
+        const grounded = Math.max(0, Math.min(1, 1 - (m.height - 0.15) / 0.4));
+        const crouch = m.height < 0 ? THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, 1 + m.height / 1.05))) : 0;
+        const stride = Math.min(30, m.speed * 120) * grounded * Math.sin(m.distance / 0.5 * Math.PI);
+        const upright = -(sampleTrack(move.bones[rig.index.PELVIS], tick)[0] + sampleTrack(move.bones[rig.index.ROOT], tick)[0]) * grounded;
+        const air = 1 - grounded;
+        return [-crouch + stride + upright - 45 * air, 2 * crouch + Math.max(0, -stride) * 0.6 + 85 * air,
+            -crouch - stride + upright - 20 * air, 2 * crouch + Math.max(0, stride) * 0.6 + 50 * air];
+    }
+
+    const _t = new THREE.Matrix4(), _r = new THREE.Matrix4();
+
+    /** Every bone's matrix at {@code tick}, as the game's MaleniaRig.bones: the parent's, then its pivot, its turn (yaw, pitch, roll) and back. */
+    function rigBones(rig, move, tick, out = []) {
+        if (!rig.index) rig.index = Object.fromEntries(rig.bones.map(([name], i) => [name, i]));
+        const travel = sampleTrack(move.travel, tick);
+        let legPitch = null;
+        rig.bones.forEach(([name, parent, px, py, pz], i) => {
+            const keys = move.bones[i];
+            let turn;
+            if (keys) turn = sampleTrack(keys, tick);
+            else if (name === "CAPE" || name === "HAIR") turn = follow(rig, move, tick, name === "HAIR");
+            else if (i >= rig.index.LEG_R) turn = [(legPitch || (legPitch = legs(rig, move, tick)))[i - rig.index.LEG_R], 0, 0];
+            else turn = [0, 0, 0];
+            const m = out[i] || (out[i] = new THREE.Matrix4());
+            if (parent < 0) m.makeTranslation(travel[0], travel[1], travel[2]); else m.copy(out[parent]);
+            m.multiply(_t.makeTranslation(px, py, pz))
+                .multiply(_r.makeRotationY(rad(turn[1]))).multiply(_r.makeRotationX(rad(turn[0]))).multiply(_r.makeRotationZ(rad(turn[2])))
+                .multiply(_t.makeTranslation(-px, -py, -pz));
+        });
+        return out;
+    }
+
+    /** An attack: the model on its skeleton, posed every frame, with the attack's effects round it. */
+    function moveAnimation(entry, id, move) {
+        const rig = entry.rig;
+        return {
+            id, label: move.label, ticks: move.ticks, size: move.size, smooth: true, attack: id !== "idle",
+            build() {
+                const group = new THREE.Group();
+                const body = buildBlocks(entry.poses.idle);
+                for (const mesh of body.userData.meshes) {
+                    mesh.updateMatrix();
+                    mesh.userData.rest = mesh.matrix.clone();
+                    mesh.matrixAutoUpdate = false;
+                }
+                group.add(body);
+                group.userData.meshes = body.userData.meshes;
+                group.userData.bones = [];
+                // Each tile of the skirt keeps its centre at rest, round which the robe bends it.
+                if (!rig.index) rig.index = Object.fromEntries(rig.bones.map(([name], i) => [name, i]));
+                entry.poses.idle.forEach((p, i) => {
+                    if (rig.owners[i] !== rig.index.SKIRT) return;
+                    body.userData.meshes[i].userData.center = new THREE.Vector3(...p.s).multiplyScalar(0.5)
+                        .applyQuaternion(new THREE.Quaternion(...p.q)).add(new THREE.Vector3(...p.t));
+                });
+                group.userData.fx = buildFx(entry, move, group);
+                return group;
+            },
+            apply(tick, group) {
+                const bones = rigBones(rig, move, tick, group.userData.bones);
+                const m = motion(rig, move, tick), lp = legs(rig, move, tick);
+                // Wrapped to a half turn either way, as MaleniaRig.flow: a somersault leaves her legs a whole turn round.
+                const legKey = (name, k) => {
+                    const pitch = move.bones[rig.index[name]] ? sampleTrack(move.bones[rig.index[name]], tick)[0] : lp[k];
+                    return pitch - 360 * Math.round(pitch / 360);
+                };
+                const open = Math.min(35, m.spin * 0.35) + Math.min(40, m.fall * 70) + (m.height < 0 ? Math.min(55, -m.height * 120) : 0);
+                const legR = legKey("LEG_R", 0), legL = legKey("LEG_L", 2), pelvis = bones[rig.index.PELVIS];
+                // As MaleniaRig.drape: where a point of the robe goes, tilted out from the waist by a swing that changes smoothly round her.
+                const drape = p => {
+                    const a = Math.atan2(p.x, p.z), sin = Math.sin(a), cos = Math.cos(a);
+                    const trail = -(sin * m.sideways * 60 + cos * m.forward * 60);
+                    const leg = legR + (legL - legR) * (1 + sin) / 2;
+                    let swing = open + Math.max(-20, Math.min(45, trail)) + Math.max(0, -leg) * 0.5 * Math.max(0, cos) + 2 * Math.sin(tick * 0.1 + a * 2);
+                    swing = Math.max(-15, Math.min(70, swing));
+                    const pivot = new THREE.Vector3(0.16 * sin, 1.49, 0.124 * cos);
+                    return p.clone().sub(pivot).applyAxisAngle(new THREE.Vector3(cos, 0, -sin), rad(-swing)).add(pivot);
+                };
+                group.userData.meshes.forEach((mesh, i) => {
+                    if (rig.owners[i] !== rig.index.SKIRT) {
+                        mesh.matrix.multiplyMatrices(bones[rig.owners[i]], mesh.userData.rest);
+                        return;
+                    }
+                    // As MaleniaRig.skirt: the robe bends round the tile's centre, stretching the tile so the cloth stays whole.
+                    const c = mesh.userData.center, h = 0.01, d = [];
+                    for (let k = 0; k < 3; k++) {
+                        const step = new THREE.Vector3().setComponent(k, h);
+                        d.push(drape(c.clone().add(step)).sub(drape(c.clone().sub(step))).divideScalar(2 * h));
+                    }
+                    const to = drape(c);
+                    _r.makeBasis(d[0], d[1], d[2]);
+                    mesh.matrix.copy(pelvis).multiply(_t.makeTranslation(to.x, to.y, to.z)).multiply(_r)
+                        .multiply(_t.makeTranslation(-c.x, -c.y, -c.z)).multiply(mesh.userData.rest);
+                });
+                updateFx(group.userData.fx, tick, bones);
+            },
+        };
+    }
+
+    // ------------------------------------------------------------------ the game's particles
+
+    // The particles the plugin spawns, drawn as the client draws them: camera-facing squares that live a
+    // few ticks. A spawn is world.spawnParticle(type, at, count, spread, speed): count particles, each
+    // offset by a gaussian of the spread. Their sizes, colours, lifetimes and drift follow the client's
+    // DustParticle, AttackSweepParticle and ReversePortalParticle. Seeded, so a tick always looks the same.
+    const SWEEP_TEXTURE = (() => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 32;
+        const g = c.getContext("2d");
+        g.strokeStyle = "#fff";
+        g.lineCap = "round";
+        for (const [r, w, a] of [[13, 4, 1], [10, 2, 0.6], [15.5, 1, 0.5]]) {
+            g.globalAlpha = a;
+            g.lineWidth = w;
+            g.beginPath();
+            g.arc(16, 20, r, Math.PI * 1.08, Math.PI * 1.92);
+            g.stroke();
+        }
+        return pixelated(new THREE.CanvasTexture(c));
+    })();
+
+    function gaussian(rand) {
+        return Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand());
+    }
+
+    /** {@code count} particles of {@code type} spawned at tick {@code tick} round {@code at}, as the game does. */
+    function spawnParticles(out, rand, type, tick, at, count, spread, speed = 0, rgb = [1, 1, 1], scale = 1) {
+        for (let i = 0; i < count; i++) {
+            const pos = new THREE.Vector3(at.x + gaussian(rand) * spread[0], at.y + gaussian(rand) * spread[1], at.z + gaussian(rand) * spread[2]);
+            const p = {type, tick, pos, vel: new THREE.Vector3(), color: new THREE.Color()};
+            if (type === "dust") {
+                // Particle's random push, cut to a tenth by DustParticleBase, and the slight rise it keeps.
+                const dir = new THREE.Vector3(rand() * 2 - 1, rand() * 2 - 1, rand() * 2 - 1).normalize();
+                p.vel.copy(dir).multiplyScalar((rand() + rand() + 1) * 0.15 * 0.4 * 0.1).add(new THREE.Vector3(0, 0.01, 0));
+                p.life = Math.max(1, Math.floor(Math.floor(8 / (rand() * 0.8 + 0.2)) * scale));
+                p.size = 2 * 0.1 * (rand() * 0.5 + 0.5) * 2 * 0.75 * scale;
+                const f = rand() * 0.4 + 0.6;
+                p.color.setRGB(...rgb.map(c => (rand() * 0.2 + 0.8) * c * f), THREE.SRGBColorSpace);
+            } else if (type === "sweep") {
+                p.life = 4;
+                p.size = 2 * (1 - gaussian(rand) * speed * 0.5);
+                const f = rand() * 0.6 + 0.4;
+                p.color.setRGB(f, f, f, THREE.SRGBColorSpace);
+            } else {
+                // reverse portal: purple, drifting out along its push and shrinking away.
+                p.vel.set(gaussian(rand) * speed, gaussian(rand) * speed, gaussian(rand) * speed);
+                p.life = Math.floor(rand() * 2) + 60;
+                p.size = 2 * 0.1 * (rand() * 0.2 + 0.5) * 1.5;
+                const f = rand() * 0.6 + 0.4;
+                p.color.setRGB(f * 0.9, f * 0.3, f, THREE.SRGBColorSpace);
+            }
+            out.push(p);
+        }
+    }
+
+    /** Sprites for spawned particles, shown by {@link updateParticles}. */
+    function particleSprites(particles, group) {
+        for (const p of particles) {
+            p.sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+                color: p.color, map: p.type === "sweep" ? SWEEP_TEXTURE : null,
+                transparent: true, depthWrite: false, fog: false
+            }));
+            p.sprite.visible = false;
+            p.sprite.frustumCulled = false;
+            group.add(p.sprite);
+        }
+    }
+
+    /**
+     * Every particle as it is at {@code tick}: alive or not, drifted, and grown or shrunk with its age.
+     * With {@code loop}, the spawns repeat every that many ticks.
+     */
+    function updateParticles(particles, tick, loop = 0) {
+        for (const p of particles) {
+            const age = loop ? ((tick - p.tick) % loop + loop) % loop : tick - p.tick;
+            p.sprite.visible = age >= 0 && age < p.life;
+            if (!p.sprite.visible) continue;
+            const x = age / p.life;
+            if (p.type === "sweep") {
+                // Its eight frames sweep across and fade.
+                p.sprite.scale.setScalar(p.size * (0.85 + 0.3 * x));
+                p.sprite.material.opacity = 1 - x * x;
+                p.sprite.position.copy(p.pos);
+                continue;
+            }
+            // Dust drags to a stop (friction 0.96 a tick); a portal particle keeps its pace.
+            const moved = p.type === "dust" ? (1 - Math.pow(0.96, age)) / 0.04 : age;
+            p.sprite.position.copy(p.pos).addScaledVector(p.vel, moved);
+            // Dust shrinks through its sprite frames; a portal particle shrinks away.
+            p.sprite.scale.setScalar(p.size * (p.type === "dust" ? 1 - 0.75 * x : 1 - x));
+        }
+    }
+
+    // ------------------------------------------------------------------ an attack's effects
+
+    /**
+     * An attack's particles, the ones MaleniaRig.preview spawns in the game every two ticks: gold dust at
+     * the blade's tip along its trails, sweeps filling the air round her during her slashes, and a ring
+     * of sweeps where she lands.
+     */
+    function buildFx(entry, move, group) {
+        const fx = {particles: []};
+        const rand = seeded(4242), bones = [];
+        const gold = [255 / 255, 214 / 255, 120 / 255];
+        for (let t = 2; t <= move.ticks; t += 2) {
+            const world = rigBones(entry.rig, move, t, bones);
+            const root = world[0];
+            const at = v => new THREE.Vector3(...v).applyMatrix4(root);
+            for (const [from, to] of move.trails) {
+                if (t >= from && t <= to) {
+                    const tip = new THREE.Vector3(...entry.rig.blade.tip).applyMatrix4(world[entry.rig.blade.bone]);
+                    spawnParticles(fx.particles, rand, "dust", t, tip, 4, [0.05, 0.05, 0.05], 0, gold, 1.1);
+                }
+            }
+            for (const [from, to] of move.slashes) {
+                if (t >= from && t <= to) spawnParticles(fx.particles, rand, "sweep", t, at([0, 1.3, 0]), 5, [1.4, 1.0, 1.4]);
+            }
+            for (const ring of move.rings) {
+                if (ring > t - 2 && ring <= t) spawnParticles(fx.particles, rand, "sweep", t, at([0, 0.05, 0]), 14, [1.6, 0.1, 1.6]);
+            }
+        }
+        particleSprites(fx.particles, group);
+        return fx;
+    }
+
+    function updateFx(fx, tick) {
+        updateParticles(fx.particles, tick);
+    }
+
+    // ------------------------------------------------------------------ the Monster's visits
+
+    /** What each of the Monster's behaviours is called in the menu. */
+    const BEHAVIORS = {
+        "walk": "walk: gets up and walks over", "coffin-rise": "coffin rise", "crawl-rush": "crawl rush",
+        "ceiling-scuttle": "ceiling scuttle", "blink": "blink", "peek-and-hide": "peek and hide"
+    };
+    /** A second of nothing after the Monster vanishes, before its visit plays again. */
+    const AFTER_TICKS = 20;
+    // Frame layout: phase, shown (1) or not, anchor x y z, yaw, lift x y z, tilt p y r, the player's yaw, then
+    // p y r per part, then its face's pitch and size. In "scream" only its face is drawn, eyes at the anchor.
+    const PHASES = ["lurk", "rise", "move", "scream", "blink", "hide", "gone"];
+    const rad = THREE.MathUtils.degToRad;
+    let rigCache = null;
+
+    function monsterRig(entry) {
+        if (!rigCache || rigCache.entry !== entry) {
+            rigCache = {
+                entry,
+                rest: entry.rig.rest.map(r => new THREE.Matrix4().set(...r, 0, 0, 0, 1)),
+                parts: entry.rig.parts,
+                owners: entry.rig.owners
+            };
+        }
+        return rigCache;
+    }
+
+    /** Turns by [pitch, yaw, roll] degrees: yaw, then pitch, then roll. */
+    function turnBy(p, y, r) {
+        return new THREE.Matrix4().makeRotationY(rad(y)).multiply(new THREE.Matrix4().makeRotationX(rad(p))).multiply(new THREE.Matrix4().makeRotationZ(rad(r)));
+    }
+
+    /** One frame of a visit, posed the way the game's MonsterRig poses it: T(anchor) * yaw * T(lift) * tilt, then every part about its pivot. */
+    function poseFrame(entry, f, meshes, player, dark) {
+        const rig = monsterRig(entry);
+        const shown = f[1] === 1 && PHASES[f[0]] !== "gone";
+        const faceSize = f[f.length - 1];
+        if (player) player.rotation.y = Math.PI + rad(f[12]);
+        // The Darkness and Blindness it leaves the player in as it vanishes.
+        dark.style.opacity = PHASES[f[0]] === "gone" ? 1 : 0;
+        const owners = rig.parts.map(([name]) => name);
+        const head = owners.indexOf("HEAD"), jaw = owners.indexOf("JAW");
+        meshes.forEach((m, h) => {
+            m.visible = shown && (faceSize <= 0 || rig.owners[h] === head || rig.owners[h] === jaw);
+        });
+        if (!shown) return;
+        const body = new THREE.Matrix4().makeTranslation(f[6], f[7], f[8]).multiply(turnBy(f[9], f[10], f[11]));
+        const chain = root => {
+            const world = [];
+            rig.parts.forEach(([, parent, px, py, pz], i) => {
+                const j = 13 + i * 3;
+                world.push((parent < 0 ? root : world[parent]).clone()
+                    .multiply(new THREE.Matrix4().makeTranslation(px, py, pz))
+                    .multiply(turnBy(f[j], f[j + 1], f[j + 2]))
+                    .multiply(new THREE.Matrix4().makeTranslation(-px, -py, -pz)));
+            });
+            return world;
+        };
+        let root;
+        if (faceSize > 0) {
+            const eye = new THREE.Vector3(...entry.rig.eyes).applyMatrix4(chain(body)[head]);
+            root = new THREE.Matrix4().makeTranslation(f[2], f[3], f[4])
+                .multiply(new THREE.Matrix4().makeRotationY(rad(f[5])))
+                .multiply(new THREE.Matrix4().makeRotationX(rad(f[f.length - 2])))
+                .multiply(new THREE.Matrix4().makeScale(faceSize, faceSize, faceSize))
+                .multiply(new THREE.Matrix4().makeTranslation(-eye.x, -eye.y, -eye.z))
+                .multiply(body);
+        } else {
+            root = new THREE.Matrix4().makeTranslation(f[2], f[3], f[4]).multiply(new THREE.Matrix4().makeRotationY(rad(f[5]))).multiply(body);
+        }
+        const world = chain(root);
+        meshes.forEach((m, h) => m.matrix.copy(world[rig.owners[h]]).multiply(rig.rest[h]));
+    }
+
+    // ================================================================================================
+    // The stage: renderer, lights, floor, shadows and camera
+    // ================================================================================================
+
+    // The 3D stage: renderer, lights, the floor a model stands on, shadows and the camera.
+
+    /** Where the camera looks from for each named view, before it is scaled to the model. */
+    const VIEWS = {
+        fit: [0.55, 0.32, 1], front: [0, 0.18, 1], side: [1, 0.18, 0], back: [0, 0.18, -1], top: [0, 1, 0.02],
+    };
+
+    class Stage {
+        constructor(host) {
+            this.host = host;
+            const renderer = this.renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: false});
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.05;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            host.prepend(renderer.domElement);
+
+            const scene = this.scene = new THREE.Scene();
+            scene.background = backdrop();
+            scene.fog = new THREE.Fog(0x0e0c17, 20, 60);
+            this.camera = new THREE.PerspectiveCamera(32, 1, 0.02, 8000);
+            this.camera.position.set(2.4, 2.2, 6);
+
+            const controls = this.controls = new OrbitControls(this.camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.55;
+            controls.target.set(0, 1, 0);
+            // A drag stops the camera flight towards a view.
+            controls.addEventListener("start", () => {
+                this.flight = null;
+            });
+
+            // Lights: a violet-tinted sky, a warm key that casts the shadows, a violet rim and a cool fill.
+            scene.add(new THREE.HemisphereLight(0xe4ddff, 0x2a2238, 1.15));
+            const key = this.key = new THREE.DirectionalLight(0xfff1dc, 2.6);
+            key.castShadow = true;
+            key.shadow.mapSize.set(2048, 2048);
+            key.shadow.bias = -0.0004;
+            key.shadow.normalBias = 0.02;
+            scene.add(key, key.target);
+            const rim = this.rim = new THREE.DirectionalLight(0x9d7bff, 1.4);
+            const fill = this.fill = new THREE.DirectionalLight(0x7fe6f0, 0.35);
+            scene.add(rim, fill);
+
+            // The floor: a dark disc, a shadow catcher and a faint grid.
+            this.floor = new THREE.Mesh(new THREE.CircleGeometry(1, 96),
+                new THREE.MeshStandardMaterial({color: 0x17142a, roughness: 1, metalness: 0}));
+            this.floor.rotation.x = -Math.PI / 2;
+            this.floor.receiveShadow = true;
+            this.grid = new THREE.GridHelper(1, 1, 0x3a3358, 0x231f36);
+            this.grid.material.transparent = true;
+            this.grid.material.opacity = 0.7;
+            this.grid.position.y = 0.001;
+            scene.add(this.floor, this.grid);
+
+            this.content = new THREE.Group();
+            scene.add(this.content);
+            this.radius = 1.5;
+            this.centre = new THREE.Vector3(0, 1, 0);
+
+            new ResizeObserver(() => this.resize()).observe(host);
+            this.resize();
+        }
+
+        resize() {
+            const w = Math.max(1, this.host.clientWidth), h = Math.max(1, this.host.clientHeight);
+            this.camera.aspect = w / h;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(w, h, false);
+        }
+
+        /** Shows {@code object} in place of whatever was shown, and fits the floor, lights and fog to it. */
+        show(object) {
+            this.scene.remove(this.content);
+            this.content = object;
+            this.scene.add(object);
+            // Glass and beams cast no shadow; everything else does.
+            object.traverse(o => {
+                if (o.isMesh) {
+                    const transparent = [].concat(o.material).some(m => m.transparent);
+                    o.castShadow = !transparent;
+                    o.receiveShadow = true;
+                }
+            });
+            this.measure();
+        }
+
+        /** The model's centre and radius ({@code box}, or what is drawn), and the floor, grid, lights and fog sized to them. */
+        measure(frame = null) {
+            const box = frame ? frame.clone() : new THREE.Box3().setFromObject(this.content);
+            if (box.isEmpty()) box.set(new THREE.Vector3(-1, 0, -1), new THREE.Vector3(1, 2, 1));
+            const sphere = box.getBoundingSphere(new THREE.Sphere());
+            this.centre.copy(sphere.center);
+            this.radius = Math.max(0.6, sphere.radius);
+            const r = this.radius;
+            const reach = Math.max(6, r * 3.2);
+            this.floor.scale.setScalar(reach);
+            this.floor.position.set(this.centre.x, Math.min(0, box.min.y) - 0.002, this.centre.z);
+            const cells = Math.min(80, Math.max(8, Math.ceil(reach * 2 / Math.max(1, Math.round(r / 4)))));
+            this.scene.remove(this.grid);
+            this.grid.geometry.dispose();
+            const keep = this.grid.visible;
+            this.grid = new THREE.GridHelper(reach * 2, cells, 0x3a3358, 0x231f36);
+            this.grid.material.transparent = true;
+            this.grid.material.opacity = 0.55;
+            this.grid.visible = keep;
+            this.grid.position.set(this.centre.x, this.floor.position.y + 0.001, this.centre.z);
+            this.scene.add(this.grid);
+
+            const c = this.centre;
+            this.key.position.set(c.x + r * 1.6, c.y + r * 2.6, c.z + r * 1.9);
+            this.key.target.position.copy(c);
+            const cam = this.key.shadow.camera;
+            cam.left = cam.bottom = -r * 1.5;
+            cam.right = cam.top = r * 1.5;
+            cam.near = 0.1;
+            cam.far = r * 8;
+            cam.updateProjectionMatrix();
+            this.rim.position.set(c.x - r * 2, c.y + r * 1.2, c.z - r * 2.4);
+            this.fill.position.set(c.x - r * 2.5, c.y + r * 0.4, c.z + r * 1.5);
+            this.scene.fog.near = r * 6;
+            this.scene.fog.far = r * 22;
+            this.camera.far = Math.max(100, r * 40);
+            this.camera.near = Math.max(0.01, r / 400);
+            this.camera.updateProjectionMatrix();
+        }
+
+        /** Flies the camera to a named view of the model ({@code fit}, {@code front}, {@code side}, {@code back}, {@code top}). */
+        view(name = "fit", instant = false) {
+            const dir = new THREE.Vector3(...(VIEWS[name] || VIEWS.fit)).normalize();
+            const fov = THREE.MathUtils.degToRad(this.camera.fov);
+            const fitHeight = this.radius / Math.sin(fov / 2);
+            const fitWidth = fitHeight / Math.min(1, this.camera.aspect);
+            const distance = Math.max(fitHeight, fitWidth) * 1.02;
+            const to = this.centre.clone().addScaledVector(dir, distance);
+            if (instant) {
+                this.camera.position.copy(to);
+                this.controls.target.copy(this.centre);
+                this.flight = null;
+            } else {
+                this.flight = {
+                    from: this.camera.position.clone(),
+                    to,
+                    fromTarget: this.controls.target.clone(),
+                    target: this.centre.clone(),
+                    t: 0
+                };
+            }
+        }
+
+        /** Runs {@code tick(ms)} before every frame it draws. */
+        run(tick) {
+            let last = performance.now();
+            this.renderer.setAnimationLoop(now => {
+                const dt = Math.min(100, now - last);
+                last = now;
+                tick(dt);
+                if (this.flight) {
+                    const f = this.flight;
+                    f.t = Math.min(1, f.t + dt / 650);
+                    const e = 1 - Math.pow(1 - f.t, 3);
+                    this.camera.position.lerpVectors(f.from, f.to, e);
+                    this.controls.target.lerpVectors(f.fromTarget, f.target, e);
+                    if (f.t >= 1) this.flight = null;
+                }
+                this.controls.update();
+                this.renderer.render(this.scene, this.camera);
+            });
+        }
+
+        /** A PNG of the view as it is now. */
+        screenshot() {
+            this.renderer.render(this.scene, this.camera);
+            return this.renderer.domElement.toDataURL("image/png");
+        }
+    }
+
+    /** The background: a soft violet glow over the night. */
+    function backdrop() {
+        const c = document.createElement("canvas");
+        c.width = 16;
+        c.height = 256;
+        const g = c.getContext("2d");
+        const grad = g.createLinearGradient(0, 0, 0, 256);
+        grad.addColorStop(0, "#1c1531");
+        grad.addColorStop(0.55, "#120f1f");
+        grad.addColorStop(1, "#0b0a12");
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 16, 256);
+        const t = new THREE.CanvasTexture(c);
+        t.colorSpace = THREE.SRGBColorSpace;
+        return t;
+    }
+
+    // ================================================================================================
+    // The app: library, inspector, playback, keyboard, address bar
+    // ================================================================================================
+
+    // The Model Viewer: a library of every exported model, the stage it is drawn on, an inspector for its
+    // pose and what is shown round it, and a player for its animations.
+    //
+    // Data: on the site, website/build.py puts models.json (and the painted skins) next to this page. From
+    // a checkout, `mvn test` writes target/stand-viewer/models.json, found as a fallback over HTTP, and
+    // models.js, which the page loads with a script tag when it is opened straight from disk.
+
+    const $ = id => document.getElementById(id);
+    const params = new URLSearchParams(location.search);
+    const embedded = params.has("embed") || window.self !== window.top;
+    if (embedded) document.body.classList.add("embed");
+
+    /** The groups of the library, in order, each with its accent colour and a word on what is in it. */
+    const GROUPS = [
+        {name: "Bosses", accent: "#ef4b5b", about: "Boss models"},
+        {name: "Wither Storm", accent: "#8b5cf6", about: "Every form of the storm"},
+        {name: "Stands", accent: "#38d6e6", about: "JoJo Stands"},
+        {name: "Concepts", accent: "#7fe3a3", about: "Work in progress"},
+    ];
+    const accentOf = group => (GROUPS.find(g => g.name === group) || {accent: "#f2c230"}).accent;
+
+    const state = {
+        entries: [],
+        selected: null,
+        pose: "idle",
+        animations: [],
+        anim: null,
+        playing: false,
+        tick: 0,
+        clock: 0,
+        speed: 1,
+        filter: "All",
+        collapsed: new Set(),
+        manifest: null,
+        skinBase: "skins/",
+        monsterAnims: null,
+        monsterLoading: false,
+    };
+    let content = new THREE.Group();
+
+    const stage = new Stage($("stage"));
+    stage.controls.autoRotate = !params.has("still");
+    $("spin").setAttribute("aria-pressed", String(stage.controls.autoRotate));
+    onTexturesChange(() => {
+        if (state.selected) refresh();
     });
-    blockMaterials.set(key, new THREE.MeshStandardMaterial(glow
-        ? { map, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.9 }
-        : { map, roughness: 0.9 }));
-  }
-  return blockMaterials.get(key);
-}
-// The skull item the game draws: the wither skeleton's head, laid out on its 64x32 texture the way a
-// player head is on a skin, face on -z.
-const SKULL_TEXTURED = (() => {
-  const g = new THREE.BoxGeometry(0.5, 0.5, 0.5).translate(0, -0.25, 0);
-  const faces = [[0, 8], [16, 8], [8, 0], [16, 0], [24, 8], [8, 8]];
-  const uv = g.attributes.uv;
-  faces.forEach(([px, py], f) => {
-    const u0 = px / 64, u1 = (px + 8) / 64, v0 = 1 - py / 32, v1 = 1 - (py + 8) / 32;
-    const quad = [[u0, v0], [u1, v0], [u0, v1], [u1, v1]];
-    for (let i = 0; i < 4; i++) uv.setXY(f * 4 + i, quad[i][0], quad[i][1]);
-  });
-  return g;
-})();
-// Without the real texture: charcoal sides, its face (on -z) with the two hollow eyes and the grin.
-let skullMaterials;
-function skullFaces() {
-  if (!skullMaterials) {
-    const real = vanilla("wither_skeleton");
-    if (real) {
-      skullMaterials = new THREE.MeshStandardMaterial({ map: real, roughness: 0.9 });
-      return skullMaterials;
+
+    // ================================================================== loading
+
+    /** The first of these files that answers, and where it was found. */
+    function firstJson(...paths) {
+        return paths.reduce((chain, path) => chain.catch(() =>
+            fetch(new URL(path, location.href)).then(r => {
+                if (!r.ok) throw new Error(path);
+                return r.json().then(j => ({j, path}));
+            })), Promise.reject());
     }
-    const side = texture(g => { g.fillStyle = "#2b2b2b"; g.fillRect(0, 0, 16, 16); g.fillStyle = "#3a3a3a";
-      for (let i = 0; i < 16; i += 3) g.fillRect(i, (i * 7) % 16, 2, 1); });
-    const face = texture(g => {
-      g.fillStyle = "#2f2f2f"; g.fillRect(0, 0, 16, 16);
-      g.fillStyle = "#0a0a0a"; g.fillRect(3, 5, 4, 3); g.fillRect(9, 5, 4, 3); g.fillRect(4, 11, 8, 2);
-      g.fillStyle = "#4a4a4a"; g.fillRect(5, 11, 1, 2); g.fillRect(8, 11, 1, 2); g.fillRect(10, 11, 1, 2);
+
+    async function load() {
+        const [data, manifest] = await Promise.all([
+            window.STAND_VIEWER_DATA || firstJson("models.json", "../../../target/stand-viewer/models.json").then(({j}) => j),
+            window.STAND_VIEWER_MANIFEST || firstJson("skins/manifest.json", "../../models/stand-skins/out/manifest.json")
+                .then(({j, path}) => {
+                    state.skinBase = path.replace("manifest.json", "");
+                    return j;
+                })
+                .catch(() => null),
+        ]);
+        state.manifest = manifest;
+        const isStand = s => s.kind === "heads" && !s.group;
+        const entries = data.stands.map(s => ({...s, group: s.group || "Stands", stand: isStand(s)}));
+        // Skins with no Stand of their own (DIO himself) are shown on the same eleven heads.
+        const base = entries.find(e => e.stand);
+        for (const key of Object.keys(manifest || {})) {
+            if (base && !entries.some(e => e.key === key)) {
+                const name = key.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+                entries.push({key, name, kind: "heads", group: "Stands", stand: true, poses: base.poses});
+            }
+        }
+        const stands = entries.filter(e => e.stand);
+        if (stands.length > 1) {
+            const poses = {};
+            stands.forEach(s => Object.keys(s.poses).forEach(p => {
+                poses[p] = true;
+            }));
+            entries.push({
+                key: "all-stands",
+                name: "All Stands",
+                kind: "lineup",
+                group: "Stands",
+                poses,
+                members: stands
+            });
+        }
+        const order = name => {
+            const i = GROUPS.findIndex(g => g.name === name);
+            return i < 0 ? GROUPS.length : i;
+        };
+        entries.sort((a, b) => order(a.group) - order(b.group));
+        state.entries = entries;
+        $("modelCount").textContent = `${entries.filter(e => e.kind !== "lineup").length} models`;
+    }
+
+    /** The Monster's visits live in a file of their own, fetched the first time the Monster is shown. */
+    function loadMonsterAnims(entry) {
+        if (state.monsterAnims || state.monsterLoading || typeof entry.anims !== "string") return;
+        state.monsterLoading = true;
+        firstJson(entry.anims, "../../../target/stand-viewer/" + entry.anims).then(({j}) => {
+            state.monsterAnims = j;
+            if (state.selected !== entry) return;
+            setPose(state.pose, true);
+            const wanted = state.animations.find(a => a.id === state.pendingAnim);
+            if (wanted) setAnimation(wanted);
+            state.pendingAnim = null;
+        }).catch(() => {
+            state.monsterLoading = false;
+        });
+    }
+
+    // ================================================================== what a model is
+
+    const piecesIn = (entry, pose) => (entry.poses[pose] || entry.poses.idle || Object.values(entry.poses)[0] || []);
+
+    /** A Stand painted in website/models/stand-skins wears the first Stand's eleven heads with its own skins. */
+    function paintedPieces(entry, pose) {
+        const files = $("painted").checked && state.manifest && state.manifest[entry.key];
+        const base = files && state.entries.find(e => e.stand);
+        if (!base) return null;
+        const embedded = window.STAND_VIEWER_PAINTED || {};
+        return piecesIn(base, pose).map((p, i) => ({...p, skin: embedded[files[i]] || state.skinBase + files[i]}));
+    }
+
+    function kindOf(entry) {
+        return {blocks: "Block displays", heads: "Player heads", lineup: "Lineup"}[entry.kind] || entry.kind;
+    }
+
+    function pieceCount(entry, pose) {
+        if (entry.kind === "lineup") return entry.members.reduce((n, s) => n + piecesIn(s, pose).length, 0);
+        return entry.boxes || piecesIn(entry, pose).filter(p => p).length;
+    }
+
+    function animationCount(entry) {
+        return Object.keys(entry.frames || {}).length + Object.keys(entry.moves || {}).length + (entry.anims ? 1 : 0);
+    }
+
+    /** The box the camera frames: the pose's scene, the model's exported size, or what is drawn. */
+    function frameBox(entry, pose) {
+        const scene = entry.scenes && entry.scenes[pose];
+        const b = state.anim && state.anim.size ? state.anim.size : scene ? scene.size : entry.size;
+        if (b) return new THREE.Box3(new THREE.Vector3(b[0], b[1], b[2]), new THREE.Vector3(b[3], b[4], b[5]));
+        return null;
+    }
+
+    // ================================================================== drawing
+
+    function buildContent() {
+        const entry = state.selected, pose = state.pose;
+        const root = new THREE.Group();
+        let body = null;
+        if (state.anim && state.anim.build) {
+            body = state.anim.build();
+            Object.assign(root.userData, body.userData);
+        } else if (entry.kind === "lineup") {
+            entry.members.forEach((s, i) => {
+                const g = buildHeads(paintedPieces(s, pose) || piecesIn(s, pose));
+                g.position.x = (i - (entry.members.length - 1) / 2) * 1.6;
+                root.add(g);
+            });
+        } else if (entry.kind === "blocks") {
+            body = buildBlocks(piecesIn(entry, pose));
+        } else {
+            body = buildHeads(paintedPieces(entry, pose) || piecesIn(entry, pose));
+        }
+        if (body) {
+            root.add(body);
+            root.userData.meshes = body.userData.meshes;
+        }
+        if (entry.kind === "blocks" && entry.beams && $("beams").checked) {
+            const beams = beamsOf(entry, pose);
+            root.add(beams);
+            root.userData.beamParticles = beams.userData.particles;
+            updateParticles(beams.userData.particles, beamTick, BEAM_LOOP);
+        }
+        if (entry.kind === "blocks" && entry.hitboxes && $("boxes").checked) root.add(hitboxesOf(entry));
+        const scene = entry.scenes && entry.scenes[pose];
+        if (scene) {
+            if ($("player").checked) root.add(root.userData.player = buildPlayer(scene.player));
+            root.add(propsOf(scene));
+        } else if ($("player").checked && entry.kind !== "lineup") {
+            // A player beside the model, to scale, on the side away from the camera's usual corner.
+            const box = frameBox(entry, pose) || new THREE.Box3().setFromObject(root);
+            root.add(buildPlayer([box.min.x - 0.75, 0, (box.min.z + box.max.z) / 2, 0]));
+        }
+        return root;
+    }
+
+    function refresh({reframe = false, instant = false} = {}) {
+        content = buildContent();
+        stage.show(content);
+        const box = frameBox(state.selected, state.pose);
+        if (box) stage.measure(box);
+        if (state.anim) state.anim.apply(state.tick, content);
+        if (reframe) stage.view("fit", instant);
+        updateDetails();
+    }
+
+    // ================================================================== the library
+
+    function renderLibrary() {
+        const query = $("search").value.trim().toLowerCase();
+        const chips = ["All", ...GROUPS.map(g => g.name).filter(n => state.entries.some(e => e.group === n))];
+        $("chips").innerHTML = "";
+        for (const name of chips) {
+            const b = document.createElement("button");
+            b.className = "chip";
+            b.textContent = name;
+            b.setAttribute("aria-pressed", String(state.filter === name));
+            b.onclick = () => {
+                state.filter = name;
+                renderLibrary();
+            };
+            $("chips").append(b);
+        }
+        const list = $("list");
+        list.innerHTML = "";
+        const shown = visibleEntries(query);
+        const groups = new Map();
+        for (const e of shown) {
+            if (!groups.has(e.group)) groups.set(e.group, []);
+            groups.get(e.group).push(e);
+        }
+        for (const [name, items] of groups) {
+            const group = document.createElement("div");
+            group.className = "group";
+            group.style.setProperty("--accent", accentOf(name));
+            group.dataset.open = String(!state.collapsed.has(name) || !!query);
+            const head = document.createElement("button");
+            head.className = "group-head";
+            head.setAttribute("aria-expanded", group.dataset.open);
+            head.innerHTML = `<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg><span class="dot"></span><span></span><span class="n">${items.length}</span>`;
+            head.children[2].textContent = name;
+            head.onclick = () => {
+                if (state.collapsed.has(name)) state.collapsed.delete(name); else state.collapsed.add(name);
+                renderLibrary();
+            };
+            const box = document.createElement("div");
+            box.className = "items";
+            for (const e of items) {
+                const b = document.createElement("button");
+                b.className = "item";
+                b.setAttribute("aria-current", String(e === state.selected));
+                const glyph = document.createElement("span");
+                glyph.className = "glyph";
+                glyph.textContent = initials(e);
+                const text = document.createElement("span");
+                const title = document.createElement("b"), meta = document.createElement("small");
+                title.textContent = shortName(e);
+                meta.textContent = metaLine(e);
+                text.append(title, meta);
+                b.append(glyph, text);
+                b.onclick = () => {
+                    select(e);
+                    closeLibrary();
+                };
+                box.append(b);
+            }
+            group.append(head, box);
+            list.append(group);
+        }
+        if (!shown.length) {
+            const empty = document.createElement("p");
+            empty.className = "empty";
+            empty.textContent = "No model matches.";
+            list.append(empty);
+        }
+        const current = list.querySelector("[aria-current=true]");
+        if (current) current.scrollIntoView({block: "nearest"});
+    }
+
+    function visibleEntries(query = $("search").value.trim().toLowerCase()) {
+        return state.entries.filter(e => (state.filter === "All" || e.group === state.filter)
+            && (!query || e.name.toLowerCase().includes(query) || e.group.toLowerCase().includes(query)));
+    }
+
+    /** "Wither Storm: The Hunchback" is listed under its group as "The Hunchback". */
+    const shortName = e => e.name.startsWith(e.group + ": ") ? e.name.slice(e.group.length + 2) : e.name;
+    const SMALL_WORDS = new Set(["the", "of", "and", "a"]);
+    const initials = e => shortName(e).split(/[^A-Za-z0-9]+/).filter(w => w.length > 1 && !SMALL_WORDS.has(w.toLowerCase()))
+        .slice(0, 2).map(w => w[0].toUpperCase()).join("");
+
+    function metaLine(e) {
+        if (e.kind === "lineup") return `${e.members.length} Stands side by side`;
+        const n = animationCount(e);
+        return `${kindOf(e)} · ${pieceCount(e, "idle").toLocaleString()}${n ? ` · ${n} anim.` : ""}`;
+    }
+
+    function openLibrary() {
+        $("library").classList.add("open");
+        $("scrim").hidden = false;
+        $("libraryToggle").setAttribute("aria-expanded", "true");
+    }
+
+    function closeLibrary() {
+        $("library").classList.remove("open");
+        $("scrim").hidden = true;
+        $("libraryToggle").setAttribute("aria-expanded", "false");
+    }
+
+    // ================================================================== selecting
+
+    function select(entry, {pose, anim} = {}) {
+        state.selected = entry;
+        if (entry.anims) loadMonsterAnims(entry);
+        const poses = Object.keys(entry.poses);
+        state.pose = poses.includes(pose) ? pose : poses.includes("idle") ? "idle" : poses[0];
+        state.animations = animationsOf(entry, state.pose, state.monsterAnims, $("dark"));
+        const wanted = anim !== undefined ? anim : entry.frames && entry.frames.idle ? "idle" : null;
+        // The Monster's behaviours arrive later, in a file of their own: one asked for waits for them.
+        state.pendingAnim = entry.anims ? wanted : null;
+        setAnimation(state.animations.find(a => a.id === wanted) || null, false);
+        document.documentElement.style.setProperty("--accent", accentOf(entry.group));
+        $("badge").textContent = entry.group;
+        $("title").textContent = shortName(entry);
+        document.title = `${shortName(entry)} · Model Viewer · MultiverseCreatures`;
+        fillInspector();
+        renderLibrary();
+        refresh({reframe: true, instant: !stage.shown});
+        stage.shown = true;
+        writeUrl();
+    }
+
+    /** Changes the pose; the Monster's behaviours differ per pose, so its animations are rebuilt, keeping the one chosen. */
+    function setPose(pose, keepView) {
+        state.pose = pose;
+        const keep = state.anim && state.anim.id;
+        state.animations = animationsOf(state.selected, pose, state.monsterAnims, $("dark"));
+        setAnimation(state.animations.find(a => a.id === keep) || null, false);
+        fillInspector();
+        refresh({reframe: !keepView && !!(state.selected.scenes)});
+        writeUrl();
+    }
+
+    function setAnimation(anim, rebuild = true) {
+        if (state.anim && state.anim.stop) state.anim.stop();
+        const wasBuilt = !!(state.anim && state.anim.build);
+        state.anim = anim;
+        state.tick = 0;
+        state.clock = 0;
+        setPlaying(!!anim);
+        fillPlaybar();
+        if (rebuild) {
+            refresh({reframe: !!(anim && anim.build) || wasBuilt});
+            writeUrl();
+        }
+    }
+
+    function setPlaying(on) {
+        state.playing = on && !!state.anim;
+        $("play").setAttribute("aria-pressed", String(state.playing));
+        $("play").setAttribute("aria-label", state.playing ? "Pause" : "Play");
+        $("stage").classList.toggle("playing", !!state.anim);
+    }
+
+    // ================================================================== inspector
+
+    function fillInspector() {
+        const entry = state.selected;
+        const poses = Object.keys(entry.poses);
+        $("poseSection").hidden = poses.length < 2;
+        const box = $("poses");
+        box.innerHTML = "";
+        for (const p of poses) {
+            const b = document.createElement("button");
+            b.className = "pill";
+            b.textContent = p;
+            b.setAttribute("aria-pressed", String(p === state.pose));
+            b.onclick = () => setPose(p);
+            box.append(b);
+        }
+        const blocks = entry.kind === "blocks";
+        $("beamsRow").hidden = !(blocks && entry.beams);
+        $("boxesRow").hidden = !(blocks && entry.hitboxes);
+        $("paintedRow").hidden = !(state.manifest && (entry.kind === "lineup" || (entry.stand && state.manifest[entry.key])));
+        $("playerRow").hidden = entry.kind === "lineup";
+        fillPlaybar();
+    }
+
+    function fillPlaybar() {
+        const select = $("anim");
+        select.innerHTML = "";
+        select.add(new Option("Still", ""));
+        const attacks = document.createElement("optgroup");
+        attacks.label = "Attacks";
+        for (const a of state.animations) (a.attack ? attacks : select).append(new Option(a.label, a.id));
+        if (attacks.children.length) select.append(attacks);
+        select.value = state.anim ? state.anim.id : "";
+        $("playbar").hidden = !state.animations.length;
+        updateTime();
+    }
+
+    function updateTime() {
+        const a = state.anim;
+        $("scrub").disabled = !a;
+        $("play").disabled = !a;
+        if (!a) {
+            $("scrub").value = 0;
+            $("time").textContent = "—";
+            return;
+        }
+        $("scrub").value = Math.round(state.tick / Math.max(1, a.ticks - 1) * 1000);
+        $("time").textContent = `${(state.tick / 20).toFixed(1)} / ${(a.ticks / 20).toFixed(1)} s`;
+    }
+
+    function updateDetails() {
+        const entry = state.selected, pose = state.pose;
+        const rows = [["Kind", kindOf(entry)], ["Display entities", pieceCount(entry, pose).toLocaleString()]];
+        const b = entry.size || (entry.scenes && entry.scenes[pose] && entry.scenes[pose].size);
+        if (b && entry.kind === "blocks") rows.push(["Size (blocks)", `${(b[3] - b[0]).toFixed(1)} × ${(b[4] - b[1]).toFixed(1)} × ${(b[5] - b[2]).toFixed(1)}`]);
+        rows.push(["Poses", Object.keys(entry.poses).length]);
+        if (state.animations.length) rows.push(["Animations", state.animations.length]);
+        let note = "";
+        if (entry.kind === "blocks") {
+            const real = usingGameTextures();
+            rows.push(["Textures", real ? "Minecraft" : "Stand-in colours"]);
+            if (!real && LOCAL) note = "Run <code>website/textures.ps1</code> to draw the blocks with your Minecraft's textures.";
+        } else {
+            rows.push(["Skins", paintedPieces(entry, pose) || (entry.kind === "lineup" && $("painted").checked) ? "Painted (stand-skins)" : "Mojang"]);
+        }
+        const stats = $("stats");
+        stats.innerHTML = "";
+        for (const [k, v] of rows) {
+            const dt = document.createElement("dt"), dd = document.createElement("dd");
+            dt.textContent = k;
+            dd.textContent = v;
+            stats.append(dt, dd);
+        }
+        $("note").innerHTML = note;
+        const tall = b ? ` · ${(b[4] - b[1]).toFixed(1)} blocks tall` : "";
+        $("subtitle").textContent = entry.kind === "lineup" ? `${entry.members.length} Stands side by side`
+            : `${kindOf(entry)} · ${pieceCount(entry, pose).toLocaleString()} pieces${tall}`;
+    }
+
+    // ================================================================== the address bar
+
+    function writeUrl() {
+        if (embedded || !state.selected) return;
+        const q = new URLSearchParams();
+        q.set("stand", state.selected.key);
+        if (state.pose && state.pose !== "idle" && Object.keys(state.selected.poses).length > 1) q.set("pose", state.pose);
+        if (state.anim) q.set("anim", state.anim.id);
+        if ($("painted").checked) q.set("painted", "");
+        if ($("boxes").checked) q.set("boxes", "");
+        if (!stage.controls.autoRotate) q.set("still", "");
+        history.replaceState(null, "", "?" + q.toString().replace(/=(&|$)/g, "$1"));
+    }
+
+    // ================================================================== controls
+
+    $("search").addEventListener("input", renderLibrary);
+    $("libraryToggle").onclick = () => $("library").classList.contains("open") ? closeLibrary() : openLibrary();
+    $("scrim").onclick = closeLibrary;
+    for (const id of ["player", "painted", "beams", "boxes"]) $(id).addEventListener("change", () => {
+        refresh();
+        writeUrl();
     });
-    const plain = new THREE.MeshStandardMaterial({ map: side, roughness: 0.9 });
-    skullMaterials = [plain, plain, plain, plain, plain, new THREE.MeshStandardMaterial({ map: face, roughness: 0.9 })];
-  }
-  return skullMaterials;
-}
-
-function buildBlocks(model, pieces) {
-  const group = new THREE.Group();
-  const meshes = [];
-  pieces.forEach(p => {
-    if (!p) { meshes.push(null); return; }
-    const skull = p.k === "s" ? skullFaces() : null;
-    const mesh = skull ? new THREE.Mesh(Array.isArray(skull) ? SKULL : SKULL_TEXTURED, skull)
-        : new THREE.Mesh(BLOCK, blockMaterial(p.m, p.g));
-    place(mesh, p);
-    group.add(mesh);
-    meshes.push(mesh);
-  });
-  group.userData.meshes = meshes;
-  return group;
-}
-
-function beamsOf(model, pose) {
-  const group = new THREE.Group();
-  const material = new THREE.MeshBasicMaterial({ color: 0xb06cff, transparent: true, opacity: 0.16,
-    depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
-  for (const b of (model.beams && model.beams[pose]) || []) {
-    const cone = new THREE.Mesh(new THREE.CylinderGeometry(b.r, 0.12, b.l, 24, 1, true), material);
-    const dir = new THREE.Vector3(...b.d);
-    cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-    cone.position.set(...b.o).addScaledVector(dir, b.l / 2);
-    group.add(cone);
-  }
-  return group;
-}
-
-function hitboxesOf(model) {
-  const group = new THREE.Group();
-  (model.hitboxes || []).forEach((b, i) => {
-    const box = new THREE.Box3(new THREE.Vector3(b[0], b[1], b[2]), new THREE.Vector3(b[3], b[4], b[5]));
-    group.add(new THREE.Box3Helper(box, i === 0 ? 0xf2c230 : 0x3fd7ff));
-  });
-  return group;
-}
-
-// ------------------------------------------------------------------ stands
-
-// A Stand painted in website/models/stand-skins wears The World's eleven heads with its own skins.
-function painted(stand) {
-  const files = paintedBox.checked && manifest && manifest[stand.key];
-  const base = files && data.stands.find(isStand);
-  return base ? { files, base } : null;
-}
-
-function buildStand(stand, poseName) {
-  if (stand.kind === "blocks") {
-    const group = new THREE.Group();
-    const body = buildBlocks(stand, stand.poses[poseName] || stand.poses.idle);
-    group.add(body);
-    group.userData.meshes = body.userData.meshes;
-    if (beamBox.checked) group.add(beamsOf(stand, poseName));
-    if (hitBox.checked) group.add(hitboxesOf(stand));
-    return group;
-  }
-  const group = new THREE.Group();
-  const paint = painted(stand);
-  const pieces = paint
-      ? (paint.base.poses[poseName] || paint.base.poses.idle).map((p, i) => ({ ...p,
-          skin: (window.STAND_VIEWER_PAINTED && window.STAND_VIEWER_PAINTED[paint.files[i]]) || skinBase + paint.files[i] }))
-      : (stand.poses[poseName] || stand.poses.idle);
-  const meshes = [];
-  for (const p of pieces) {
-    const tex = skin(p.skin);
-    const failed = tex.userData.failed;
-    const mesh = new THREE.Group();
-    mesh.add(new THREE.Mesh(HEAD, new THREE.MeshStandardMaterial(failed ? { color: 0xd4a62a } : { map: tex })));
-    if (!failed) {
-      mesh.add(new THREE.Mesh(HAT, new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.5 })));
-    }
-    if (p.m) {
-      // The export's own matrix, row major, shear and all.
-      mesh.matrixAutoUpdate = false;
-      mesh.matrix.set(...p.m, 0, 0, 0, 1);
-    } else {
-      place(mesh, p);
-    }
-    group.add(mesh);
-    meshes.push(mesh);
-  }
-  group.userData.meshes = meshes;
-  const scene = stand.scenes && stand.scenes[poseName];
-  if (scene) {
-    if (playerBox.checked) group.add(group.userData.player = buildPlayer(scene.player));
-    group.add(propsOf(scene));
-  }
-  return group;
-}
-
-// ------------------------------------------------------------------ the Monster's visit
-
-// The Monster's rig, turned from the export into matrices once: each part's parent and pivot, each
-// head's part and rest matrix. An animation frame is the rig's parameters, posed here the way the
-// game's MonsterRig poses it: T(anchor) * yaw * T(lift) * tilt, then every part about its pivot.
-const rad = THREE.MathUtils.degToRad;
-let rigCache = null;
-function monsterRig(stand) {
-  if (!rigCache || rigCache.stand !== stand) {
-    const rest = stand.rig.rest.map(r => new THREE.Matrix4().set(...r, 0, 0, 0, 1));
-    rigCache = { stand, rest, parts: stand.rig.parts, owners: stand.rig.owners };
-  }
-  return rigCache;
-}
-// Turns by [pitch, yaw, roll] degrees: yaw, then pitch, then roll.
-function turnBy(p, y, r) {
-  return new THREE.Matrix4().makeRotationY(rad(y))
-      .multiply(new THREE.Matrix4().makeRotationX(rad(p))).multiply(new THREE.Matrix4().makeRotationZ(rad(r)));
-}
-// Frame layout: phase, shown (1) or not, anchor x y z, yaw, lift x y z, tilt p y r, the player's yaw,
-// then p y r per part, then its face's pitch and size. Phases as the game's MonsterScript has them: in
-// "scream" only its face is drawn, its eyes at the anchor, in the player's face.
-const PHASES = ["lurk", "rise", "move", "scream", "blink", "hide", "gone"];
-function poseFrame(stand, f, meshes, player) {
-  const rig = monsterRig(stand);
-  const shown = f[1] === 1 && PHASES[f[0]] !== "gone";
-  const faceSize = f[f.length - 1];
-  if (player) player.rotation.y = Math.PI + rad(f[12]);
-  // The Darkness and Blindness it leaves the player in as it vanishes.
-  document.getElementById("dark").style.opacity = PHASES[f[0]] === "gone" ? 1 : 0;
-  const owners = rig.parts.map(([name]) => name);
-  const head = owners.indexOf("HEAD"), jaw = owners.indexOf("JAW");
-  meshes.forEach((m, h) => {
-    m.visible = shown && (faceSize <= 0 || rig.owners[h] === head || rig.owners[h] === jaw);
-  });
-  if (!shown) return;
-  const body = new THREE.Matrix4().makeTranslation(f[6], f[7], f[8]).multiply(turnBy(f[9], f[10], f[11]));
-  const chain = root => {
-    const world = [];
-    rig.parts.forEach(([, parent, px, py, pz], i) => {
-      const j = 13 + i * 3;
-      world.push((parent < 0 ? root : world[parent]).clone()
-          .multiply(new THREE.Matrix4().makeTranslation(px, py, pz))
-          .multiply(turnBy(f[j], f[j + 1], f[j + 2]))
-          .multiply(new THREE.Matrix4().makeTranslation(-px, -py, -pz)));
+    document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => stage.view(b.dataset.view)));
+    $("spin").onclick = () => toggleSpin();
+    $("gridToggle").onclick = () => toggleGrid();
+    $("shot").onclick = screenshot;
+    $("fullscreen").onclick = () => document.fullscreenElement ? document.exitFullscreen() : $("stage").requestFullscreen();
+    $("helpButton").onclick = () => $("help").showModal();
+    $("play").onclick = () => setPlaying(!state.playing);
+    $("anim").onchange = () => setAnimation(state.animations.find(a => a.id === $("anim").value) || null);
+    $("speed").onchange = () => {
+        state.speed = Number($("speed").value);
+    };
+    $("scrub").addEventListener("input", () => {
+        const a = state.anim;
+        if (!a) return;
+        setPlaying(false);
+        state.tick = Math.round(Number($("scrub").value) / 1000 * (a.ticks - 1));
+        a.apply(state.tick, content);
+        updateTime();
     });
-    return world;
-  };
-  let root;
-  if (faceSize > 0) {
-    // Its eyes at the anchor, turned and tilted to the player, scaled round them.
-    const eye = new THREE.Vector3(...stand.rig.eyes).applyMatrix4(chain(body)[head]);
-    root = new THREE.Matrix4().makeTranslation(f[2], f[3], f[4])
-        .multiply(new THREE.Matrix4().makeRotationY(rad(f[5])))
-        .multiply(new THREE.Matrix4().makeRotationX(rad(f[f.length - 2])))
-        .multiply(new THREE.Matrix4().makeScale(faceSize, faceSize, faceSize))
-        .multiply(new THREE.Matrix4().makeTranslation(-eye.x, -eye.y, -eye.z))
-        .multiply(body);
-  } else {
-    root = new THREE.Matrix4().makeTranslation(f[2], f[3], f[4])
-        .multiply(new THREE.Matrix4().makeRotationY(rad(f[5]))).multiply(body);
-  }
-  const world = chain(root);
-  meshes.forEach((m, h) => m.matrix.copy(world[rig.owners[h]]).multiply(rig.rest[h]));
-}
 
-// The Monster's visits live in a file of their own, fetched the first time the Monster is shown.
-let monsterAnims = null, monsterAnimsLoading = false;
-function loadMonsterAnims(stand) {
-  if (monsterAnims || monsterAnimsLoading || typeof stand.anims !== "string") return;
-  monsterAnimsLoading = true;
-  firstJson(stand.anims, "../../../target/stand-viewer/" + stand.anims).then(({ j }) => {
-    monsterAnims = j;
-    fillPoses();
-    refresh();
-  }).catch(() => { monsterAnimsLoading = false; });
-}
-// What each behaviour is called in the menu.
-const BEHAVIORS = { "walk": "walk: gets up and walks over", "coffin-rise": "coffin rise", "crawl-rush": "crawl rush",
-  "ceiling-scuttle": "ceiling scuttle", "blink": "blink", "peek-and-hide": "peek and hide" };
-
-let data, manifest, current = new THREE.Group();
-scene.add(current);
-const modelList = document.getElementById("models"), search = document.getElementById("search");
-const poseSelect = document.getElementById("pose");
-const animSelect = document.getElementById("anim");
-const allBox = document.getElementById("all"), spinBox = document.getElementById("spin");
-const paintedBox = document.getElementById("painted"), playerBox = document.getElementById("player");
-const beamBox = document.getElementById("beams"), hitBox = document.getElementById("boxes");
-let frame = 0, clock = 0, selectedIndex = 0;
-
-const selected = () => data.stands[selectedIndex];
-const groupOf = s => s.group || "Stands";
-// Stands are the rigged eleven-head figures; other head models (the concepts) carry a group of their own.
-const isStand = s => s.kind === "heads" && !s.group;
-// "Wither Storm: The Hunchback" is listed under its group as "The Hunchback".
-const shortName = s => s.name.startsWith(groupOf(s) + ": ") ? s.name.slice(groupOf(s).length + 2) : s.name;
-
-/** The model list, grouped, filtered by the search box, with the selected model highlighted. */
-function fillModels() {
-  const query = search.value.trim().toLowerCase();
-  modelList.innerHTML = "";
-  const groups = new Map();
-  data.stands.forEach((s, i) => {
-    if (query && !s.name.toLowerCase().includes(query) && !groupOf(s).toLowerCase().includes(query)) return;
-    if (!groups.has(groupOf(s))) groups.set(groupOf(s), []);
-    groups.get(groupOf(s)).push(i);
-  });
-  for (const [label, indices] of groups) {
-    const title = document.createElement("div");
-    title.className = "group";
-    const name = document.createElement("span"), count = document.createElement("span");
-    name.textContent = label;
-    count.textContent = indices.length;
-    title.append(name, count);
-    modelList.append(title);
-    for (const i of indices) {
-      const b = document.createElement("button");
-      b.className = "model";
-      b.textContent = shortName(data.stands[i]);
-      b.setAttribute("role", "listitem");
-      b.setAttribute("aria-pressed", String(i === selectedIndex && !allBox.checked));
-      b.onclick = () => select(i);
-      modelList.append(b);
+    function toggleSpin() {
+        stage.controls.autoRotate = !stage.controls.autoRotate;
+        $("spin").setAttribute("aria-pressed", String(stage.controls.autoRotate));
+        writeUrl();
     }
-  }
-  if (!groups.size) {
-    const empty = document.createElement("div");
-    empty.className = "empty";
-    empty.textContent = "No model matches.";
-    modelList.append(empty);
-  }
-  // On a phone the list scrolls on its own: keep the chosen model in sight.
-  const chosen = modelList.querySelector("[aria-pressed=true]");
-  if (chosen) modelList.scrollTop = chosen.offsetTop - 40;
-}
 
-function select(i) {
-  selectedIndex = i;
-  allBox.checked = false;
-  fillModels();
-  fillPoses();
-  frameView();
-  refresh();
-}
-const isBlocks = () => !allBox.checked && selected().kind === "blocks";
+    function toggleGrid() {
+        stage.grid.visible = !stage.grid.visible;
+        $("gridToggle").setAttribute("aria-pressed", String(stage.grid.visible));
+    }
 
-function refresh() {
-  if (!data) return;
-  scene.remove(current);
-  current = new THREE.Group();
-  const pose = poseSelect.value;
-  if (allBox.checked) {
-    const stands = data.stands.filter(isStand);
-    stands.forEach((stand, i) => {
-      const g = buildStand(stand, pose);
-      g.position.x = (i - (stands.length - 1) / 2) * 1.6;
-      current.add(g);
+    function screenshot() {
+        const a = document.createElement("a");
+        a.href = stage.screenshot();
+        a.download = `${state.selected ? state.selected.key : "model"}.png`;
+        a.click();
+        toast("Screenshot saved");
+    }
+
+    function step(by) {
+        const a = state.anim;
+        if (!a) return;
+        setPlaying(false);
+        state.tick = (state.tick + by + a.ticks) % a.ticks;
+        a.apply(state.tick, content);
+        updateTime();
+    }
+
+    function moveSelection(by) {
+        const list = visibleEntries();
+        const i = list.indexOf(state.selected);
+        const next = list[(i + by + list.length) % list.length];
+        if (next) select(next);
+    }
+
+    let toastTimer;
+
+    function toast(text) {
+        $("toast").textContent = text;
+        $("toast").classList.add("on");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => $("toast").classList.remove("on"), 1600);
+    }
+
+    document.addEventListener("keydown", e => {
+        if (e.target.matches("input[type=search], select") || e.ctrlKey || e.metaKey || e.altKey) {
+            if (e.key === "Escape") e.target.blur();
+            return;
+        }
+        const keys = {
+            " ": () => setPlaying(!state.playing),
+            ArrowLeft: () => step(-1),
+            ArrowRight: () => step(1),
+            ArrowUp: () => moveSelection(-1),
+            ArrowDown: () => moveSelection(1),
+            f: () => stage.view("fit"),
+            1: () => stage.view("front"),
+            2: () => stage.view("side"),
+            3: () => stage.view("back"),
+            4: () => stage.view("top"),
+            a: toggleSpin,
+            g: toggleGrid,
+            p: screenshot,
+            "?": () => $("help").showModal(),
+            "/": () => {
+                openLibrary();
+                $("search").focus();
+            },
+            Escape: closeLibrary,
+        };
+        const action = keys[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+        if (action && !(e.target.matches("input[type=range]") && e.key.startsWith("Arrow"))) {
+            e.preventDefault();
+            action();
+        }
     });
-  } else {
-    const built = buildStand(selected(), pose);
-    current.add(built);
-    current.userData.meshes = built.userData.meshes;
-    current.userData.player = built.userData.player;
-  }
-  scene.add(current);
-  frame = 0;
-  updateInfo();
-}
 
-function updateInfo() {
-  const stand = selected(), pose = poseSelect.value;
-  const pieces = s => (s.poses[pose] || s.poses.idle).filter(p => p).length;
-  const heads = data.stands.filter(isStand);
-  const count = allBox.checked ? heads.reduce((n, s) => n + pieces(s), 0) : pieces(stand);
-  const rows = [];
-  if (allBox.checked) {
-    document.getElementById("chipName").textContent = "All Stands";
-    document.getElementById("chipGroup").textContent = `${heads.length} side by side`;
-    rows.push(["Models", heads.length]);
-  } else {
-    document.getElementById("chipName").textContent = shortName(stand);
-    document.getElementById("chipGroup").textContent = groupOf(stand);
-  }
-  rows.push(["Display entities", count.toLocaleString()]);
-  let note = "";
-  if (!allBox.checked && stand.kind === "blocks") {
-    const b = stand.size;
-    rows.push(["Size (blocks)", `${(b[3] - b[0]).toFixed(1)} × ${(b[4] - b[1]).toFixed(1)} × ${(b[5] - b[2]).toFixed(1)}`]);
-    rows.push(["Animation", animSelect.value === "none" ? "—" : animSelect.value]);
-    const real = vanilla("obsidian");
-    rows.push(["Textures", real ? "Minecraft" : "Stand-in colours"]);
-    if (!real && LOCAL) note = "Run <code>website/textures.ps1</code> to draw the blocks with your Minecraft's textures.";
-  } else if (!allBox.checked) {
-    rows.push(["Skins", painted(stand) ? "Painted (stand-skins)" : "Mojang"]);
-  }
-  const stats = document.getElementById("stats");
-  stats.innerHTML = "";
-  for (const [k, v] of rows) {
-    const dt = document.createElement("dt"), dd = document.createElement("dd");
-    dt.textContent = k;
-    dd.textContent = v;
-    stats.append(dt, dd);
-  }
-  document.getElementById("note").innerHTML = note;
-}
+    // ================================================================== the clock
 
-function fillPoses() {
-  const poses = new Set();
-  const shown = allBox.checked ? data.stands.filter(isStand) : [selected()];
-  shown.forEach(s => Object.keys(s.poses).forEach(k => poses.add(k)));
-  const keep = poseSelect.value;
-  poseSelect.innerHTML = "";
-  poses.forEach(p => poseSelect.add(new Option(p, p)));
-  if (poses.has(keep)) poseSelect.value = keep;
+    let shownTick = -1;
+    stage.run(dt => {
+        // The beams' particles drift on their own clock, still or playing, like the game's.
+        beamTick += dt * state.speed / TICK_MS;
+        if (content && content.userData.beamParticles) updateParticles(content.userData.beamParticles, beamTick, BEAM_LOOP);
+        const a = state.anim;
+        if (a && state.playing) {
+            state.clock += dt * state.speed;
+            let moved = false;
+            while (state.clock >= TICK_MS) {
+                state.clock -= TICK_MS;
+                state.tick = (state.tick + 1) % a.ticks;
+                moved = true;
+            }
+            // An attack is posed every frame, between ticks; baked frames only when a tick passes.
+            if (a.smooth) a.apply(state.tick + state.clock / TICK_MS, content);
+            else if (moved) a.apply(state.tick, content);
+        }
+        if (state.tick !== shownTick) {
+            shownTick = state.tick;
+            updateTime();
+        }
+    });
 
-  animSelect.innerHTML = "";
-  animSelect.add(new Option("none", "none"));
-  if (isBlocks() && selected().frames) Object.keys(selected().frames).forEach(a => animSelect.add(new Option(a, a)));
-  if (isBlocks()) animSelect.value = "idle";
-  // The Monster's one animation: what it does once the player sees it, from the pose shown.
-  // The Monster's visits from the pose shown: every behaviour that plays in its blocks.
-  let visit = false;
-  if (!allBox.checked && selected().anims) {
-    loadMonsterAnims(selected());
-    const plays = monsterAnims && monsterAnims[poseSelect.value];
-    if (plays) {
-      visit = true;
-      const keep = animSelect.dataset.monster;
-      Object.keys(plays).forEach(id => animSelect.add(new Option(BEHAVIORS[id] || id, id)));
-      if (keep && plays[keep]) animSelect.value = keep;
-    }
-  }
-  const blocks = isBlocks();
-  document.getElementById("animLabel").classList.toggle("off", !blocks && !visit);
-  document.getElementById("beamLabel").classList.toggle("off", !blocks);
-  document.getElementById("boxLabel").classList.toggle("off", !blocks);
-  document.getElementById("playerLabel").classList.toggle("off", allBox.checked || !selected().scenes);
-  document.getElementById("paintedLabel").classList.toggle("off", blocks || !manifest
-      || (!allBox.checked && !isStand(selected())));
-}
+    // ================================================================== start
 
-/** Frames the camera and the grid on what is shown: a Stand is two blocks tall, a storm a hundred. */
-function frameView(x = 0, z = 1, y = 0.25) {
-  let centre = new THREE.Vector3(0, 0.95, 0), distance = allBox.checked ? 9 : 4.2, extent = 12;
-  if (!allBox.checked && selected().size) {
-    // A concept model has a box per pose: the Monster and the player wherever the pose puts them.
-    const scene = selected().scenes && selected().scenes[poseSelect.value];
-    const b = scene ? scene.size : selected().size;
-    centre = new THREE.Vector3((b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2);
-    const radius = Math.max(b[3] - b[0], b[4] - b[1], b[5] - b[2]) / 2;
-    distance = isBlocks() ? Math.max(9, radius * 3.4) : Math.max(4.2, radius * 4.4);
-    extent = Math.max(16, Math.ceil(radius * 4 / 8) * 8);
-  }
-  controls.target.copy(centre);
-  camera.position.set(centre.x + x * distance, centre.y + distance * y, centre.z + z * distance);
-  controls.update();
-  scene.remove(grid);
-  grid = new THREE.GridHelper(extent, Math.min(64, extent), 0x3a404c, 0x262a33);
-  scene.add(grid);
-}
-
-/** The first of these that answers: the site's copy, then the checkout's. */
-function firstJson(...paths) {
-  return paths.reduce((chain, path) => chain.catch(() =>
-      fetch(new URL(path, location.href)).then(r => { if (!r.ok) throw new Error(path); return r.json().then(j => ({ j, path })); })),
-    Promise.reject());
-}
-// Where the painted skins' png files live, set by whichever manifest answered.
-let skinBase = "skins/";
-const manifestLoad = window.STAND_VIEWER_MANIFEST ? Promise.resolve(window.STAND_VIEWER_MANIFEST)
-    : firstJson("skins/manifest.json", "../../models/stand-skins/out/manifest.json")
-        .then(({ j, path }) => { skinBase = path.replace("manifest.json", ""); return j; })
-        .catch(() => { paintedBox.disabled = true; return null; });
-const modelsLoad = window.STAND_VIEWER_DATA ? Promise.resolve(window.STAND_VIEWER_DATA)
-    : firstJson("models.json", "../../../target/stand-viewer/models.json").then(({ j }) => j);
-Promise.all([modelsLoad, manifestLoad])
-    .then(([json, m]) => {
-  data = json;
-  manifest = m;
-  // Skins with no Stand of their own (DIO himself) are shown on the same eleven heads.
-  const base = data.stands.find(isStand);
-  for (const key of Object.keys(manifest || {})) {
-    if (base && !data.stands.some(s => s.key === key)) {
-      const name = key.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
-      data.stands.push({ key, name, kind: "heads", poses: base.poses });
-    }
-  }
-  const wanted = new URLSearchParams(location.search);
-  if (wanted.has("stand")) {
-    const i = data.stands.findIndex(s => s.key === wanted.get("stand"));
-    if (i >= 0) selectedIndex = i;
-  }
-  if (wanted.has("all")) allBox.checked = true;
-  if (wanted.has("still")) spinBox.checked = false;
-  if (wanted.has("painted")) paintedBox.checked = true;
-  if (wanted.has("boxes")) hitBox.checked = true;
-  fillModels();
-  fillPoses();
-  if (wanted.has("pose")) poseSelect.value = wanted.get("pose");
-  if (wanted.has("anim")) animSelect.value = animSelect.dataset.monster = wanted.get("anim");
-  frameView();
-  refresh();
-}).catch(e => {
-  const status = document.getElementById("status");
-  status.classList.remove("off");
-  status.innerHTML = "<div>The models did not load. From a checkout, run <code>mvn test</code> once and reload; on the site, try again in a moment.<br><br><small></small></div>";
-  status.querySelector("small").textContent = String(e);
-  document.getElementById("chipName").textContent = "No models";
-});
-
-search.oninput = () => { if (data) fillModels(); };
-poseSelect.onchange = () => {
-  // Each pose of the Monster plays its own behaviours: the menu is rebuilt, keeping the one chosen.
-  if (selected().anims) fillPoses(); else animSelect.value = "none";
-  if (selected().scenes) frameView();
-  refresh();
-};
-animSelect.onchange = () => { animSelect.dataset.monster = animSelect.value; frame = 0; refresh(); };
-paintedBox.onchange = refresh;
-playerBox.onchange = refresh;
-beamBox.onchange = refresh;
-hitBox.onchange = refresh;
-allBox.onchange = () => { fillModels(); fillPoses(); frameView(); refresh(); };
-const view = (x, z, y) => () => { spinBox.checked = false; current.rotation.y = 0; frameView(x, z, y); };
-document.getElementById("front").onclick = view(0, 1);
-document.getElementById("side").onclick = view(1, 0);
-document.getElementById("back").onclick = view(0, -1);
-document.getElementById("top").onclick = view(0, 0.02, 1.1);
-
-// The exported frames are three ticks apart, so they are played at 20 ticks a second.
-const FRAME_MS = 150;
-let last = performance.now();
-// The Monster's visit runs at the game's own 20 ticks a second, with a second of nothing after it vanishes.
-const TICK_MS = 50, AFTER_TICKS = 20;
-renderer.setAnimationLoop(now => {
-  if (spinBox.checked) current.rotation.y += 0.004;
-  const plays = data && !allBox.checked && selected().anims && monsterAnims && monsterAnims[poseSelect.value];
-  const visit = plays && plays[animSelect.value];
-  if (visit && current.userData.meshes) {
-    clock += now - last;
-    while (clock >= TICK_MS) {
-      clock -= TICK_MS;
-      frame = (frame + 1) % (visit.length + AFTER_TICKS);
-      poseFrame(selected(), visit[Math.min(frame, visit.length - 1)], current.userData.meshes, current.userData.player);
-    }
-  } else {
-    document.getElementById("dark").style.opacity = 0;
-  }
-  if (data && isBlocks() && animSelect.value !== "none" && current.userData.meshes) {
-    clock += now - last;
-    const frames = selected().frames[animSelect.value];
-    while (clock >= FRAME_MS) {
-      clock -= FRAME_MS;
-      frame = (frame + 1) % frames.length;
-      frames[frame].forEach((p, i) => { const mesh = current.userData.meshes[i]; if (p && mesh) place(mesh, p); });
-    }
-  }
-  last = now;
-  controls.update();
-  renderer.render(scene, camera);
-});
+    load().then(() => {
+        if (params.has("painted")) $("painted").checked = true;
+        if (params.has("boxes")) $("boxes").checked = true;
+        const wanted = state.entries.find(e => e.key === params.get("stand"))
+            || (params.has("all") && state.entries.find(e => e.kind === "lineup"))
+            || state.entries.find(e => e.key === "malenia") || state.entries[0];
+        select(wanted, {pose: params.get("pose"), anim: params.has("anim") ? params.get("anim") : undefined});
+        // ?view=front|side|back|top starts from that view.
+        if (["front", "side", "back", "top"].includes(params.get("view"))) stage.view(params.get("view"), true);
+        // ?t=<tick> holds the animation at that tick: a still of an attack to share or check.
+        if (params.has("t") && state.anim) {
+            setPlaying(false);
+            state.tick = Math.max(0, Math.min(state.anim.ticks - 1, Number(params.get("t")) || 0));
+            state.anim.apply(state.tick, content);
+            updateTime();
+        }
+        $("overlay").classList.add("gone");
+    }).catch(error => {
+        const overlay = $("overlay");
+        overlay.classList.add("error");
+        $("overlayText").innerHTML = "The models did not load. From a checkout, run <code>mvn test</code> once and reload; on the site, try again in a moment.<br><br><small></small>";
+        overlay.querySelector("small").textContent = String(error.message || error);
+        $("title").textContent = "No models";
+    });
 </script>
 </body>
 </html>

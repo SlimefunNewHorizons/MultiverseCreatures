@@ -49,16 +49,16 @@ Every vanilla mob spawn has a configurable chance to be replaced by an MSC count
 
 ## 📚 Pages
 
-- [Bosses](./Bosses.md) — The Obsidian Sentinel, the Wither Storm, Mahoraga
+- [Bosses](./Bosses.md) — The Obsidian Sentinel, the Wither Storm and the Wither Storm Event, Mahoraga
 - [Ritual Dimension](./Ritual-Dimension.md) — The private boss world: how to enter and invoke the Sentinel
 - [The Arrow and the Stands](./Stands.md) — Archer of the Arrow, DIO's blood and vampires, the six Stands, Sheer Heart Attack, NIX and Jack Star weapons
 - [Creatures](./Creatures.md) — All natural-spawn replacement mobs + ZombieHorseTrap army
 - [Weapons](./Weapons.md) — Excalibur, Cinder Greatsword, Nullshear Edge, Soulreap Scythe, Aether Pullshot, Skyfire Talisman, Chaos Forge
-- [Armor and Relics](./Armor-and-Relics.md) — Eight-Handled Wheel, Obsidian Bastion, off-hand relics
+- [Armor and Relics](./Armor-and-Relics.md) — Eight-Handled Wheel, Obsidian Bastion, Worldbinder, off-hand relics
 - [Items](./Items.md) — Ice King's Crown, Mantis Claws, Wirt's Lantern, Military Mine, Scooby Cookie, Head Slime Gelatin
 - [Components](./Components.md) — All 16 crafting drops and what mob provides each
 - [Music](./Music.md) — Bundled NBS songs, jukebox discs and the Disc Trader, song credits
 - [Recipes](./Recipes.md) — Every custom crafting recipe (shapes, ingredients, tiers)
-- [Commands](./Commands.md) — Full `/msc` reference (spawn, give, attack, music, dimtp, kill, debug, reload)
+- [Commands](./Commands.md) — Full `/msc` reference (spawn, give, attack, music, dimtp, kill, debug, reload), `/mscwiki` and the `/mscevent team` event teams
 - [Developer Zone](./dev/Home.md) — Code architecture, conventions, tests, and how to extend the project
 - [Installation](./Installation.md) — Step-by-step install, requirements, troubleshooting

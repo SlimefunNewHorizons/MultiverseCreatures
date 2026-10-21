@@ -160,15 +160,23 @@ public final class WitherStormBoss implements Listener {
 
     /** Summons the first form, born out of its vortex. */
     public boolean trySpawn(Location location) {
-        return summon(location, WitherStormForm.HUNCHBACK, true);
+        return summon(location, WitherStormForm.HUNCHBACK, true, false);
     }
 
     /** Summons a storm already grown into {@code form}; the first form is still born out of its vortex. */
     public boolean trySpawn(Location location, WitherStormForm form) {
-        return summon(location, form, form == WitherStormForm.HUNCHBACK);
+        return summon(location, form, form == WitherStormForm.HUNCHBACK, false);
     }
 
-    private boolean summon(Location location, WitherStormForm form, boolean forming) {
+    /**
+     * Summons the Wither Storm Event: the same storm with a quarter more health, growing 30% faster,
+     * five destructive attacks of its own, and a damage ranking of players and teams when it falls.
+     */
+    public boolean trySpawnEvent(Location location) {
+        return summon(location, WitherStormForm.HUNCHBACK, true, true);
+    }
+
+    private boolean summon(Location location, WitherStormForm form, boolean forming, boolean event) {
         if (!settings.enabled() || location.getWorld() == null) return false;
         if (countIn(location.getWorld()) >= settings.maxPerWorld()) return false;
         Location at = location.clone();
@@ -185,18 +193,20 @@ public final class WitherStormBoss implements Listener {
             stand.setRemoveWhenFarAway(false);
             stand.addScoreboardTag(TAG);
             stand.getPersistentDataContainer().set(WitherStorm.KEYS.form, PersistentDataType.STRING, form.key());
+            if (event) stand.getPersistentDataContainer().set(WitherStorm.KEYS.event, PersistentDataType.BYTE, (byte) 1);
         });
         WitherStorm storm = new WitherStorm(this, anchor, form,
-                forming ? WitherStorm.State.FORMING : WitherStorm.State.FIGHTING);
-        storm.maxHealth = maxHealthFor(form);
+                forming ? WitherStorm.State.FORMING : WitherStorm.State.FIGHTING, event);
+        storm.maxHealth = maxHealthFor(form, event);
         storm.health = forming ? 1 : storm.maxHealth;
         storm.save();
         storms.put(anchor.getUniqueId(), storm);
         return true;
     }
 
-    double maxHealthFor(WitherStormForm form) {
-        return settings.health() * settings.form(form).healthMultiplier();
+    /** The event storm has a quarter more health in every form. */
+    double maxHealthFor(WitherStormForm form, boolean event) {
+        return settings.health() * settings.form(form).healthMultiplier() * (event ? WitherStorm.EVENT_HEALTH : 1.0);
     }
 
     /** Takes over a storm whose anchor survived a restart or a reload, and builds its body again. */
@@ -218,8 +228,9 @@ public final class WitherStormBoss implements Listener {
                 passenger.remove();
             }
         }
-        WitherStorm storm = new WitherStorm(this, anchor, form, WitherStorm.State.FIGHTING);
-        storm.maxHealth = maxHealthFor(form);
+        boolean event = pdc.has(WitherStorm.KEYS.event, PersistentDataType.BYTE);
+        WitherStorm storm = new WitherStorm(this, anchor, form, WitherStorm.State.FIGHTING, event);
+        storm.maxHealth = maxHealthFor(form, event);
         storm.health = Math.max(1, Math.min(storm.maxHealth,
                 pdc.getOrDefault(MscEntityUtils.KEY_VIRTUAL_HEALTH, PersistentDataType.DOUBLE, storm.maxHealth)));
         storm.consumed = pdc.getOrDefault(WitherStorm.KEYS.consumed, PersistentDataType.INTEGER, 0);
@@ -289,7 +300,7 @@ public final class WitherStormBoss implements Listener {
             org.bukkit.util.Vector look = nearest.getLocation().toVector().subtract(spawn.toVector());
             spawn.setYaw((float) Math.toDegrees(Math.atan2(-look.getX(), look.getZ())));
         }
-        if (summon(spawn, WitherStormForm.HUNCHBACK, true)) {
+        if (summon(spawn, WitherStormForm.HUNCHBACK, true, false)) {
             for (Player p : com.Chagui68.entities.boss.BossArena.getValidPlayersNear(spawn, 96 * 96)) {
                 p.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC
                         + "The Wither twists and swells... something far worse is being born.");
