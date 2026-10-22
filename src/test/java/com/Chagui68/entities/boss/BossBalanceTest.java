@@ -66,6 +66,15 @@ class BossBalanceTest {
     }
 
     @Test
+    @DisplayName("The scaling counts a Worldbinder wearer's health without the set's +50%")
+    void worldbinderHealthIsNotTaxed() {
+        assertEquals(20.0, BossDamageScaling.withoutScalar(30.0, 1.5, 0.5), EPS, "20 base with only the set's bonus");
+        assertEquals(24.0, BossDamageScaling.withoutScalar(34.0, 1.7, 0.5), EPS, "another +20% scalar is kept");
+        assertEquals(1.0, BossDamageScaling.factor(new BossDamageScaling.Snapshot(
+                BossDamageScaling.withoutScalar(30.0, 1.5, 0.5), 0, -1, 0, 0, 0, 0, 0), W, true), EPS);
+    }
+
+    @Test
     @DisplayName("The Infinity rules cover every boss but Mahoraga")
     void infinityRulesSkipMahoraga() {
         assertTrue(BossInfinityRules.BOSS_TAGS.contains(ArmorStandBoss.TAG));

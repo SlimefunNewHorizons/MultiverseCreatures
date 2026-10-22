@@ -312,7 +312,9 @@ final class WitherStormBody {
         // Written out rather than Quaternionf.dot: its signature changed between JOML releases, and a
         // call compiled against one fails on a server that ships the other.
         float dot = p.x * q.x + p.y * q.y + p.z * q.z + p.w * q.w;
-        return a.translation().distanceSquared(b.translation()) < MOVED
+        // A big box moving 1% of its size is not seen either: the colossal forms' boxes are blocks across.
+        float big = b.scale().lengthSquared() * 1.0e-4f;
+        return a.translation().distanceSquared(b.translation()) < Math.max(MOVED, big)
                 && a.scale().distanceSquared(b.scale()) < MOVED
                 && Math.abs(dot) > 1 - TURNED;
     }

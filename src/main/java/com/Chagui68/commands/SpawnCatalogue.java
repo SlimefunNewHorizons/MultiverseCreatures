@@ -47,6 +47,9 @@ final class SpawnCatalogue {
             "MILITARY STRIKE FORCE",
             "MULTIVERSE CREATURES & ELITES");
 
+    /** The Wither Storm refuses to spawn outside the Boss Dimension: the failure says so. */
+    private static final String WITHER_STORM_FAILED = "Wither Storm (only in the Boss Dimension)";
+
     private static final List<Type> TYPES = List.of(
             // ----- Bosses & apex entities -----
             new Type("nix",
@@ -58,12 +61,12 @@ final class SpawnCatalogue {
                     "&6DIO &7(The World — JoJo's Bizarre Adventure)", 1,
                     (plugin, mobs, location) -> plugin.getDioBoss().trySpawn(location)),
             new Type("witherstorm",
-                    "Wither Storm", "Wither Storm",
-                    "&5Wither Storm &7(Cracker's Wither Storm Mod)", 1,
+                    "Wither Storm", WITHER_STORM_FAILED,
+                    "&5Wither Storm &7(Cracker's Wither Storm Mod, Boss Dimension only)", 1,
                     (plugin, mobs, location) -> plugin.getWitherStormBoss().trySpawn(location)),
             new Type("witherstormevent",
-                    "Wither Storm Event", "Wither Storm Event",
-                    "&5Wither Storm Event &7(event boss: ranks players and /mscevent teams)", 1,
+                    "Wither Storm Event", "Wither Storm Event (only in the Boss Dimension)",
+                    "&5Wither Storm Event &7(event boss: ranks players and /mscevent teams; Boss Dimension only)", 1,
                     (plugin, mobs, location) -> plugin.getWitherStormBoss().trySpawnEvent(location)),
             new Type("armorstand",
                     "ArmorStand Boss", "ArmorStand Boss",
@@ -189,22 +192,22 @@ final class SpawnCatalogue {
                     }),
             // ----- Spawnable but kept out of the help menu (unchanged behaviour) -----
             new Type("witherstorm2",
-                    "Wither Storm (Growing Hunchback)", "Wither Storm",
+                    "Wither Storm (Growing Hunchback)", WITHER_STORM_FAILED,
                     null, 0,
                     (plugin, mobs, location) -> plugin.getWitherStormBoss().trySpawn(location,
                             com.Chagui68.entities.boss.witherstorm.WitherStormForm.GROWING)),
             new Type("witherstorm3",
-                    "Wither Storm (Swollen Hunchback)", "Wither Storm",
+                    "Wither Storm (Swollen Hunchback)", WITHER_STORM_FAILED,
                     null, 0,
                     (plugin, mobs, location) -> plugin.getWitherStormBoss().trySpawn(location,
                             com.Chagui68.entities.boss.witherstorm.WitherStormForm.PREGNANT)),
             new Type("witherstorm4",
-                    "Wither Storm (Destroyer)", "Wither Storm",
+                    "Wither Storm (Destroyer)", WITHER_STORM_FAILED,
                     null, 0,
                     (plugin, mobs, location) -> plugin.getWitherStormBoss().trySpawn(location,
                             com.Chagui68.entities.boss.witherstorm.WitherStormForm.DESTROYER)),
             new Type("witherstorm5",
-                    "Wither Storm (Devourer)", "Wither Storm",
+                    "Wither Storm (Devourer)", WITHER_STORM_FAILED,
                     null, 0,
                     (plugin, mobs, location) -> plugin.getWitherStormBoss().trySpawn(location,
                             com.Chagui68.entities.boss.witherstorm.WitherStormForm.DEVOURER)),

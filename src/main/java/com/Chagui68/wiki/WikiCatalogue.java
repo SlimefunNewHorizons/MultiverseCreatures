@@ -182,18 +182,22 @@ public final class WikiCatalogue {
         list.add(WikiEntry.item("obsidianbastionchestplate", ARMOR, () -> ObsidianBastion.CHESTPLATE).about(bastionEn, bastionEs).build());
         list.add(WikiEntry.item("obsidianbastionleggings", ARMOR, () -> ObsidianBastion.LEGGINGS).about(bastionEn, bastionEs).build());
         list.add(WikiEntry.item("obsidianbastionboots", ARMOR, () -> ObsidianBastion.BOOTS).about(bastionEn, bastionEs).build());
-        String worldbinderEn = "Full set: +50% max health, 30% less damage taken, 25% less boss true damage,"
-                + " +35% damage dealt, +25% speed on land and in water, immune to fire, lava and drowning."
-                + " Potions last 20% longer, and healing, Regeneration, Resistance and Strength work 20% better."
-                + " Rebound (15%): a hit is reflected back 20% stronger. Defy Death (5%): survive a lethal hit"
-                + " and stay invulnerable for 3 s (60 s cooldown). Unseen (10% when hit): fully invisible,"
-                + " armor and held items included, for 5 s (30 s cooldown).";
-        String worldbinderEs = "Set completo: +50% de vida máxima, 30% menos de daño recibido, 25% menos de daño"
-                + " verdadero de jefes, +35% de daño infligido, +25% de velocidad en tierra y agua, inmunidad al"
-                + " fuego, la lava y el ahogamiento. Las pociones duran 20% más, y la curación, Regeneración,"
-                + " Resistencia y Fuerza rinden 20% más. Rebote (15%): refleja un golpe 20% más fuerte. Desafiar"
-                + " a la muerte (5%): sobrevive a un golpe letal y queda invulnerable 3 s (enfriamiento 60 s). Invisible"
-                + " (10% al recibir golpe): totalmente invisible, armadura y objetos incluidos, durante 5 s"
+        String worldbinderEn = "Full set: +50% max health (bosses do not hit harder for it), 30% less damage taken,"
+                + " 40% less boss true damage, no single hit from a boss, player or mob takes more than 35% of max"
+                + " health, +35% damage dealt, 15% of the damage dealt heals you, +25% speed on land and in water,"
+                + " immune to fire, lava and drowning. Potions last 20% longer, and healing, Regeneration,"
+                + " Resistance and Strength work 20% better. Rebound (15%): a hit is reflected back 20% stronger."
+                + " Defy Death: survive a lethal hit from anything and stay invulnerable for 3 s (90 s cooldown)."
+                + " Unseen (10% when hit): fully invisible, armor and held items included, and no boss or mob"
+                + " targets you for 5 s (30 s cooldown).";
+        String worldbinderEs = "Set completo: +50% de vida máxima (los jefes no pegan más fuerte por ella), 30% menos"
+                + " de daño recibido, 40% menos de daño verdadero de jefes, ningún golpe de un jefe, jugador o mob"
+                + " quita más del 35% de la vida máxima, +35% de daño infligido, el 15% del daño infligido te cura,"
+                + " +25% de velocidad en tierra y agua, inmunidad al fuego, la lava y el ahogamiento. Las pociones"
+                + " duran 20% más, y la curación, Regeneración, Resistencia y Fuerza rinden 20% más. Rebote (15%):"
+                + " refleja un golpe 20% más fuerte. Desafiar a la muerte: sobrevive a un golpe letal de lo que sea"
+                + " y queda invulnerable 3 s (enfriamiento 90 s). Invisible (10% al recibir golpe): totalmente"
+                + " invisible, armadura y objetos incluidos, y ningún jefe ni mob te elige como objetivo durante 5 s"
                 + " (enfriamiento 30 s).";
         list.add(WikiEntry.item("worldbinderhelmet", ARMOR, () -> Worldbinder.HELMET).about(worldbinderEn, worldbinderEs).build());
         list.add(WikiEntry.item("worldbinderchestplate", ARMOR, () -> Worldbinder.CHESTPLATE).about(worldbinderEn, worldbinderEs).build());
@@ -608,10 +612,11 @@ public final class WikiCatalogue {
                         "Un Wither que se tragó un bloque de comandos. Se come el mundo para crecer, a través de cinco "
                                 + "formas, cada una más grande y fuerte que la anterior.")
                 .source(WikiSource.of(Material.CRYING_OBSIDIAN, "Summoning", "Invocación",
-                        "Build a Wither (a T of 4 soul sand and 3 wither skeleton skulls) with its foot on crying "
-                                + "obsidian. The Wither is swallowed and the storm forms in its place.",
-                        "Construye un Wither (una T de 4 de arena de almas y 3 calaveras de esqueleto wither) con su "
-                                + "base sobre obsidiana llorosa. El Wither es tragado y la tormenta se forma en su lugar."))
+                        "Only in the Boss Dimension: build a Wither (a T of 4 soul sand and 3 wither skeleton skulls) "
+                                + "with its foot on crying obsidian. The Wither is swallowed and the storm forms in its place.",
+                        "Solo en la Dimensión de Jefes: construye un Wither (una T de 4 de arena de almas y 3 calaveras "
+                                + "de esqueleto wither) con su base sobre obsidiana llorosa. El Wither es tragado y la "
+                                + "tormenta se forma en su lugar."))
                 .source(WikiSource.of(Material.OBSIDIAN, "Five forms", "Cinco formas",
                         "The Hunchback, the Growing Hunchback, the Swollen Hunchback, the Destroyer and the Devourer. "
                                 + "It evolves by eating blocks, mobs and players.",
@@ -647,8 +652,10 @@ public final class WikiCatalogue {
                         "El Wither Storm de los eventos del servidor: 25% más de vida, crece un 30% más rápido y tiene "
                                 + "cinco ataques destructivos propios. Cuando cae, el chat muestra quién le hizo más daño.")
                 .source(WikiSource.of(Material.CLOCK, "When", "Cuándo",
-                        "Only during server events. Everything on the Wither Storm's page holds for it too.",
-                        "Solo durante los eventos del servidor. Todo lo de la página del Wither Storm vale también para él."))
+                        "Only during server events, in the Boss Dimension. Everything on the Wither Storm's page holds "
+                                + "for it too.",
+                        "Solo durante los eventos del servidor, en la Dimensión de Jefes. Todo lo de la página del "
+                                + "Wither Storm vale también para él."))
                 .source(WikiSource.of(Material.FIRE_CHARGE, "Void Meteors", "Void Meteors",
                         "Red circles appear round you and a meteor crashes into each. Step out of the circles.",
                         "Aparecen círculos rojos a tu alrededor y cae un meteoro en cada uno. Sal de los círculos."))

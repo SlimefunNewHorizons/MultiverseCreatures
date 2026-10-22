@@ -36,7 +36,7 @@ Summons a single entity (or a tactical formation) at the executor's location. Th
 | `garou` | Garou [Hero Hunter] miniboss |
 | `nix` | NIX - The Executioner (custom 27-part model boss) |
 | `dio` | DIO with his Stand The World (JoJo's Bizarre Adventure boss) |
-| `witherstorm` | THE WITHER STORM, born out of its vortex in its first form (Cracker's Wither Storm Mod) |
+| `witherstorm` | THE WITHER STORM, born out of its vortex in its first form (Cracker's Wither Storm Mod). Like every `witherstorm*` type, only in the Boss Dimension |
 | `witherstormevent` | The WITHER STORM EVENT: event boss with more health, faster growth, five destructive attacks and a damage ranking (see `/mscevent`) |
 | `witherstorm2` … `witherstorm5` | THE WITHER STORM already grown: Growing Hunchback, Swollen Hunchback, Destroyer, Devourer |
 | `armorstand` | THE OBSIDIAN SENTINEL final boss |

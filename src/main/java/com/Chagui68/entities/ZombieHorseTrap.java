@@ -675,6 +675,7 @@ public class ZombieHorseTrap implements Listener {
         for (Player p : loc.getWorld().getPlayers()) {
             if (p.isDead() || !p.isOnline()) continue;
             if (p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) continue;
+            if (com.Chagui68.listener.armor.WorldbinderHandler.isUnseen(p)) continue;
             double dist = loc.distanceSquared(p.getLocation());
             if (dist < nearestDist && dist <= range * range) {
                 nearestDist = dist;

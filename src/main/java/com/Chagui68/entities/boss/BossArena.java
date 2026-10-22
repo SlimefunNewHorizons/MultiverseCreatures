@@ -81,7 +81,15 @@ public final class BossArena {
         return getValidPlayersNear(center, radius * radius).size();
     }
 
-    /** Returns the nearest valid player within range, or null if none found. */
+    /**
+     * Whether a boss may pick {@code p} as its target: a valid one it can find. A Worldbinder wearer in
+     * Unseen is still hit by everything round them, just never chosen.
+     */
+    public static boolean isTargetable(Player p) {
+        return isValidTarget(p) && !com.Chagui68.listener.armor.WorldbinderHandler.isUnseen(p);
+    }
+
+    /** Returns the nearest targetable player within range, or null if none found. */
     public static Player findNearestPlayer(Location center, double range) {
         Player nearest = null;
         if (center == null || center.getWorld() == null) {
@@ -89,7 +97,7 @@ public final class BossArena {
         }
         double nearestDistSq = range * range;
         for (Player p : getValidPlayers(center.getWorld())) {
-            if (p != null && p.getWorld().equals(center.getWorld())) {
+            if (p != null && p.getWorld().equals(center.getWorld()) && isTargetable(p)) {
                 try {
                     double distSq = p.getLocation().distanceSquared(center);
                     if (distSq < nearestDistSq) {

@@ -30,14 +30,17 @@ public class Worldbinder {
     public static final double SPEED_BONUS = 0.25;
     public static final double DAMAGE_BONUS = 0.35;
     public static final double DAMAGE_RESISTANCE = 0.3;
-    public static final double BOSS_TRUE_DAMAGE_REDUCTION = 0.25;
+    public static final double BOSS_TRUE_DAMAGE_REDUCTION = 0.4;
     public static final double POTION_BONUS = 0.2;
+    /** Most of the wearer's max health a single hit from a boss, a player or a mob can take. */
+    public static final double HIT_CAP = 0.35;
+    /** Share of the damage the wearer deals to anything living that heals them. */
+    public static final double LIFESTEAL = 0.15;
 
     public static final double REFLECT_CHANCE = 0.15;
     public static final double REFLECT_MULTIPLIER = 1.2;
-    public static final double DEATH_EVADE_CHANCE = 0.05;
     public static final long DEATH_EVADE_INVULNERABLE_TICKS = 60L;
-    public static final long DEATH_EVADE_COOLDOWN_MS = 60_000L;
+    public static final long DEATH_EVADE_COOLDOWN_MS = 90_000L;
     public static final double VANISH_CHANCE = 0.10;
     public static final long VANISH_TICKS = 100L;
     public static final long VANISH_COOLDOWN_MS = 30_000L;

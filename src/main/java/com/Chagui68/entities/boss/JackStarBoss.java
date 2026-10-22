@@ -1281,7 +1281,7 @@ public class JackStarBoss implements Listener {
         Player best = null;
         double bestDist = Double.MAX_VALUE;
         for (Player p : stand.getWorld().getPlayers()) {
-            if (p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) continue;
+            if (!BossArena.isTargetable(p)) continue;
             double d = stand.getLocation().distanceSquared(p.getLocation());
             if (d <= aggroRange * aggroRange && d < bestDist) {
                 bestDist = d;

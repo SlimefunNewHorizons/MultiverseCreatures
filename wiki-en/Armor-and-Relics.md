@@ -78,10 +78,12 @@ All 4 pieces ship pre-enchanted with **Protection IV · Blast Protection IV · T
 
 | Effect | Value |
 |---|---|
-| Max Health | **+50%** |
+| Max Health | **+50%**, and bosses do not hit harder for it (their adaptive damage counts your health without it) |
 | Damage taken | **-30%** (any source) |
-| Boss true damage | **-25%** (on top of the -30%) |
+| Boss true damage | **-40%** (on top of the -30%) |
+| Hit cap | No single hit from a boss, a player or a mob takes more than **35%** of your max health |
 | Damage dealt | **+35%** to any entity (melee and projectiles) |
+| Lifesteal | **15%** of the damage you deal to a player, a mob or a boss heals you |
 | Movement speed | **+25%** on land and in water |
 | Fire / Lava / Drowning | Immune |
 | Potions | Effects last **20% longer**; Instant Health and Regeneration heal **20% more**; Resistance blocks **20% more**; Strength adds **20% more** |
@@ -91,8 +93,8 @@ All 4 pieces ship pre-enchanted with **Protection IV · Blast Protection IV · T
 | Ability | Chance | Effect |
 |---|---|---|
 | **Rebound** | 15% per hit taken from an entity | The hit is cancelled and dealt back to the attacker **+20%** |
-| **Defy Death** | 5% on a lethal hit | You survive on half a heart and are **invulnerable for 3 s** (60 s cooldown) |
-| **Unseen** | 10% per hit taken from an entity | **Fully invisible** for 5 s, armor and held items included (30 s cooldown) |
+| **Defy Death** | Always, on a lethal hit from anything (boss, player, mob or the world) | You survive on half a heart and are **invulnerable for 3 s** (90 s cooldown) |
+| **Unseen** | 10% per hit taken from an entity | **Fully invisible** for 5 s, armor and held items included, and **no boss or mob targets you**: the ones after you let go (30 s cooldown). Their attacks still hit you, and a boss with nobody else near stays and waits instead of vanishing |
 
 - **Give:** `/msc give worldbinderhelmet` (and `worldbinderchestplate` / `worldbinderleggings` / `worldbinderboots`)
 - **Craft:** each piece is its Obsidian Bastion piece in the centre, a Multiversal Core above, Refined Netherite on both sides and, below: Veilwalker Mantle (Crown), Marrow Aegis (Cuirass) or Refined Netherite (Greaves and Sabatons).

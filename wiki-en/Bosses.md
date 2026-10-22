@@ -384,9 +384,9 @@ The Wither Storm of nonamecrackers2's mod, drawn with nothing but display entiti
 
 ### Summoning
 
-Build **the Wither's structure** (a T of 4 soul sand or soul soil and 3 wither skeleton skulls) with the foot of the T resting on the **core block**: `wither-storm.summon.core-block` (`CRYING_OBSIDIAN` by default). No command block is needed. When the third skull goes on, the Wither that would have been born is swallowed with the core and the storm forms in its place: a vortex of dark matter, a lightning bolt and eleven invulnerable seconds (`forming-ticks`, 220) while it grows and its bar fills, then the blast of its birth (`explosion-power`, 7, like a Wither's). Built on any other block the structure still makes a plain Wither.
+The storm only appears in the **[Boss Dimension](./Ritual-Dimension.md)** (`boss_dimension`): its structure, `/msc spawn` and the event all refuse any other world. There, build **the Wither's structure** (a T of 4 soul sand or soul soil and 3 wither skeleton skulls) with the foot of the T resting on the **core block**: `wither-storm.summon.core-block` (`CRYING_OBSIDIAN` by default). No command block is needed. When the third skull goes on, the Wither that would have been born is swallowed with the core and the storm forms in its place: a vortex of dark matter, a lightning bolt and eleven invulnerable seconds (`forming-ticks`, 220) while it grows and its bar fills, then the blast of its birth (`explosion-power`, 7, like a Wither's). Built on any other block, or in any other world, the structure still makes a plain Wither (in another world the chat says the storm needs the Boss Dimension).
 
-Also: `/msc spawn witherstorm` (OP), and `witherstorm2`…`witherstorm5` to start in a later form.
+Also: `/msc spawn witherstorm` (OP, standing in the Boss Dimension), and `witherstorm2`…`witherstorm5` to start in a later form.
 
 ### The five forms
 
@@ -476,14 +476,14 @@ An event version of the storm, with the same model and everything above, started
 
 - **25% more health** in every form (`health` × the form's `health-multiplier` × 1.25).
 - **Grows 30% faster:** what it eats counts ×1.3 towards each form's `evolve-at`.
-- **Five destructive attacks of its own**, from its first form, mixed in with the special attacks above. Each one tears the ground it hits out (when `grief-blocks` is on and `mobGriefing` allows it) and feeds it to the mass, so they also make it grow:
+- **Five destructive attacks of its own**, from its first form, mixed in with the special attacks above. Each one blows away the ground it hits (when `grief-blocks` is on and `mobGriefing` allows it); unlike its feeding, that ground does not make it grow:
 
 | Attack | What happens | How to survive it | Key |
 |---|---|---|---|
 | **Void Meteors** | Three red circles round every victim (one under their feet), then a meteor of the void crashes into each, one after another. | Step out of the circles before the trail of fire comes down. | `debris-damage` ×1.5 (12) |
 | **Rift Trench** | A line of red sparks runs from under the storm towards a victim, then the ground blows open along it, blast after blast. | Move sideways off the line. Each player is hit once. | `eruption-damage` (12) |
 | **Crumbling Quake** | The storm slows down and a ring of collapse rolls outward from under it, tearing the ground as it goes. | Run away from it or get behind the ring once it has passed. Each player is hit once. | `roar-damage` (10) |
-| **Skull Nova** | Every head spits charged (blue) wither skulls in every direction: three waves, about 30 skulls each. | Take cover behind solid blocks. | — (the skulls' own damage) |
+| **Skull Nova** | Every head spits charged (blue) wither skulls in every direction: three waves, about 12 skulls each. | Take cover behind solid blocks. | — (the skulls' own damage) |
 | **Annihilation Beam** | The storm holds still, charges for a second and sweeps a beam of the void across the ground through a victim, blowing it apart where it lands. | Watch where the beam's foot is going and run the other way. Each player is hit once. | `singularity-damage` (16) |
 
 - **Ranking:** it counts the damage every player deals to it. When it dies, the chat of the **whole server** shows the **top 3 teams** (their members' damage added up) and the **top 3 players**. Teams are made with [`/mscevent team`](./Commands.md#mscevent-team-subcommand); players in no team still count in the player ranking. The tally is kept in memory, so a restart mid-fight starts it over.

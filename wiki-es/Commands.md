@@ -36,7 +36,7 @@ Invoca una sola entidad (o una formación táctica) en la ubicación del ejecuto
 | `garou` | Minijefe Garou [Hero Hunter] |
 | `nix` | NIX - El Verdugo (jefe con modelo custom de 27 piezas) |
 | `dio` | DIO con su Stand The World (jefe de JoJo's Bizarre Adventure) |
-| `witherstorm` | WITHER STORM, nacido de su vórtice en su primera forma (Cracker's Wither Storm Mod) |
+| `witherstorm` | WITHER STORM, nacido de su vórtice en su primera forma (Cracker's Wither Storm Mod). Como todos los tipos `witherstorm*`, solo en la Dimensión de Jefes |
 | `witherstormevent` | WITHER STORM EVENT: jefe de evento con más vida, crecimiento más rápido, cinco ataques destructivos y ranking de daño (ver `/mscevent`) |
 | `witherstorm2` … `witherstorm5` | WITHER STORM ya crecido: Joroba Creciente, Joroba Hinchada, Destructor, Devorador |
 | `armorstand` | EL CENTINELA DE OBSIDIANA, jefe final |

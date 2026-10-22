@@ -78,10 +78,12 @@ Las 4 piezas vienen encantadas con **Protección IV · Protección contra explos
 
 | Efecto | Valor |
 |---|---|
-| Vida máxima | **+50%** |
+| Vida máxima | **+50%**, y los jefes no pegan más fuerte por ella (su daño adaptativo cuenta tu vida sin ella) |
 | Daño recibido | **-30%** (cualquier fuente) |
-| Daño verdadero de jefes | **-25%** (además del -30%) |
+| Daño verdadero de jefes | **-40%** (además del -30%) |
+| Tope por golpe | Ningún golpe de un jefe, un jugador o un mob quita más del **35%** de tu vida máxima |
 | Daño infligido | **+35%** a cualquier entidad (cuerpo a cuerpo y proyectiles) |
+| Robo de vida | El **15%** del daño que haces a un jugador, un mob o un jefe te cura |
 | Velocidad de movimiento | **+25%** en tierra y en agua |
 | Fuego / Lava / Ahogamiento | Inmune |
 | Pociones | Los efectos duran **20% más**; Curación instantánea y Regeneración curan **20% más**; Resistencia bloquea **20% más**; Fuerza suma **20% más** |
@@ -91,8 +93,8 @@ Las 4 piezas vienen encantadas con **Protección IV · Protección contra explos
 | Habilidad | Probabilidad | Efecto |
 |---|---|---|
 | **Rebote** | 15% por golpe recibido de una entidad | El golpe se anula y vuelve al atacante **+20%** |
-| **Desafiar a la muerte** | 5% ante un golpe letal | Sobrevives con medio corazón e **invulnerable 3 s** (enfriamiento 60 s) |
-| **Invisible** | 10% por golpe recibido de una entidad | **Totalmente invisible** 5 s, armadura y objetos en mano incluidos (enfriamiento 30 s) |
+| **Desafiar a la muerte** | Siempre, ante un golpe letal de lo que sea (jefe, jugador, mob o el entorno) | Sobrevives con medio corazón e **invulnerable 3 s** (enfriamiento 90 s) |
+| **Invisible** | 10% por golpe recibido de una entidad | **Totalmente invisible** 5 s, armadura y objetos en mano incluidos, y **ningún jefe ni mob te elige como objetivo**: los que te seguían te sueltan (enfriamiento 30 s). Sus ataques te siguen alcanzando, y un jefe sin nadie más cerca se queda esperando en vez de desaparecer |
 
 - **Give:** `/msc give worldbinderhelmet` (y `worldbinderchestplate` / `worldbinderleggings` / `worldbinderboots`)
 - **Crafteo:** cada pieza lleva su pieza del Bastión de Obsidiana en el centro, un Núcleo Multiversal arriba, Netherita Refinada a ambos lados y, abajo: Veilwalker Mantle (Crown), Marrow Aegis (Cuirass) o Netherita Refinada (Greaves y Sabatons).

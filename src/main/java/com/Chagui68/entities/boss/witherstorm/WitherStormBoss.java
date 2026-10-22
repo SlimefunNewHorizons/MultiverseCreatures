@@ -53,12 +53,13 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The Wither Storm of Cracker's Wither Storm Mod, drawn with block displays and fought in the
- * overworld.
+ * Boss Dimension.
  *
- * <p>It is summoned with the Wither's own structure: four soul sand (or soul soil) and three wither
- * skeleton skulls, built on top of the configured core block (crying obsidian by default). The Wither
- * that structure would have made is swallowed and the storm forms in its place; built anywhere else
- * the structure still makes a plain Wither. {@code /msc spawn witherstorm} summons it too, and
+ * <p>It is summoned in the Boss Dimension only, with the Wither's own structure: four soul sand (or
+ * soul soil) and three wither skeleton skulls, built on top of the configured core block (crying
+ * obsidian by default). The Wither that structure would have made is swallowed and the storm forms in
+ * its place; built anywhere else, or in another world, the structure still makes a plain Wither.
+ * {@code /msc spawn witherstorm} summons it too, in the Boss Dimension as well, and
  * {@code witherstorm2}..{@code witherstorm5} skip straight to a later form.</p>
  *
  * <p>This class keeps the storms alive across ticks, reloads and restarts, and routes what happens to
@@ -176,8 +177,13 @@ public final class WitherStormBoss implements Listener {
         return summon(location, WitherStormForm.HUNCHBACK, true, true);
     }
 
+    /** The storm is summoned in the Boss Dimension only, whether by its structure, a command or an event. */
+    static boolean allowedIn(World world) {
+        return world != null && world.getName().equals(com.Chagui68.ritual.BossDimensionManager.WORLD_NAME);
+    }
+
     private boolean summon(Location location, WitherStormForm form, boolean forming, boolean event) {
-        if (!settings.enabled() || location.getWorld() == null) return false;
+        if (!settings.enabled() || !allowedIn(location.getWorld())) return false;
         if (countIn(location.getWorld()) >= settings.maxPerWorld()) return false;
         Location at = location.clone();
         at.setPitch(0f);
@@ -291,6 +297,13 @@ public final class WitherStormBoss implements Listener {
         // the core is the block right under it.
         Block core = at.getBlock().getRelative(BlockFace.DOWN);
         if (!isAltarCore(core.getType(), settings.coreBlock())) return;
+        if (!allowedIn(at.getWorld())) {
+            // Outside the Boss Dimension the structure makes its plain Wither, and the builders are told why.
+            for (Player p : com.Chagui68.entities.boss.BossArena.getValidPlayersNear(at, 32 * 32)) {
+                p.sendMessage(ChatColor.DARK_PURPLE + "The Wither Storm can only be summoned in the Boss Dimension.");
+            }
+            return;
+        }
         if (countIn(at.getWorld()) >= settings.maxPerWorld()) return;
         event.setCancelled(true);
         core.setType(Material.AIR);

@@ -57,7 +57,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *     itself, then the core bursts.</li>
  * </ul>
  * <p>The Wither Storm Event has five destructive attacks of its own on top, from its first form, each
- * tearing the ground it hits out and feeding it to the mass:</p>
+ * blowing away the ground it hits:</p>
  * <ul>
  *     <li><b>Void Meteors</b> — circles marked round every victim, then a meteor crashes into each.</li>
  *     <li><b>Rift Trench</b> — the ground blows open in a line from under it out through a victim.</li>
@@ -567,14 +567,19 @@ final class WitherStormSpecials {
     // ------------------------------------------------------------------ the Wither Storm Event
 
     /**
-     * A blast of the event's attacks: the ground round it torn out and fed to the mass, everything
-     * near hurt and thrown. With {@code once}, a victim is hurt by only one blast of the attack.
+     * A blast of the event's attacks: the ground round it blown away, everything near hurt and thrown
+     * ({@code damage} 0 hurts nobody). With {@code once}, a victim is hurt by only one blast of the attack.
+     *
+     * <p>The ground is not fed to the mass: an attack of dozens of blasts would otherwise grow the storm
+     * a whole form, into the colossal ones that cost the most to draw. The many-blast attacks
+     * ({@code once}) send no debris flying either: every flying block is an entity moved every tick.</p>
      */
     private void blast(Vector at, int size, double damage, String source, boolean once) {
         Location loc = at.toLocation(world());
         ParticleBudget.spawn(world(), Particle.EXPLOSION_EMITTER, loc.getX(), loc.getY() + 0.5, loc.getZ(), 1, 0, 0, 0, 0, null);
         world().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 4f, 0.6f);
-        storm.tear(-1, loc.getBlock(), size, 2);
+        storm.tear(-1, loc.getBlock(), size, once ? 0 : 1, false);
+        if (damage <= 0) return;
         double reach = size + 1.5;
         for (Entity e : world().getNearbyEntities(loc, reach, reach, reach)) {
             if (!(e instanceof LivingEntity living) || !storm.pullable(e)) continue;
@@ -607,7 +612,7 @@ final class WitherStormSpecials {
         if (victims.isEmpty()) return false;
         origin = groundUnderStorm();
         Vector to = victims.get(0).getLocation().toVector().subtract(origin).setY(0);
-        radius = Math.max(12, to.length() + 10);
+        radius = Math.min(40, Math.max(12, to.length() + 10));
         heading = to.lengthSquared() < 1 ? new Vector(1, 0, 0) : to.normalize();
         return true;
     }
@@ -619,7 +624,7 @@ final class WitherStormSpecials {
             marks.clear();
             announce("Void meteors are falling: get out of the circles!");
             world().playSound(storm.anchor.getLocation(), Sound.ENTITY_WITHER_SPAWN, 8f, 0.5f);
-            for (LivingEntity victim : victims(6)) {
+            for (LivingEntity victim : victims(4)) {
                 for (int i = 0; i < 3; i++) {
                     Vector at = victim.getLocation().toVector();
                     if (i > 0) at.add(new Vector(r.nextDouble(-6, 6), 0, r.nextDouble(-6, 6)));
@@ -654,8 +659,9 @@ final class WitherStormSpecials {
         if (ticks < 10) {
             Vector at = along(origin, heading, ticks * 3.0);
             ParticleBudget.spawn(world(), Particle.DUST, at.getX(), at.getY() + 0.2, at.getZ(), 8, 0.5, 0.1, 0.5, 0, WARNING);
-        } else if (ticks % 2 == 0) {
-            blast(along(origin, heading, d), 2, storm.settings().specials().eruptionDamage(), "Rift Trench", true);
+        } else if (ticks % 3 == 0) {
+            // 4.5 blocks apart, each hurting 2.5 blocks round: the line still leaves no gap to stand in.
+            blast(along(origin, heading, d), 1, storm.settings().specials().eruptionDamage(), "Rift Trench", true);
         }
         return d <= radius;
     }
@@ -671,16 +677,27 @@ final class WitherStormSpecials {
             world().playSound(origin.toLocation(world()), Sound.ENTITY_GENERIC_EXPLODE, 10f, 0.4f);
         }
         if (origin == null) return false;
-        if (ticks >= 6 && ticks <= spread && ticks % 3 == 0) {
+        if (ticks >= 6 && ticks <= spread && ticks % 4 == 0) {
             double r = radius * (ticks - 5) / (spread - 5);
-            int points = (int) Math.min(10, Math.max(5, r / 3));
-            for (int i = 0; i < points; i++) {
-                double a = Math.PI * 2 * i / points + ticks * 0.37;
+            // A few blasts show where the ring is; one sweep of the ring hurts, so nobody slips between them.
+            for (int i = 0; i < 5; i++) {
+                double a = Math.PI * 2 * i / 5 + ticks * 0.37;
                 Vector at = origin.clone().add(new Vector(Math.cos(a) * r, 0, Math.sin(a) * r));
                 at.setY(storm.groundY(at, origin.getY()));
-                blast(at, 2, storm.settings().specials().roarDamage(), "Crumbling Quake", true);
+                blast(at, 1, 0, "Crumbling Quake", true);
             }
             ring(origin, r, 32, WAVE);
+            for (Entity e : world().getNearbyEntities(origin.toLocation(world()), r + 2, 6, r + 2)) {
+                if (!(e instanceof LivingEntity living) || !storm.pullable(e) || struck.contains(e.getUniqueId())) continue;
+                Vector rel = e.getLocation().toVector().subtract(origin);
+                double flat = Math.hypot(rel.getX(), rel.getZ());
+                if (flat < r - 2.5 || flat > r + 1.5 || Math.abs(rel.getY()) > 4) continue;
+                struck.add(e.getUniqueId());
+                storm.hit(living, storm.settings().specials().roarDamage(), "Crumbling Quake");
+                Vector push = rel.setY(0);
+                if (push.lengthSquared() < 1.0e-4) push = new Vector(1, 0, 0);
+                e.setVelocity(push.normalize().multiply(1.2).setY(0.8));
+            }
         }
         return ticks < spread + 10;
     }
@@ -693,7 +710,8 @@ final class WitherStormSpecials {
         }
         if (ticks <= 35 && ticks % 15 == 5) {
             WitherStorm.HeadState[] heads = storm.heads();
-            int each = Math.max(4, 30 / Math.max(1, heads.length));
+            // About twelve skulls a wave in all: every skull is an entity moved every tick.
+            int each = Math.max(3, 12 / Math.max(1, heads.length));
             for (WitherStorm.HeadState h : heads) {
                 if (h.centre == null) continue;
                 h.roarTicks = Math.max(h.roarTicks, 10);
@@ -730,13 +748,15 @@ final class WitherStormSpecials {
             // Swept across the victim, from a little under half a turn left of them to as far right.
             double turn = ((ticks - 20) / (double) (sweep - 20) - 0.5) * 1.6;
             Vector hit = along(origin, heading.clone().rotateAroundY(turn), radius);
-            Vector step = hit.clone().subtract(source);
-            for (int i = 0; i <= 24; i++) {
-                Vector p = source.clone().add(step.clone().multiply(i / 24.0));
-                ParticleBudget.spawn(world(), Particle.DUST, p.getX(), p.getY(), p.getZ(), 1, 0.1, 0.1, 0.1, 0,
-                        i % 2 == 0 ? WitherStorm.BEAM : WitherStorm.VOID);
+            if (ticks % 2 == 0) {
+                Vector step = hit.clone().subtract(source);
+                for (int i = 0; i <= 12; i++) {
+                    Vector p = source.clone().add(step.clone().multiply(i / 12.0));
+                    ParticleBudget.spawn(world(), Particle.DUST, p.getX(), p.getY(), p.getZ(), 2, 0.15, 0.15, 0.15, 0,
+                            i % 2 == 0 ? WitherStorm.BEAM : WitherStorm.VOID);
+                }
             }
-            if (ticks % 3 == 0) blast(hit, 2, storm.settings().specials().singularityDamage(), "Annihilation Beam", true);
+            if (ticks % 4 == 0) blast(hit, 1, storm.settings().specials().singularityDamage(), "Annihilation Beam", true);
         }
         return ticks < sweep + 10;
     }

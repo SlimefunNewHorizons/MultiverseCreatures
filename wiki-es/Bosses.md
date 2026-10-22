@@ -385,9 +385,9 @@ La Tormenta Wither del mod de nonamecrackers2, dibujada solo con *display entiti
 
 ### Invocación
 
-Se construye **la estructura del Wither** (4 bloques de arena o tierra de almas en T y 3 calaveras de esqueleto wither) con el pie de la T apoyado sobre el **bloque núcleo**: `wither-storm.summon.core-block` (por defecto `CRYING_OBSIDIAN`, obsidiana llorosa). No hace falta ningún bloque de comandos. Al poner la tercera calavera, el Wither que iba a nacer es absorbido junto con el núcleo y la tormenta se forma en su lugar: un vórtice de materia oscura, un rayo y once segundos invulnerable (`forming-ticks`, 220) mientras crece y se llena la barra, y al final la explosión del nacimiento (`explosion-power`, 7, como la de un Wither). Construida sobre cualquier otro bloque, la estructura sigue dando un Wither normal.
+La tormenta solo aparece en la **[Dimensión de Jefes](./Ritual-Dimension.md)** (`boss_dimension`): su estructura, `/msc spawn` y el evento la rechazan en cualquier otro mundo. Allí se construye **la estructura del Wither** (4 bloques de arena o tierra de almas en T y 3 calaveras de esqueleto wither) con el pie de la T apoyado sobre el **bloque núcleo**: `wither-storm.summon.core-block` (por defecto `CRYING_OBSIDIAN`, obsidiana llorosa). No hace falta ningún bloque de comandos. Al poner la tercera calavera, el Wither que iba a nacer es absorbido junto con el núcleo y la tormenta se forma en su lugar: un vórtice de materia oscura, un rayo y once segundos invulnerable (`forming-ticks`, 220) mientras crece y se llena la barra, y al final la explosión del nacimiento (`explosion-power`, 7, como la de un Wither). Construida sobre cualquier otro bloque, o en otro mundo, la estructura sigue dando un Wither normal (en otro mundo el chat avisa de que la tormenta necesita la Dimensión de Jefes).
 
-También: `/msc spawn witherstorm` (OP), y `witherstorm2`…`witherstorm5` para empezar directamente en una forma posterior.
+También: `/msc spawn witherstorm` (OP, estando en la Dimensión de Jefes), y `witherstorm2`…`witherstorm5` para empezar directamente en una forma posterior.
 
 ### Las cinco formas
 
@@ -477,14 +477,14 @@ Una versión de evento de la tormenta, con el mismo modelo y todo lo anterior, q
 
 - **25% más de vida** en todas las formas (`health` × el `health-multiplier` de la forma × 1,25).
 - **Crece un 30% más rápido:** lo que come cuenta ×1,3 para el `evolve-at` de cada forma.
-- **Cinco ataques destructivos propios**, desde su primera forma, mezclados con los ataques especiales de arriba. Cada uno arranca el suelo donde golpea (si `grief-blocks` está activo y `mobGriefing` lo permite) y se lo da de comer a la masa, así que también la hacen crecer:
+- **Cinco ataques destructivos propios**, desde su primera forma, mezclados con los ataques especiales de arriba. Cada uno vuela el suelo donde golpea (si `grief-blocks` está activo y `mobGriefing` lo permite); a diferencia de lo que come, ese suelo no la hace crecer:
 
 | Ataque | Qué pasa | Cómo sobrevivir | Clave |
 |---|---|---|---|
 | **Void Meteors** | Tres círculos rojos alrededor de cada víctima (uno bajo sus pies) y luego un meteoro del vacío cae en cada uno, uno tras otro. | Sal de los círculos antes de que caiga la estela de fuego. | `debris-damage` ×1,5 (12) |
 | **Rift Trench** | Una línea de chispas rojas va de debajo de la tormenta hacia una víctima y luego el suelo revienta a lo largo de ella, explosión tras explosión. | Apártate de la línea hacia un lado. A cada jugador le golpea una vez. | `eruption-damage` (12) |
 | **Crumbling Quake** | La tormenta frena y un anillo de derrumbe se expande desde debajo de ella, arrancando el suelo a su paso. | Huye de él o ponte detrás del anillo cuando haya pasado. A cada jugador le golpea una vez. | `roar-damage` (10) |
-| **Skull Nova** | Todas las cabezas escupen calaveras wither cargadas (azules) en todas direcciones: tres oleadas de unas 30 calaveras. | Cúbrete detrás de bloques sólidos. | — (el daño de las propias calaveras) |
+| **Skull Nova** | Todas las cabezas escupen calaveras wither cargadas (azules) en todas direcciones: tres oleadas de unas 12 calaveras. | Cúbrete detrás de bloques sólidos. | — (el daño de las propias calaveras) |
 | **Annihilation Beam** | La tormenta se queda quieta, carga un segundo y barre el suelo con un rayo del vacío que pasa por una víctima y revienta donde toca. | Mira hacia dónde va el pie del rayo y corre al lado contrario. A cada jugador le golpea una vez. | `singularity-damage` (16) |
 
 - **Ranking:** cuenta el daño que le hace cada jugador. Cuando muere, el chat de **todo el servidor** muestra el **top 3 de equipos** (el daño de sus miembros sumado) y el **top 3 de jugadores**. Los equipos se crean con [`/mscevent team`](./Commands.md#mscevent-team-subcomando); los jugadores sin equipo cuentan igual en el ranking de jugadores. El conteo se guarda en memoria, así que un reinicio en mitad del combate lo empieza de cero.

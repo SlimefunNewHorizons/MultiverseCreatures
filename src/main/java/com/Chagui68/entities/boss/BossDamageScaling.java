@@ -3,6 +3,7 @@ package com.Chagui68.entities.boss;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -102,9 +103,29 @@ public final class BossDamageScaling {
             if (piece != null && !piece.getType().isAir()) protection += piece.getEnchantmentLevel(Enchantment.PROTECTION);
         }
         int[] rank = rankOf(player.getUniqueId());
-        return new Snapshot(attribute(player, Attribute.MAX_HEALTH, 20.0), player.getAbsorptionAmount(),
+        AttributeInstance health = player.getAttribute(Attribute.MAX_HEALTH);
+        return new Snapshot(health == null ? 20.0 : untaxedMaxHealth(health), player.getAbsorptionAmount(),
                 resistance == null ? -1 : resistance.getAmplifier(), attribute(player, Attribute.ARMOR, 0),
                 attribute(player, Attribute.ARMOR_TOUGHNESS, 0), protection, rank[0], rank[1]);
+    }
+
+    /**
+     * Max health without the Worldbinder set's bonus: the armour's extra health is what makes its
+     * wearer last, so a hit scaled up by it would take that health straight back.
+     */
+    static double untaxedMaxHealth(AttributeInstance health) {
+        AttributeModifier armor = health.getModifier(com.Chagui68.listener.armor.WorldbinderHandler.HP_MOD_KEY);
+        if (armor == null) return health.getValue();
+        double scalar = 1.0;
+        for (AttributeModifier m : health.getModifiers()) {
+            if (m.getOperation() == AttributeModifier.Operation.MULTIPLY_SCALAR_1) scalar += m.getAmount();
+        }
+        return withoutScalar(health.getValue(), scalar, armor.getAmount());
+    }
+
+    /** {@code value} built with the scalar modifiers summing to {@code scalar - 1}, without the one of {@code amount}. */
+    static double withoutScalar(double value, double scalar, double amount) {
+        return scalar <= 0 ? value : value * (scalar - amount) / scalar;
     }
 
     private static double attribute(Player player, Attribute attribute, double fallback) {

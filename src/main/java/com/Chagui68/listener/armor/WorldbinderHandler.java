@@ -13,6 +13,7 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -22,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -44,7 +46,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class WorldbinderHandler implements Listener {
 
-    private static final NamespacedKey HP_MOD_KEY =
+    /** The set's max-health modifier; the bosses' damage scaling leaves it out (BossDamageScaling). */
+    public static final NamespacedKey HP_MOD_KEY =
             new NamespacedKey("multiversecreatures", "worldbinder_health_modifier");
     private static final NamespacedKey SPEED_MOD_KEY =
             new NamespacedKey("multiversecreatures", "worldbinder_speed_modifier");
@@ -63,6 +66,8 @@ public class WorldbinderHandler implements Listener {
     private final Map<UUID, Long> invulnerableUntil = new ConcurrentHashMap<>();
     private final Map<UUID, Long> deathEvadeReady = new ConcurrentHashMap<>();
     private final Map<UUID, Long> vanishReady = new ConcurrentHashMap<>();
+    /** Wearers in Unseen, until when: bosses and mobs do not pick them as a target. */
+    private static final Map<UUID, Long> unseenUntil = new ConcurrentHashMap<>();
     /** The set-bonus refresh loop; held so the plugin can end it on shutdown. */
     private BukkitTask ticker;
 
@@ -99,6 +104,15 @@ public class WorldbinderHandler implements Listener {
         return entity instanceof Player p && hasSetBonus.contains(p.getUniqueId());
     }
 
+    /**
+     * Whether {@code p} is in Unseen: bosses and mobs must not pick them as a target. Their attacks
+     * still hit them, and a boss with nobody else near stays where it is, waiting.
+     */
+    public static boolean isUnseen(Player p) {
+        Long until = p == null ? null : unseenUntil.get(p.getUniqueId());
+        return until != null && System.currentTimeMillis() < until;
+    }
+
     private static boolean roll(double chance) {
         return ThreadLocalRandom.current().nextDouble() < chance;
     }
@@ -123,6 +137,7 @@ public class WorldbinderHandler implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         UUID id = event.getPlayer().getUniqueId();
         invulnerableUntil.remove(id);
+        unseenUntil.remove(id);
         if (hasSetBonus.remove(id)) {
             removeSetBonus(event.getPlayer());
         }
@@ -185,13 +200,16 @@ public class WorldbinderHandler implements Listener {
         event.setDamage(damage);
 
         if (attacker != null && attacker != p) {
+            // Hit cap: no single hit from a boss, a player or a mob takes more than a share of max health.
+            double cap = capped(event.getFinalDamage(), maxHealth(p));
+            if (cap < event.getFinalDamage()) event.setDamage(event.getDamage() * cap / event.getFinalDamage());
             tryVanish(p);
         }
 
-        // Defy Death: a lethal hit is survived on half a heart, then 3 s of invulnerability.
+        // Defy Death: whatever lands the lethal hit, it is survived on half a heart, then 3 s of invulnerability.
         if (event.getFinalDamage() >= p.getHealth() + p.getAbsorptionAmount()) {
             long now = System.currentTimeMillis();
-            if (now >= deathEvadeReady.getOrDefault(id, 0L) && roll(Worldbinder.DEATH_EVADE_CHANCE)) {
+            if (now >= deathEvadeReady.getOrDefault(id, 0L)) {
                 event.setCancelled(true);
                 p.setHealth(Math.min(1.0, p.getHealth()));
                 deathEvadeReady.put(id, now + Worldbinder.DEATH_EVADE_COOLDOWN_MS);
@@ -207,8 +225,13 @@ public class WorldbinderHandler implements Listener {
         long now = System.currentTimeMillis();
         if (now < vanishReady.getOrDefault(p.getUniqueId(), 0L) || !roll(Worldbinder.VANISH_CHANCE)) return;
         vanishReady.put(p.getUniqueId(), now + Worldbinder.VANISH_COOLDOWN_MS);
+        unseenUntil.put(p.getUniqueId(), now + Worldbinder.VANISH_TICKS * 50);
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             if (viewer != p) viewer.hidePlayer(plugin, p);
+        }
+        // Mobs on them now let go; onTargeted keeps any from picking them again.
+        for (Entity near : p.getNearbyEntities(48, 32, 48)) {
+            if (near instanceof Mob mob && p.equals(mob.getTarget())) mob.setTarget(null);
         }
         // Mobs do not use the player list, so the effect makes them lose track too.
         p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, (int) Worldbinder.VANISH_TICKS, 0, false, false));
@@ -221,7 +244,37 @@ public class WorldbinderHandler implements Listener {
         }, Worldbinder.VANISH_TICKS);
     }
 
+    /** No mob picks a wearer in Unseen. */
+    @EventHandler(ignoreCancelled = true)
+    public void onTargeted(EntityTargetLivingEntityEvent event) {
+        if (event.getTarget() instanceof Player p && isUnseen(p)) event.setCancelled(true);
+    }
+
+    /** The damage a hit of {@code damage} may deal to a wearer with {@code maxHealth}: {@link Worldbinder#HIT_CAP} of it at most. */
+    static double capped(double damage, double maxHealth) {
+        return Math.min(damage, maxHealth * Worldbinder.HIT_CAP);
+    }
+
+    private static double maxHealth(Player p) {
+        AttributeInstance health = p.getAttribute(Attribute.MAX_HEALTH);
+        return health == null ? 20.0 : health.getValue();
+    }
+
     // ---- Wearer deals damage ----
+
+    /**
+     * Lifesteal: every hit the wearer lands on something living, a player, a mob or a boss, heals them.
+     * A boss cancels the hit to take it off its own health, so a cancelled hit on one still counts.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onWearerLifesteal(EntityDamageByEntityEvent event) {
+        Entity attacker = attacker(event.getDamager());
+        if (!wears(attacker) || !(event.getEntity() instanceof LivingEntity target) || target == attacker) return;
+        if (event.getDamageSource().getDamageType() == DamageType.THORNS) return;
+        if (event.isCancelled() && target.getScoreboardTags().stream().noneMatch(tag -> tag.startsWith("MSC_"))) return;
+        double heal = event.getFinalDamage() * Worldbinder.LIFESTEAL;
+        if (heal > 0) ((Player) attacker).heal(heal, EntityRegainHealthEvent.RegainReason.CUSTOM);
+    }
 
     @EventHandler(ignoreCancelled = true)
     public void onWearerAttacks(EntityDamageByEntityEvent event) {

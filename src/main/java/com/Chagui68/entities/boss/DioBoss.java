@@ -400,7 +400,7 @@ public class DioBoss implements Listener {
         Player best = null;
         double bestDist = Double.MAX_VALUE;
         for (Player p : stand.getWorld().getPlayers()) {
-            if (!fighting(p)) continue;
+            if (!fighting(p) || com.Chagui68.listener.armor.WorldbinderHandler.isUnseen(p)) continue;
             double d = p.getLocation().distanceSquared(stand.getLocation());
             if (d <= aggroRange * aggroRange && d < bestDist) {
                 bestDist = d;

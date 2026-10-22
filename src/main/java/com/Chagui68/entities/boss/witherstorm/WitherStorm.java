@@ -231,6 +231,7 @@ final class WitherStorm {
     private final List<FlamingSkull> skulls = new ArrayList<>();
     private final List<Debris> debris = new ArrayList<>();
     private List<LivingEntity> targets = new ArrayList<>();
+    private Player chase;
     private final Map<UUID, Integer> biteCooldown = new HashMap<>();
     /** Ticks until a player held in a beam is hurt by it again: one beam or several, it hurts at one pace. */
     private final Map<UUID, Integer> beamCooldown = new HashMap<>();
@@ -304,7 +305,8 @@ final class WitherStorm {
         WitherStormModel.Pose pose = new WitherStormModel.Pose();
         pose.ticks = state == State.PLAYING_DEAD || state == State.DYING ? 0 : age;
         pose.tentacleTicks = tentacleClock;
-        pose.bodyPitch = bodyPitch;
+        // In whole degrees: the eased pitch creeps on for ever, and each creep moved the whole body.
+        pose.bodyPitch = Math.round(bodyPitch);
         pose.brokenJaw = brokenJaw;
         if (heads != null) {
             for (HeadState h : heads) {
@@ -429,6 +431,7 @@ final class WitherStorm {
         placeHeads();
         if (age % 5 == 0 || targets.isEmpty()) {
             targets = findTargets();
+            chase = nearestPlayer();
         }
         switch (state) {
             case FORMING -> tickForming();
@@ -461,7 +464,8 @@ final class WitherStorm {
     }
 
     private void drawFrame() {
-        if (age % WitherStormBody.TURN_TICKS == 0 && Math.abs(wrap(yaw - sentYaw)) > 2f) {
+        // A turn resends every display; the colossal forms, hundreds of them and slow to turn, wait for 5 degrees.
+        if (age % WitherStormBody.TURN_TICKS == 0 && Math.abs(wrap(yaw - sentYaw)) > (form.isColossal() ? 5f : 2f)) {
             body.turn(yaw);
             if (oldBody != null) oldBody.turn(yaw);
             turnFrom = shownYaw;
@@ -512,7 +516,7 @@ final class WitherStorm {
         Location at = anchor.getLocation();
         List<LivingEntity> out = new ArrayList<>();
         for (Player p : BossArena.getValidPlayersNear(at, range * range)) {
-            if (!escaping.containsKey(p.getUniqueId())) out.add(p);
+            if (!escaping.containsKey(p.getUniqueId()) && BossArena.isTargetable(p)) out.add(p);
         }
         out.sort((a, b) -> Double.compare(a.getLocation().distanceSquared(at), b.getLocation().distanceSquared(at)));
         if (settings().attackMobs() && state == State.FIGHTING) {
@@ -528,6 +532,22 @@ final class WitherStorm {
             out.addAll(mobs.subList(0, Math.min(24, mobs.size())));
         }
         return out;
+    }
+
+    /**
+     * The player it follows: the nearest one within twice its aggro range, a player it lets go after a
+     * wounded head included. The escape spares them its attacks, not its company; following its other
+     * victims instead, it drifted off after mobs and lost the players until the fight despawned.
+     */
+    private Player nearestPlayer() {
+        double range = settings().aggroRange() * reach() * (form.isColossal() ? 3.0 : 2.0);
+        Location at = anchor.getLocation();
+        Player nearest = null;
+        for (Player p : BossArena.getValidPlayersNear(at, range * range)) {
+            if (!BossArena.isTargetable(p)) continue;
+            if (nearest == null || p.getLocation().distanceSquared(at) < nearest.getLocation().distanceSquared(at)) nearest = p;
+        }
+        return nearest;
     }
 
     private boolean alive(LivingEntity e) {
@@ -585,7 +605,7 @@ final class WitherStorm {
     private void tickFighting() {
         assignTargets();
         LivingEntity main = targets.isEmpty() ? null : targets.get(0);
-        move(main, true);
+        move(chase != null && chase.isValid() ? chase : main, true);
         for (HeadState h : heads) {
             tickBeam(h);
             tickRoar(h);
@@ -650,17 +670,30 @@ final class WitherStorm {
         double ground = groundY(desired, at.getY() - flyHeight());
         desired.setY(ground + flyHeight() + Math.sin(age / 30.0) * (form.isColossal() ? 1.8 : 0.5));
         Vector step = desired.subtract(pos);
-        double max = form.moveSpeed() * specials.speedFactor();
+        double max = form.moveSpeed() * specials.speedFactor() * catchUp(step);
         if (step.length() > max) step.normalize().multiply(max);
         velocity.multiply(0.85).add(step.multiply(0.15));
         float turn = (float) form.turnRate();
         yaw += Math.max(-turn, Math.min(turn, wrap(wantedYaw - yaw)));
         yaw = wrap(yaw);
         if (form.isColossal()) {
-            float wantedPitch = (float) Math.max(-15, Math.min(15, -velocity.getY() * 60));
+            // Only real climbs and dives tilt it: tilting with the hover's bob (under 0.08 a tick) moved
+            // every box of the body on every frame, and every moved box is a packet to every player.
+            double climb = Math.abs(velocity.getY()) < 0.08 ? 0 : velocity.getY();
+            float wantedPitch = (float) Math.max(-15, Math.min(15, -climb * 60));
             bodyPitch += (wantedPitch - bodyPitch) * 0.05f;
         }
         teleportTo(pos.add(velocity));
+    }
+
+    /**
+     * How much faster than its pace it flies to get back to its spot by its victim: not at all within 8
+     * blocks of it, then more the further it is, up to three times. At its own pace the colossal forms
+     * are slower than a walk, so anyone who ran left it behind for good.
+     */
+    static double catchUp(Vector step) {
+        double behind = Math.hypot(step.getX(), step.getZ());
+        return Math.max(1.0, Math.min(3.0, behind / 8.0));
     }
 
     private double flyHeight() {
@@ -932,7 +965,7 @@ final class WitherStorm {
 
         if (ground != null && ground.getHitBlock() != null
                 && age % form.clusterInterval() == h.gaze.index() % form.clusterInterval()) {
-            tear(h.gaze.index(), ground.getHitBlock(), form.clusterRadius(), form.isColossal() ? 6 : 3);
+            tear(h.gaze.index(), ground.getHitBlock(), form.clusterRadius(), form.isColossal() ? 6 : 3, true);
         }
     }
 
@@ -1054,7 +1087,7 @@ final class WitherStorm {
             if (!world().isChunkLoaded(x >> 4, z >> 4)) continue;
             Block top = world().getHighestBlockAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
             if (Math.abs(top.getY() - at.getY()) > 24) continue;
-            tear(-1, top, 1, i < 4 ? 2 : 1);
+            tear(-1, top, 1, i < 4 ? 2 : 1, true);
         }
         if (r.nextInt(3) == 0) {
             world().playSound(at, Sound.BLOCK_GRAVEL_BREAK, 2f, 0.6f);
@@ -1064,9 +1097,9 @@ final class WitherStorm {
     /**
      * Tears a lump of ground out round {@code hit} and sends up to {@code visuals} of its blocks
      * flying into a mouth (or into the mass for {@code head} -1). With griefing off the ground stays
-     * and the storm still eats the lump.
+     * and the storm still eats the lump; with {@code feed} false it is only blown away, not eaten.
      */
-    void tear(int head, Block hit, int radius, int visuals) {
+    void tear(int head, Block hit, int radius, int visuals, boolean feed) {
         List<Block> lump = new ArrayList<>();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dy = -radius; dy <= radius; dy++) {
@@ -1095,7 +1128,7 @@ final class WitherStorm {
                 launchDebris(head, b.getLocation().add(0.5, 0.5, 0.5).toVector(), data);
             }
         }
-        consume(taken * settings().pointsBlock());
+        if (feed) consume(taken * settings().pointsBlock());
         Location at = hit.getLocation().add(0.5, 0.5, 0.5);
         ParticleBudget.spawn(hit.getWorld(), Particle.BLOCK, at.getX(), at.getY(), at.getZ(), 8, radius, radius, radius, 0, hit.getBlockData());
     }
