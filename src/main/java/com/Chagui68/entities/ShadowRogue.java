@@ -129,6 +129,10 @@ public class ShadowRogue implements Listener {
             sk.setTarget(null);
             return;
         }
+        if (!sk.getWorld().equals(target.getWorld())) {
+            sk.setTarget(null);
+            return;
+        }
 
         Location skLoc = sk.getLocation();
         Location tLoc = target.getLocation();
