@@ -52,9 +52,10 @@ import java.util.UUID;
  * teleporting each one; the anchor catches up with her when she strays {@link #REANCHOR_DISTANCE} from it.
  * Her displays are never saved: after a restart or a chunk reload the stand is dressed again.</p>
  *
- * <p>She picks an attack by distance: close, the three-slash combo or the whirlwind; mid range, the
- * lunging thrust; far, the leaping slam; below half health, the Waterfowl Dance now and then. During an
- * attack the stand follows her root, her blade hurts whoever it passes through (once per swing), the
+ * <p>She picks an attack by distance: close, the three-slash combo, the whirlwind or the rising cut; mid
+ * range, the lunging thrust or the thrust flurry; far, the leaping slam or the blade dash; below half
+ * health, the Waterfowl Dance now and then. During an attack her feet walk the root's travel over the
+ * ground (walls stop her, ledges drop her), the stand follows, her blade hurts whoever it passes through (once per swing), the
  * slashes round her hurt everyone near, a landing shakes the ground, and every hit she lands heals her.</p>
  */
 public class MaleniaBoss implements Listener {
@@ -99,7 +100,7 @@ public class MaleniaBoss implements Listener {
         slashDamage = config.getDouble(p + "slash-damage", 4.0);
         ringDamage = config.getDouble(p + "ring-damage", 10.0);
         lifesteal = config.getDouble(p + "lifesteal", 0.5);
-        attackCooldownTicks = config.getInt(p + "attack-cooldown-ticks", 20);
+        attackCooldownTicks = config.getInt(p + "attack-cooldown-ticks", 6);
         waterfowlCooldownTicks = config.getInt(p + "waterfowl-cooldown-ticks", 400);
         if (!plugin.isEnabled("entities.malenia")) return;
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -235,6 +236,7 @@ public class MaleniaBoss implements Listener {
                 inst.move = attack;
                 inst.moveTick = 0;
                 inst.base = at.clone();
+                inst.feet = at.clone();
                 inst.struck.clear();
                 return;
             }
@@ -263,10 +265,15 @@ public class MaleniaBoss implements Listener {
             inst.waterfowlCooldown = waterfowlCooldownTicks;
             return MaleniaRig.move("waterfowl");
         }
-        if (dist <= 3.5) return MaleniaRig.move(random.nextBoolean() ? "combo" : "whirlwind");
-        if (dist <= 6.5) return MaleniaRig.move("thrust");
-        if (dist <= 10) return MaleniaRig.move("leap");
+        if (dist <= 3.5) return pick("combo", "whirlwind", "rising");
+        if (dist <= 6.5) return pick("thrust", "flurry");
+        if (dist <= 10) return pick("leap", "dash");
+        if (dist <= 18) return MaleniaRig.move("dash");
         return null;
+    }
+
+    private MaleniaRig.Move pick(String... ids) {
+        return MaleniaRig.move(ids[random.nextInt(ids.length)]);
     }
 
     /** One tick of the attack under way: the stand follows her root, her blows land, and every two ticks she is posed. */
@@ -274,8 +281,8 @@ public class MaleniaBoss implements Listener {
         MaleniaRig.Move move = inst.move;
         int t = ++inst.moveTick;
         float[] travel = MaleniaRig.sample(move.travel(), t);
-        Location to = MaleniaRig.toWorld(inst.base, inst.base.getYaw(), new Vector3f(travel[0], travel[1], travel[2]));
-        if (!to.getBlock().isSolid() && !to.clone().add(0, 1, 0).getBlock().isSolid()) inst.stand.teleport(to);
+        follow(inst, MaleniaRig.sample(move.travel(), t - 1), travel);
+        inst.stand.teleport(inst.feet.clone().add(0, travel[1], 0));
         // Half ticks too: in the Waterfowl Dance her blade turns a quarter circle a tick.
         strike(inst, move, t - .5f);
         strike(inst, move, t);
@@ -288,11 +295,28 @@ public class MaleniaBoss implements Listener {
         inst.move = null;
         inst.cooldown = attackCooldownTicks;
         inst.idleTick = 0;
-        Location end = inst.stand.getLocation();
-        end.setYaw(inst.base.getYaw());
-        end.setPitch(0f);
+        Location end = inst.feet.clone();
         BossArena.settle(end);
         inst.stand.teleport(end);
+    }
+
+    /**
+     * Walks her feet along the root's travel from {@code was} to {@code now}, half a block at a time:
+     * up steps, down ledges, stopped by walls. The base follows, so her body is drawn over her feet and
+     * never slides through blocks or hangs in the air. The travel's height stays a lift above the feet.
+     */
+    private void follow(Instance inst, float[] was, float[] now) {
+        float yaw = inst.base.getYaw();
+        Vector from = MaleniaRig.toWorld(inst.base, yaw, new Vector3f(was[0], 0, was[2])).toVector();
+        Location reached = MaleniaRig.toWorld(inst.base, yaw, new Vector3f(now[0], 0, now[2]));
+        Vector step = reached.toVector().subtract(from).setY(0);
+        int parts = (int) Math.ceil(step.length() / .5);
+        for (int i = 0; i < parts; i++) {
+            if (!BossArena.walk(inst.feet, step.clone().multiply(1.0 / parts), true)) break;
+        }
+        BossArena.settle(inst.feet);
+        Vector offset = reached.toVector().subtract(inst.base.toVector()).setY(0);
+        inst.base = inst.feet.clone().subtract(offset);
     }
 
     /** Her blows at {@code t}: the blade on whoever it passes through, the slashes and the landing on whoever is near. */
@@ -374,8 +398,11 @@ public class MaleniaBoss implements Listener {
     // Events
     // =====================================================================================
 
-    /** Only players hurt her, through the virtual health, at most {@code max-damage-per-hit} a hit. */
-    @EventHandler(ignoreCancelled = true)
+    /**
+     * Only players hurt her, through the virtual health, at most {@code max-damage-per-hit} a hit. Not
+     * {@code ignoreCancelled}: the server hands an invisible stand's damage over already cancelled.
+     */
+    @EventHandler
     public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof ArmorStand stand) || !stand.getScoreboardTags().contains(TAG)) return;
         event.setCancelled(true);
@@ -420,8 +447,10 @@ public class MaleniaBoss implements Listener {
         Location anchor;
         /** The attack under way, or null. */
         MaleniaRig.Move move;
-        /** Where the attack under way started, facing her heading then. */
+        /** Where the attack under way started, facing her heading then; shifted as walls and ledges move her feet. */
         Location base;
+        /** Her feet on the ground during an attack, without the move's lift. */
+        Location feet;
         int ticks, moveTick, idleTick, cooldown, waterfowlCooldown;
         /** No one to fight and her rest pose sent: nothing is posed until a player comes. */
         boolean resting;

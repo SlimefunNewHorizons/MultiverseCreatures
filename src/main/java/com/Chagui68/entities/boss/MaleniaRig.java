@@ -151,7 +151,46 @@ public final class MaleniaRig {
                     .key(54, Ease.SMOOTH, "ROOT 362 0 0; move 0 -.05 4.5")
                     .key(70, Ease.SMOOTH, "ROOT 360 0 0; PELVIS 0 0 0; CHEST 0 0 0; HEAD 0 0 0; ARM_R 0 0 0; HAND_R 0 0 0; ARM_L 0 0 0; move 0 0 4.5")
                     .trail(19, 37).ring(39)
+                    .build(),
+            move("rising", "Rising cut", 44)
+                    .key(0, Ease.SMOOTH, "")
+                    .key(7, Ease.SMOOTH, "PELVIS 12 25 0; CHEST 18 55 0; HEAD -5 -30 0; ARM_R -10 80 0; FOREARM_R -20 0 0; HAND_R 60 0 0; ARM_L -20 0 30; move 0 -.2 .2")
+                    .key(11, Ease.SNAP, "PELVIS -8 -20 0; CHEST -20 -50 0; HEAD 10 25 0; ARM_R -175 -40 0; FOREARM_R 0 0 0; HAND_R 40 0 0; ARM_L 10 0 60; move 0 .45 1.2")
+                    .key(17, Ease.SMOOTH, "CHEST -18 -45 0; ARM_R -168 -35 0; move 0 .5 1.4")
+                    .key(22, Ease.SNAP, "PELVIS 15 0 0; CHEST 30 0 0; HEAD -15 0 0; ARM_R -30 0 0; FOREARM_R -20 0 0; HAND_R 70 0 0; ARM_L -30 0 30; move 0 -.2 2")
+                    .key(30, Ease.SMOOTH, "CHEST 26 0 0; ARM_R -25 0 0; move 0 -.15 2.1")
+                    .key(44, Ease.SMOOTH, "PELVIS 0 0 0; CHEST 0 0 0; HEAD 0 0 0; ARM_R 0 0 0; FOREARM_R 0 0 0; HAND_R 0 0 0; ARM_L 0 0 0; move 0 0 2.1")
+                    .trail(7, 13).trail(18, 25).ring(22)
+                    .build(),
+            flurry(),
+            move("dash", "Blade dash", 40)
+                    .key(0, Ease.SMOOTH, "")
+                    .key(8, Ease.SMOOTH, "PELVIS 20 -10 0; CHEST 25 -30 0; HEAD -20 20 0; ARM_R -20 -60 0; FOREARM_R -20 0 0; HAND_R 60 0 0; ARM_L 20 0 30; move 0 -.25 -.3")
+                    .key(16, Ease.SNAP, "ROOT 18 0 0; ARM_R -10 -70 0; move 0 -.15 6.5")
+                    .key(21, Ease.SNAP, "ROOT 0 0 0; PELVIS -5 15 0; CHEST -15 40 0; HEAD 10 -15 0; ARM_R -165 40 0; FOREARM_R -10 0 0; HAND_R 40 0 0; ARM_L -30 0 50; move 0 .25 7.2")
+                    .key(28, Ease.SMOOTH, "CHEST -10 35 0; ARM_R -150 35 0; move 0 0 7.4")
+                    .key(40, Ease.SMOOTH, "PELVIS 0 0 0; CHEST 0 0 0; HEAD 0 0 0; ARM_R 0 0 0; FOREARM_R 0 0 0; HAND_R 0 0 0; ARM_L 0 0 0; move 0 0 7.4")
+                    .trail(10, 24)
                     .build());
+
+    /** Thrust flurry: five quick thrusts, left and right of centre, each a step further in. */
+    private static Move flurry() {
+        String coiled = "PELVIS 6 -15 0; CHEST 10 -35 0; ARM_R -55 -35 0; FOREARM_R -95 0 0; HAND_R 75 0 0";
+        MoveBuilder m = move("flurry", "Thrust flurry", 56)
+                .key(0, Ease.SMOOTH, "")
+                .key(8, Ease.SMOOTH, coiled + "; HEAD 0 30 0; ARM_L -50 0 30; move 0 -.15 -.2");
+        for (int k = 0; k < 5; k++) {
+            int at = 12 + k * 7, side = k % 2 == 0 ? 6 : -6;
+            float z = .7f * (k + 1);
+            m.key(at, Ease.SNAP, String.format(Locale.ROOT,
+                            "ROOT 8 0 0; PELVIS 10 %d 0; CHEST 16 %d 0; HEAD -8 -5 0; ARM_R -94 %d 0; FOREARM_R 0 0 0; HAND_R 53 0 0; move 0 -.1 %.2f",
+                            side, side * 2, side, z))
+                    .key(at + 4, Ease.SMOOTH, String.format(Locale.ROOT, "ROOT 0 0 0; %s; move 0 -.15 %.2f", coiled, z + .2f))
+                    .trail(at - 2, at + 1);
+        }
+        return m.key(56, Ease.SMOOTH, "PELVIS 0 0 0; CHEST 0 0 0; HEAD 0 0 0; ARM_R 0 0 0; FOREARM_R 0 0 0; HAND_R 0 0 0; ARM_L 0 0 0; move 0 0 3.7")
+                .build();
+    }
 
     /**
      * The Waterfowl Dance: she coils and leaps, then three flurries in the air, each a whirl of a

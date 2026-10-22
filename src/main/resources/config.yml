@@ -449,7 +449,7 @@ entities:
     slash-damage: 4.0             # the slashes round her in the Whirlwind and Waterfowl Dance, every 4 ticks
     ring-damage: 10.0             # landing from the leap or the Waterfowl Dance
     lifesteal: 0.5                # share of every hit she lands that heals her
-    attack-cooldown-ticks: 20
+    attack-cooldown-ticks: 6
     waterfowl-cooldown-ticks: 400 # the Waterfowl Dance, only below half health
     death-messages:
       - "&c%player% was cut down by Malenia, Blade of Miquella"
