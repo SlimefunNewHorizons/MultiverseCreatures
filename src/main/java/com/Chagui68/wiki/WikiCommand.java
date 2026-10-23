@@ -14,14 +14,12 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * {@code /mscwiki}: opens the in-game wiki.
+ * {@code /mscwiki}: opens the in-game wiki, or shows how a summoning structure is built.
  *
  * <pre>
- * /mscwiki           the home page
- * /mscwiki &lt;page&gt;    a page straight away, such as /mscwiki venomfang
- * /mscwiki hand      the page of the item in your hand
- * /mscwiki en|es     switch the language and open the home page
- * /mscwiki portal    preview the ritual portal in front of you for five seconds
+ * /mscwiki               the home page (the flag in its corner switches the language)
+ * /mscwiki &lt;structure&gt;   shows that structure in front of you for five seconds and says how it is used:
+ *                        portal, sentinel, nix, dio, jack, olympus, asgard, duat, void, witherstorm
  * </pre>
  */
 public final class WikiCommand implements TabExecutor {
@@ -44,31 +42,14 @@ public final class WikiCommand implements TabExecutor {
             player.openInventory(WikiMenu.home(lang).getInventory());
             return true;
         }
-        String wanted = args[0].toLowerCase(Locale.ROOT);
-        if (wanted.equals("en") || wanted.equals("es")) {
-            WikiLang chosen = wanted.equals("es") ? WikiLang.ES : WikiLang.EN;
-            WikiLang.set(player, chosen);
-            player.openInventory(WikiMenu.home(chosen).getInventory());
+        StructurePreview.Structure structure = StructurePreview.Structure.byId(args[0]);
+        if (structure == null) {
+            player.sendMessage(Component.text(lang.pick("No structure called ", "No hay ninguna estructura llamada ")
+                    + args[0] + ". " + lang.pick("Try: ", "Prueba: ") + String.join(", ", ids()) + ".",
+                    NamedTextColor.RED));
             return true;
         }
-        if (wanted.equals("portal")) {
-            PortalPreview.show(plugin, player);
-            return true;
-        }
-        WikiEntry entry = wanted.equals("hand")
-                ? WikiRecipes.pageOf(player.getInventory().getItemInMainHand())
-                : WikiCatalogue.byId(wanted.replace("_", "").replace("-", ""));
-        if (entry == null) {
-            entry = WikiCatalogue.byId(wanted);
-        }
-        if (entry == null) {
-            player.sendMessage(Component.text(lang.pick("No wiki page called ", "No hay ninguna página llamada ")
-                    + args[0] + ".", NamedTextColor.RED));
-            return true;
-        }
-        WikiEntry found = entry;
-        player.openInventory(WikiMenu.page(lang, found, 0, l -> WikiMenu.category(l, found.category(), 0))
-                .getInventory());
+        StructurePreview.show(plugin, player, structure, lang);
         return true;
     }
 
@@ -79,15 +60,18 @@ public final class WikiCommand implements TabExecutor {
         if (args.length != 1) {
             return out;
         }
-        out.add("hand");
-        out.add("en");
-        out.add("es");
-        out.add("portal");
-        for (WikiEntry entry : WikiCatalogue.entries()) {
-            out.add(entry.id());
-        }
         String typed = args[0].toLowerCase(Locale.ROOT);
-        out.removeIf(option -> !option.startsWith(typed));
+        for (String id : ids()) {
+            if (id.startsWith(typed)) out.add(id);
+        }
         return out;
+    }
+
+    private static List<String> ids() {
+        List<String> ids = new ArrayList<>();
+        for (StructurePreview.Structure structure : StructurePreview.Structure.values()) {
+            ids.add(structure.id());
+        }
+        return ids;
     }
 }

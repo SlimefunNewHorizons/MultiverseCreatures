@@ -244,6 +244,7 @@ There is no teleport command available inside the dimension — the only way out
 ## 🧰 Technical notes
 
 - World name: `boss_dimension` (created on first entry, unloaded on plugin disable).
+- If another plugin (such as Multiverse) loads `boss_dimension` without this plugin's generator, the plugin saves, unloads and reloads it with the wasteland generator on startup, so new chunks are never vanilla terrain. Chunks generated before that stay as they are. A world manager can also be given the generator `MultiverseCreatures`.
 - Spawn point: `0.5, 41, 0.5`, the centre of the arena.
 - Game rules: no daylight cycle, no weather cycle, no mob spawning, immediate respawn, no advancement announcements.
 - The sky is forced red via a biome override; `boss-dimension.red-sky: false` leaves it alone (the tint is applied to a vanilla biome, so it is global).

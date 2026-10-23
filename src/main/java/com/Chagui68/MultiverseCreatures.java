@@ -515,4 +515,11 @@ public class MultiverseCreatures extends JavaPlugin {
     public DiscTrader getDiscTrader() {
         return discTrader;
     }
+
+    /** The boss dimension's wasteland, for a world a world manager loads with the generator {@code MultiverseCreatures}. */
+    @Override
+    public org.bukkit.generator.ChunkGenerator getDefaultWorldGenerator(@org.jetbrains.annotations.NotNull String worldName,
+                                                                        @org.jetbrains.annotations.Nullable String id) {
+        return new com.Chagui68.ritual.terrain.WastelandGenerator();
+    }
 }

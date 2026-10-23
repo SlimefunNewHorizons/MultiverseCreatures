@@ -320,15 +320,14 @@ Teleports the executor across worlds/dimensions. Used for testing the boss dimen
 
 ---
 
-## /mscwiki [page|hand|en|es|portal]
+## /mscwiki [structure]
 
 Opens the in-game wiki, for every player (`msc.wiki`, granted by default).
 
 - Nine shelves: weapons, armor, relics, food and potions, creature drops, crafted components, boss loot, Stands and bosses.
 - Each item page shows the item with its lore, its recipe as the server has it (crafting table, furnace, blast furnace, brewing stand or merchant trade), who drops it with the server's own chance, and what it is used in. Click an ingredient to open its page.
 - English and Spanish: it opens in the client's language and the flag in the corner switches it (the choice is kept on the player).
-- `/mscwiki venomfang` opens a page directly; `/mscwiki hand` opens the page of the item you hold; `/mscwiki es` or `/mscwiki en` switches the language.
-- `/mscwiki portal` shows the ritual portal one block in front of you for 5 seconds (block displays only, nothing is placed). If something is in the way, the chat says there is no space.
+- `/mscwiki <structure>` shows a summoning structure one block in front of you for 5 seconds (displays only, nothing is placed) and says in chat how it is used. If something is in the way, the chat says there is no space. Structures: `portal` (the ritual portal), `sentinel`, `nix`, `dio`, `jack`, the four pantheon altars `olympus`, `asgard`, `duat` and `void`, and `witherstorm`. Stairs are drawn facing the middle and joined at the corners, as they look once built.
 
 ## /mscevent team <subcommand>
 

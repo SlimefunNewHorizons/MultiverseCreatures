@@ -19,7 +19,7 @@ commands:
     permission: msc.stand
   mscwiki:
     description: Opens the in-game wiki (English and Spanish) with every item, recipe and drop
-    usage: /mscwiki [page|hand|en|es|portal]
+    usage: /mscwiki [portal|sentinel|nix|dio|jack|olympus|asgard|duat|void|witherstorm]
     permission: msc.wiki
   mscevent:
     description: Event teams - create one, invite players, leave, and more; ranked when an event boss falls

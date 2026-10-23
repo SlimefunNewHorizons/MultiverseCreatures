@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Candle;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,5 +93,9 @@ public class BossInvocationStructure {
 
     public static double getRadius() {
         return 3.0;
+    }
+
+    public static Map<Location, Material> getStructureBlocks() {
+        return Collections.unmodifiableMap(STRUCTURE_BLOCKS);
     }
 }

@@ -320,15 +320,14 @@ Teletransporta al ejecutor entre mundos/dimensiones. Se usa para probar el andam
 
 ---
 
-## /mscwiki [página|hand|en|es|portal]
+## /mscwiki [estructura]
 
 Abre la wiki dentro del juego, para todos los jugadores (`msc.wiki`, concedido por defecto).
 
 - Nueve secciones: armas, armaduras, reliquias, comida y pociones, botín de criaturas, componentes fabricados, botín de jefes, Stands y jefes.
 - Cada página muestra el ítem con su lore, su receta tal como la tiene el servidor (mesa de crafteo, horno, alto horno, soporte para pociones o intercambio), quién lo suelta con la probabilidad del propio servidor y en qué se usa. Haz clic en un ingrediente para abrir su página.
 - Inglés y español: se abre en el idioma del cliente y la bandera de la esquina lo cambia (la elección se guarda en el jugador).
-- `/mscwiki venomfang` abre una página directamente; `/mscwiki hand` abre la del ítem que sostienes; `/mscwiki es` o `/mscwiki en` cambia el idioma.
-- `/mscwiki portal` muestra el portal del ritual a un bloque delante de ti durante 5 segundos (solo block displays, no se coloca nada). Si algo estorba, el chat avisa de que no hay espacio.
+- `/mscwiki <estructura>` muestra una estructura de invocación a un bloque delante de ti durante 5 segundos (solo displays, no se coloca nada) y explica en el chat cómo se usa. Si algo estorba, el chat avisa de que no hay espacio. Estructuras: `portal` (el portal del ritual), `sentinel`, `nix`, `dio`, `jack`, los cuatro altares del panteón `olympus`, `asgard`, `duat` y `void`, y `witherstorm`. Las escaleras miran al centro y se unen en las esquinas, como quedan una vez construidas.
 
 ## /mscevent team <subcomando>
 
