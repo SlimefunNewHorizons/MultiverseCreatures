@@ -316,7 +316,7 @@ Could not spawn the Monster for Steve: there is no solid block with free space o
 
 ## /msc dimtp <mundo>
 
-Teletransporta al ejecutor entre mundos/dimensiones. Se usa para probar el andamiaje de la dimensión del jefe y para saltar rápidamente entre overworld/nether/the_end.
+Teletransporta al ejecutor entre mundos/dimensiones. Se usa para probar el andamiaje de la dimensión del jefe y para saltar rápidamente entre overworld/nether/the_end. Mantiene tus coordenadas, salvo en `boss_dimension`, donde te lleva al spawn de la arena (`0.5, 41, 0.5`) para que nunca aparezcas fuera del borde del mundo.
 
 ---
 

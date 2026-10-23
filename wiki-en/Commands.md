@@ -316,7 +316,7 @@ Could not spawn the Monster for Steve: there is no solid block with free space o
 
 ## /msc dimtp <world>
 
-Teleports the executor across worlds/dimensions. Used for testing the boss dimension scaffolding and for quickly jumping between overworld/nether/the_end.
+Teleports the executor across worlds/dimensions. Used for testing the boss dimension scaffolding and for quickly jumping between overworld/nether/the_end. It keeps your coordinates, except in `boss_dimension`, where it takes you to the arena spawn (`0.5, 41, 0.5`) so you never land outside the world border.
 
 ---
 

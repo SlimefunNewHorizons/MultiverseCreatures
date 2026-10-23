@@ -195,6 +195,7 @@ final class CommandMenu {
         line(" &6&lInfo&8:");
         line("   &e• &fworld");
         line("      &7Teleport to a loaded dimension, keeping coordinates");
+        line("      &7boss_dimension: the arena spawn instead");
         line("      &7Worlds: &f" + worldList());
         footer();
     }

@@ -836,7 +836,10 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(YELLOW + "You are already in " + worldName + ".");
             return;
         }
-        Location teleportLoc = player.getLocation();
+        // The boss dimension is closed in by its border: the same coordinates can land far outside it.
+        Location teleportLoc = targetWorld.getName().equals(com.Chagui68.ritual.BossDimensionManager.WORLD_NAME)
+                ? com.Chagui68.ritual.terrain.WastelandGenerator.spawn(targetWorld)
+                : player.getLocation();
         teleportLoc.setWorld(targetWorld);
         player.teleportAsync(teleportLoc).thenAccept(success -> {
             if (success) {
