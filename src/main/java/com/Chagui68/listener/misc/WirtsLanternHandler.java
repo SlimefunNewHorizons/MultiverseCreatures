@@ -1,15 +1,22 @@
 package com.Chagui68.listener.misc;
 
 import com.Chagui68.items.misc.WirtsLantern;
+import com.Chagui68.ritual.BossDimensionManager;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.entity.AreaEffectCloudApplyEvent;
+import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -31,6 +38,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WirtsLanternHandler implements Listener {
+
+    /** Potion effects that hurt over time; instant damage lands as an ordinary damage event. */
+    private static final Set<PotionEffectType> DAMAGING_EFFECTS = Set.of(PotionEffectType.POISON, PotionEffectType.WITHER);
 
     private final Plugin plugin;
     private final Random random = new Random();
@@ -80,8 +90,14 @@ public class WirtsLanternHandler implements Listener {
         }
     }
 
+    /** Lantern in either hand, outside the Boss Dimension: inside it the lantern does nothing at all. */
     private boolean hasLantern(Player p) {
+        if (inBossDimension(p)) return false;
         return isLantern(p.getInventory().getItemInMainHand()) || isLantern(p.getInventory().getItemInOffHand());
+    }
+
+    private static boolean inBossDimension(Entity entity) {
+        return entity.getWorld().getName().equals(BossDimensionManager.WORLD_NAME);
     }
 
     private boolean isLantern(ItemStack item) {
@@ -133,18 +149,62 @@ public class WirtsLanternHandler implements Listener {
         e.setCancelled(true);
     }
 
+    /** A holder deals no damage to anything, players included, by any means that traces back to them. */
     @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-        Player damager = getPlayerDamager(e.getDamager());
-        if (damager == null) return;
-        if (!hasLantern(damager)) return;
-        if (e.getEntity() instanceof Player) return;
+    public void onHolderDealsDamage(EntityDamageEvent e) {
+        Player holder = owner(e.getDamageSource().getCausingEntity());
+        if (holder == null && e instanceof EntityDamageByEntityEvent byEntity) holder = owner(byEntity.getDamager());
+        if (holder == null || holder.equals(e.getEntity()) || !hasLantern(holder)) return;
         e.setCancelled(true);
     }
 
-    private Player getPlayerDamager(Entity damager) {
-        if (damager instanceof Player p) return p;
-        if (damager instanceof Projectile proj && proj.getShooter() instanceof Player p) return p;
+    /** Fire from a holder's flame arrows, fire aspect or fireballs. */
+    @EventHandler
+    public void onHolderIgnitesEntity(EntityCombustByEntityEvent e) {
+        Player holder = owner(e.getCombuster());
+        if (holder != null && !holder.equals(e.getEntity()) && hasLantern(holder)) e.setCancelled(true);
+    }
+
+    /** Poison and wither from a holder's splash potions: instant damage already goes through the damage event. */
+    @EventHandler
+    public void onHolderSplash(PotionSplashEvent e) {
+        if (!(e.getPotion().getShooter() instanceof Player holder) || !hasLantern(holder)) return;
+        if (e.getPotion().getEffects().stream().noneMatch(effect -> DAMAGING_EFFECTS.contains(effect.getType()))) return;
+        for (LivingEntity affected : e.getAffectedEntities()) {
+            if (!affected.equals(holder)) e.setIntensity(affected, 0);
+        }
+    }
+
+    /** The same for a holder's lingering clouds. */
+    @EventHandler
+    public void onHolderCloud(AreaEffectCloudApplyEvent e) {
+        if (!(e.getEntity().getSource() instanceof Player holder) || !hasLantern(holder)) return;
+        AreaEffectCloud cloud = e.getEntity();
+        boolean damaging = cloud.getCustomEffects().stream().anyMatch(effect -> DAMAGING_EFFECTS.contains(effect.getType()))
+                || (cloud.getBasePotionType() != null && cloud.getBasePotionType().getPotionEffects().stream()
+                        .anyMatch(effect -> DAMAGING_EFFECTS.contains(effect.getType())));
+        if (damaging) e.getAffectedEntities().removeIf(affected -> !affected.equals(holder));
+    }
+
+    /** No lava poured while holding it. */
+    @EventHandler
+    public void onHolderPoursLava(PlayerBucketEmptyEvent e) {
+        if (e.getBucket() == Material.LAVA_BUCKET && hasLantern(e.getPlayer())) e.setCancelled(true);
+    }
+
+    /** No fire lit while holding it. */
+    @EventHandler
+    public void onHolderLightsFire(BlockIgniteEvent e) {
+        if (e.getPlayer() != null && hasLantern(e.getPlayer())) e.setCancelled(true);
+    }
+
+    /** The player behind a damage source: themselves, their projectile, TNT, potion cloud or tamed pet. */
+    private Player owner(Entity source) {
+        if (source instanceof Player p) return p;
+        if (source instanceof Projectile proj && proj.getShooter() instanceof Player p) return p;
+        if (source instanceof TNTPrimed tnt) return owner(tnt.getSource());
+        if (source instanceof AreaEffectCloud cloud && cloud.getSource() instanceof Player p) return p;
+        if (source instanceof Tameable pet && pet.getOwner() instanceof Player p) return p;
         return null;
     }
 
@@ -163,6 +223,12 @@ public class WirtsLanternHandler implements Listener {
         checkLantern(e.getPlayer());
     }
 
+    /** Into the Boss Dimension the lantern goes dark; out of it, it lights again. */
+    @EventHandler
+    public void onChangedWorld(PlayerChangedWorldEvent e) {
+        checkLantern(e.getPlayer());
+    }
+
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         activeRepel.remove(e.getPlayer().getUniqueId());
@@ -171,14 +237,14 @@ public class WirtsLanternHandler implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
         ItemStack item = e.getItem();
-        if (item == null || !isLantern(item)) return;
+        if (item == null || !isLantern(item) || inBossDimension(e.getPlayer())) return;
         e.setCancelled(true);
     }
 
     @EventHandler
     public void onArmorStandManipulate(PlayerArmorStandManipulateEvent e) {
         ItemStack item = e.getPlayerItem();
-        if (item == null || !isLantern(item)) return;
+        if (item == null || !isLantern(item) || inBossDimension(e.getPlayer())) return;
         e.setCancelled(true);
     }
 
