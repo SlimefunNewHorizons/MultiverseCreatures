@@ -40,6 +40,32 @@ boss-balance:
     per-toughness-point: 0.015
     per-protection-level: 0.01    # summed over the four armour pieces
     max-factor: 5.0
+  # Keeps DIO, Nix, the Sentinel and JackStar as hard for a group as for one player. Every term counts
+  # players beyond the first (valid players within radius blocks), so a solo fight is unchanged.
+  group-scaling:
+    enabled: true
+    radius: 100.0
+    health-per-player: 0.30            # max health +30% per extra player, health % kept
+    damage-reduction-per-player: 0.15  # the boss takes 15% less per extra player...
+    max-damage-reduction: 0.75         # ...never more than this in total
+    # A boss hit on a player grows for every other player within radius blocks of them (every boss).
+    crowd:
+      radius: 5.0
+      damage-per-player: 0.15
+      max-players: 4
+    # Losing health-lost of its max health within window-seconds while at least min-players fight it
+    # enrages the boss: every player in radius is left at health-left HP (absorption removed) and
+    # thrown to launch-distance blocks from it (the landing deals no fall damage); for
+    # duration-seconds it takes damage x damage-taken.
+    enrage:
+      enabled: true
+      health-lost: 0.10
+      window-seconds: 8.0
+      min-players: 3
+      health-left: 2.0
+      launch-distance: 20.0
+      duration-seconds: 8.0
+      damage-taken: 0.5
   # A boss with no player (spectators do not count) within radius blocks for delay-ticks is removed,
   # so an abandoned fight stops costing the server. large-radius is for colossal bosses (the Wither
   # Storm's Destroyer and Devourer). Applies to every MultiverseCreatures boss.

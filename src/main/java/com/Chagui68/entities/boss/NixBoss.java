@@ -1457,8 +1457,10 @@ public class NixBoss implements Listener {
 
     private void reduceHealth(ArmorStand stand, double damage) {
         stand.setNoDamageTicks(0);
+        // Scaled first: it may rescale the max health, which the current health is read against.
+        double applied = BossGroupScaling.incoming(stand, capIncomingDamage(damage, maxDamagePerHit));
         double currentHealth = MscEntityUtils.getVirtualHealth(stand);
-        double newHealth = Math.max(0, currentHealth - capIncomingDamage(damage, maxDamagePerHit));
+        double newHealth = Math.max(0, currentHealth - applied);
         MscEntityUtils.setVirtualHealth(stand, newHealth);
 
         NixInstance inst = activeInstances.get(stand.getUniqueId());

@@ -2260,6 +2260,8 @@ public class JackStarBoss implements Listener {
         // Dead already: a hit still on its way (from inside a shared one) must not kill him twice.
         if (inst == null || !stand.isValid()) return;
         stand.setNoDamageTicks(0);
+        // Scaled first: it may rescale the max health, which the current health is read against.
+        damage = BossGroupScaling.incoming(stand, damage);
         double currentHealth = MscEntityUtils.getVirtualHealth(stand);
         double newHealth = currentHealth - damage;
 

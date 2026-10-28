@@ -161,6 +161,7 @@ public class MultiverseCreatures extends JavaPlugin {
         // reads the config.
         com.Chagui68.utils.MscConfigMigration.run(this);
         com.Chagui68.entities.boss.BossDamageScaling.load(getConfig());
+        com.Chagui68.entities.boss.BossGroupScaling.load(getConfig());
         com.Chagui68.entities.boss.BossDespawn.load(getConfig());
         com.Chagui68.entities.boss.fx.ParticleBudget.load(getConfig());
         com.Chagui68.stand.HeadModels.init(this);
@@ -224,6 +225,7 @@ public class MultiverseCreatures extends JavaPlugin {
         MobHandler mobHandler = new MobHandler(this);
         getServer().getPluginManager().registerEvents(mobHandler, this);
         getServer().getPluginManager().registerEvents(bossDamageLog, this);
+        getServer().getPluginManager().registerEvents(new com.Chagui68.entities.boss.BossGroupScaling.FallGuard(), this);
         getServer().getPluginManager().registerEvents(new com.Chagui68.entities.boss.BossInfinityRules(this), this);
         // El tope de poblacion se calcula aqui, fuera de CreatureSpawnEvent: contar
         // entidades dentro del evento rompe el iterador del mundo. Cada 5 s basta.

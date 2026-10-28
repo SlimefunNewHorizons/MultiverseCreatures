@@ -1390,7 +1390,7 @@ public class DioBoss implements Listener {
     private void hurt(ArmorStand stand, Player attacker, double damage) {
         DioInstance inst = active.get(stand.getUniqueId());
         if (inst == null) return;
-        double applied = Math.min(damage, maxDamagePerHit > 0 ? maxDamagePerHit : damage);
+        double applied = BossGroupScaling.incoming(stand, Math.min(damage, maxDamagePerHit > 0 ? maxDamagePerHit : damage));
         double left = Math.max(0, MscEntityUtils.getVirtualHealth(stand) - applied);
         MscEntityUtils.setVirtualHealth(stand, left);
         Fx fx = LiveStage.fxIn(stand.getWorld());

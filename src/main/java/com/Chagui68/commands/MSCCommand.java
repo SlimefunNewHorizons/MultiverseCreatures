@@ -475,6 +475,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
         // handlers below read their values, so this reload applies everything the jar ships.
         Set<String> added = MscConfigMigration.run(plugin);
         com.Chagui68.entities.boss.BossDamageScaling.load(plugin.getConfig());
+        com.Chagui68.entities.boss.BossGroupScaling.load(plugin.getConfig());
         com.Chagui68.entities.boss.BossDespawn.load(plugin.getConfig());
         com.Chagui68.entities.boss.fx.ParticleBudget.load(plugin.getConfig());
         mobHandler.reloadConfig();

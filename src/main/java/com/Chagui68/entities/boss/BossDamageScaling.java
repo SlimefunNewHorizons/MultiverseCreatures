@@ -89,10 +89,11 @@ public final class BossDamageScaling {
         return Math.max(1.0, Math.min(Math.max(1.0, w.maxFactor()), total));
     }
 
-    /** The factor for a hit on {@code player} with the configured weights. */
+    /** The factor for a hit on {@code player} with the configured weights, times the crowding penalty. */
     public static double factor(Player player, boolean armorIgnored) {
-        if (player == null || !weights.enabled()) return 1.0;
-        return factor(snapshot(player), weights, armorIgnored);
+        if (player == null) return 1.0;
+        double invested = weights.enabled() ? factor(snapshot(player), weights, armorIgnored) : 1.0;
+        return invested * BossGroupScaling.crowd(player);
     }
 
     /** Reads everything the factor needs off a live player. */

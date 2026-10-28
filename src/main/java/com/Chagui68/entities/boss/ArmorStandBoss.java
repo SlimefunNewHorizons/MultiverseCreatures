@@ -1944,7 +1944,8 @@ public class ArmorStandBoss implements Listener, BossHost {
             // only plays the effects the resolved hit calls for.
             SentinelDefense.Result hit = SentinelDefense.from(instance, maxDamagePerHit).resolve(incoming, random.nextDouble());
             // Obsidian Hide: the phase passive takes its share after the defences and the cap.
-            double damage = hit.applied() * SentinelPassives.forPhase(instance == null ? 0 : instance.currentPhase).damageTaken();
+            double damage = BossGroupScaling.incoming(stand,
+                    hit.applied() * SentinelPassives.forPhase(instance == null ? 0 : instance.currentPhase).damageTaken());
 
             if (instance != null) {
                 if (instance.invulnerable) {
