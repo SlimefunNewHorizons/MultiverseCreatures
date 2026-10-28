@@ -147,14 +147,18 @@ public final class VampireManager implements Listener {
                 .deserialize(raw.replace("%player%", player.getName())));
     }
 
-    /** Drinking the Bearer's Elixir: DIO's blood takes the body. */
+    /** Drinking the Bearer's Elixir: DIO's blood takes the body. A bearer cured by Hamon can drink it again. */
     @EventHandler(ignoreCancelled = true)
     public void onDrink(PlayerItemConsumeEvent event) {
+        if (VampirePotions.isHamonTonic(event.getItem())) {
+            drinkHamon(event);
+            return;
+        }
         if (!VampirePotions.isBearerElixir(event.getItem())) {
             return;
         }
         Player player = event.getPlayer();
-        if (StandData.isBearer(player)) {
+        if (StandData.isVampire(player)) {
             player.sendMessage(Component.text("DIO's blood already runs through your veins.", DARK_RED));
             return;
         }
@@ -170,6 +174,39 @@ public final class VampireManager implements Listener {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.6f, 1.6f);
         player.getWorld().spawnParticle(Particle.DUST, player.getLocation().add(0, 1, 0), 60, 0.5, 0.9, 0.5, 0,
                 new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(0x6B0000), 1.5f));
+    }
+
+    /**
+     * Drinking the Hamon Tonic: the Ripple burns DIO's blood out. The player stops being a vampire
+     * but stays a bearer, so their Stand and the Arrow's protection are kept. Without vampire blood
+     * there is nothing to burn and the tonic is not used up.
+     */
+    private void drinkHamon(PlayerItemConsumeEvent event) {
+        Player player = event.getPlayer();
+        if (!StandData.isVampire(player)) {
+            event.setCancelled(true);
+            player.sendMessage(Component.text("No vampire blood runs in your veins.", YELLOW));
+            return;
+        }
+        StandData.cureVampirism(player);
+        // Only the perks the night gave (ambient effects), never a potion the player drank.
+        for (PotionEffectType type : List.of(PotionEffectType.NIGHT_VISION, PotionEffectType.STRENGTH,
+                PotionEffectType.SPEED)) {
+            PotionEffect effect = player.getPotionEffect(type);
+            if (effect != null && effect.isAmbient()) {
+                player.removePotionEffect(type);
+            }
+        }
+        smoking.remove(player.getUniqueId());
+        player.setVisualFire(false);
+        player.showTitle(Title.title(Component.text("HAMON", YELLOW, TextDecoration.BOLD),
+                Component.text("The sun spares you again. Your Stand stays", GRAY),
+                Title.Times.times(Duration.ofMillis(400), Duration.ofSeconds(4), Duration.ofSeconds(1))));
+        player.sendMessage(MscText.rich(YELLOW, "✦ ", GRAY, "The Ripple burns DIO's blood out of you. You are no "
+                + "longer a ", DARK_RED, "vampire", GRAY, ", but your body still holds your ", GOLD, "Stand", GRAY, "."));
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.6f);
+        player.getWorld().spawnParticle(Particle.DUST, player.getLocation().add(0, 1, 0), 60, 0.5, 0.9, 0.5, 0,
+                new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(0xFFD84A), 1.5f));
     }
 
     /** A vampire drinks back part of the damage of every blow. */

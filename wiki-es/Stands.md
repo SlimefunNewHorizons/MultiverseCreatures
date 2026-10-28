@@ -6,6 +6,7 @@ Stand: la Flecha ya no puede matarte y siempre despierta tu Stand.
 ```
 Archer of the Arrow ──(2% de sus disparos)──► la Flecha
 DIO ──► Vampire Blood ──► Unstable Blood ──► Bearer's Elixir ──► vampiro + portador de Stand
+Hamon Tonic ──► deja de ser vampiro, sigue siendo portador, el Stand se queda
 portador ──► la Flecha siempre despierta un Stand
 sin Elixir ──► 70% muerte (marcado indigno) / 30% despierta un Stand
 ```
@@ -64,6 +65,21 @@ Las dos pociones no tienen tipo vanilla, así que ninguna receta vanilla las pue
     - *%player% quiso desafiar al sol como DIO... y el sol ganó*
   - 🌙 **La noche es tuya**: Fuerza I y Velocidad I de noche, visión nocturna siempre y robo de
     vida del 15% en los golpes cuerpo a cuerpo (`vampire.lifesteal`).
+
+### Curarlo: el Hamon Tonic
+
+| Base | Ingrediente | Resultado |
+|---|---|---|
+| Poción Rara | Manzana de oro encantada | **Hamon Tonic** |
+
+Al beberlo, el Hamon quema la sangre de DIO:
+
+- **Dejas de ser vampiro**: el sol ya no te quema y pierdes las ventajas nocturnas y el robo de
+  vida (la Visión nocturna, Fuerza y Velocidad de la noche se quitan al momento; las pociones que
+  bebiste tú se quedan).
+- **Sigues siendo portador** y **conservas tu Stand**: la Flecha sigue sin poder matarte.
+- Si no tienes sangre de vampiro no hace nada y no se gasta.
+- Volver a beber el Bearer's Elixir te convierte otra vez en vampiro.
 
 ---
 
@@ -142,5 +158,5 @@ ahora es el núcleo del Architect's Deployer.
 | `/stand vampire <jugador> <on\|off>` | `msc.admin` | Da o cura la sangre de DIO |
 | `/stand arrow <jugador>` | `msc.admin` | Atraviesa al jugador con la Flecha (prueba) |
 
-`/msc give` incluye `vampireblood`, `unstableblood`, `bearerelixir`, `executioneredge`,
+`/msc give` incluye `vampireblood`, `unstableblood`, `bearerelixir`, `hamontonic`, `executioneredge`,
 `executionerguillotine` y `architectdeployer`.

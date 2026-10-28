@@ -57,6 +57,11 @@ public final class StandData {
         data.remove(VAMPIRE);
     }
 
+    /** What the Hamon Tonic does: no longer a vampire, but still a bearer, and the Stand stays. */
+    public static void cureVampirism(Player player) {
+        player.getPersistentDataContainer().remove(VAMPIRE);
+    }
+
     /** The player's Stand, or null. */
     public static StandType stand(Player player) {
         return StandType.byKey(player.getPersistentDataContainer().get(STAND, PersistentDataType.STRING));

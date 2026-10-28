@@ -14,21 +14,24 @@ import java.util.List;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 /**
- * The two potions brewed from DIO's blood.
+ * The two potions brewed from DIO's blood, and the one that undoes it.
  *
  * <ol>
  *   <li><b>Unstable Blood</b>: Awkward Potion + Vampire Blood.</li>
  *   <li><b>Bearer's Elixir</b>: Unstable Blood + Wither Rose. Drinking it turns the
  *   player into a vampire who can carry a Stand.</li>
+ *   <li><b>Hamon Tonic</b>: Awkward Potion + Enchanted Golden Apple. Drinking it cures the
+ *   vampirism; the player stays a bearer and keeps their Stand.</li>
  * </ol>
  *
- * <p>Neither has a vanilla potion type, so no vanilla brewing recipe can turn them into
+ * <p>None has a vanilla potion type, so no vanilla brewing recipe can turn them into
  * something else.</p>
  */
 public final class VampirePotions {
 
     public static final NamespacedKey UNSTABLE_KEY = new NamespacedKey("multiversecreatures", "msc_unstable_blood");
     public static final NamespacedKey ELIXIR_KEY = new NamespacedKey("multiversecreatures", "msc_bearer_elixir");
+    public static final NamespacedKey HAMON_KEY = new NamespacedKey("multiversecreatures", "msc_hamon_tonic");
 
     public static final ItemStack UNSTABLE_BLOOD = potion(UNSTABLE_KEY, Color.fromRGB(0x8B0A0A),
             MscText.title(RED, "Unstable Blood"), List.of(
@@ -62,6 +65,22 @@ public final class VampirePotions {
                     MscText.blank(),
                     MscText.footer("Jojos")));
 
+    public static final ItemStack HAMON_TONIC = potion(HAMON_KEY, Color.fromRGB(0xFFD84A),
+            MscText.title(YELLOW, "Hamon Tonic"), List.of(
+                    MscText.line(GRAY, "Water charged with the Ripple,"),
+                    MscText.line(GRAY, "the breath of the sun itself."),
+                    MscText.blank(),
+                    MscText.line(WHITE, "Effect on Consume:"),
+                    MscText.rich(YELLOW, "  ▸ ", GRAY, "Burns DIO's blood out: you are no"),
+                    MscText.rich(GRAY, "    longer a ", DARK_RED, "vampire", GRAY, " and the sun spares you"),
+                    MscText.rich(YELLOW, "  ▸ ", GRAY, "You stay a ", GOLD, "Stand bearer", GRAY, " and keep"),
+                    MscText.line(GRAY, "    your Stand"),
+                    MscText.rich(RED, "  ✖ ", GRAY, "No more night perks or life steal"),
+                    MscText.blank(),
+                    MscText.quote(DARK_PURPLE, "\"Hamon is the energy of the sun.\""),
+                    MscText.blank(),
+                    MscText.footer("Jojos")));
+
     private VampirePotions() {
     }
 
@@ -88,5 +107,9 @@ public final class VampirePotions {
 
     public static boolean isBearerElixir(ItemStack item) {
         return has(item, ELIXIR_KEY);
+    }
+
+    public static boolean isHamonTonic(ItemStack item) {
+        return has(item, HAMON_KEY);
     }
 }

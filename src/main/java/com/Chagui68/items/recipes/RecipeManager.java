@@ -531,8 +531,14 @@ public class RecipeManager {
         NamespacedKey unstable = key("unstable_blood_brew");
         NamespacedKey elixir = key("bearer_elixir_brew");
         var brewer = Bukkit.getPotionBrewer();
+        NamespacedKey hamon = key("hamon_tonic_brew");
         brewer.removePotionMix(unstable);
         brewer.removePotionMix(elixir);
+        brewer.removePotionMix(hamon);
+        // The cure: the sun's power of an Enchanted Golden Apple, brewed into an Awkward Potion.
+        brewer.addPotionMix(new PotionMix(hamon, VampirePotions.HAMON_TONIC.clone(),
+                PotionMix.createPredicateChoice(RecipeManager::isAwkwardPotion),
+                new RecipeChoice.MaterialChoice(Material.ENCHANTED_GOLDEN_APPLE)));
         brewer.addPotionMix(new PotionMix(unstable, VampirePotions.UNSTABLE_BLOOD.clone(),
                 PotionMix.createPredicateChoice(RecipeManager::isAwkwardPotion),
                 exact(VampireBlood.VAMPIRE_BLOOD.clone())));

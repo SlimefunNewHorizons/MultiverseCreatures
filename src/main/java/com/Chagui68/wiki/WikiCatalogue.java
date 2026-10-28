@@ -253,6 +253,16 @@ public final class WikiCatalogue {
                         "Jack Star lanza galletas de depuración durante su combate."))
                 .recipe(() -> trade(of(Material.DIAMOND, 20), null, amount(ScoobyCookie.SCOOBY_COOKIE, 5)))
                 .build());
+        list.add(WikiEntry.item("hamontonic", CONSUMABLES, () -> VampirePotions.HAMON_TONIC)
+                .about("Drink it to stop being a vampire: the sun no longer burns you and the night perks and life "
+                                + "steal are gone. You stay a Stand bearer and keep your Stand. The Bearer's Elixir "
+                                + "makes you a vampire again.",
+                        "Bébelo para dejar de ser vampiro: el sol ya no te quema y pierdes las ventajas nocturnas y "
+                                + "el robo de vida. Sigues siendo portador de Stand y conservas tu Stand. El Bearer's "
+                                + "Elixir te vuelve vampiro otra vez.")
+                .recipe(() -> WikiRecipe.brewing(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), awkwardPotion(),
+                        VampirePotions.HAMON_TONIC.clone()))
+                .build());
         list.add(WikiEntry.item("headslimegelatin", CONSUMABLES, () -> HeadSlimeGelatin.HEAD_SLIME_GELATIN).build());
         list.add(WikiEntry.item("unstableblood", CONSUMABLES, () -> VampirePotions.UNSTABLE_BLOOD)
                 .recipe(() -> WikiRecipe.brewing(VampireBlood.VAMPIRE_BLOOD.clone(), awkwardPotion(),
@@ -468,9 +478,11 @@ public final class WikiCatalogue {
         list.add(WikiEntry.info("vampirism", STANDS, Material.RED_DYE, NamedTextColor.DARK_RED,
                         "Vampirism", "Vampirismo")
                 .about("The Bearer's Elixir also makes you a vampire: Strength and Speed at night, Night Vision and "
-                                + "life steal. The sun burns you with true damage under the open sky.",
+                                + "life steal. The sun burns you with true damage under the open sky. The Hamon Tonic "
+                                + "cures it and lets you keep your Stand.",
                         "El Bearer's Elixir también te convierte en vampiro: Fuerza y Velocidad de noche, Visión "
-                                + "nocturna y robo de vida. El sol te quema con daño verdadero bajo el cielo abierto.")
+                                + "nocturna y robo de vida. El sol te quema con daño verdadero bajo el cielo abierto. El "
+                                + "Hamon Tonic lo cura y te deja conservar tu Stand.")
                 .build());
         stand(list, StandType.HERMIT_PURPLE,
                 "Thorned purple vines coil round your arm.",

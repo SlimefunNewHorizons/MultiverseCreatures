@@ -6,6 +6,7 @@ Arrow can no longer kill you and always awakens your Stand.
 ```
 Archer of the Arrow ──(2% of its shots)──► the Arrow
 DIO ──► Vampire Blood ──► Unstable Blood ──► Bearer's Elixir ──► vampire + Stand bearer
+Hamon Tonic ──► no longer a vampire, still a bearer, the Stand stays
 bearer ──► the Arrow always awakens a Stand
 no Elixir ──► 70% death (marked unworthy) / 30% a Stand awakens
 ```
@@ -61,6 +62,21 @@ Neither potion has a vanilla type, so no vanilla recipe can turn them into somet
   - Dying to the sun shows its own death message, one of three (`vampire.sun-death-messages`).
   - 🌙 **The night is yours**: Strength I and Speed I at night, night vision always and 15%
     lifesteal on melee hits (`vampire.lifesteal`).
+
+### Curing it: the Hamon Tonic
+
+| Base | Ingredient | Result |
+|---|---|---|
+| Awkward Potion | Enchanted Golden Apple | **Hamon Tonic** |
+
+Drinking it burns DIO's blood out with the Ripple:
+
+- You are **no longer a vampire**: the sun stops burning you, and the night perks and lifesteal
+  are gone (the night's own Night Vision, Strength and Speed are removed at once; potions you
+  drank yourself stay).
+- You **stay a Stand bearer** and **keep your Stand**: the Arrow still cannot kill you.
+- Without vampire blood in you it does nothing and is not used up.
+- Drinking the Bearer's Elixir again makes you a vampire once more.
 
 ---
 
@@ -138,5 +154,5 @@ now the core of the Deployer.
 | `/stand vampire <player> <on\|off>` | `msc.admin` | Gives or cures DIO's blood |
 | `/stand arrow <player>` | `msc.admin` | Pierces the player with the Arrow (testing) |
 
-`/msc give` includes `vampireblood`, `unstableblood`, `bearerelixir`, `executioneredge`,
+`/msc give` includes `vampireblood`, `unstableblood`, `bearerelixir`, `hamontonic`, `executioneredge`,
 `executionerguillotine` and `architectdeployer`.

@@ -134,7 +134,8 @@ final class GiveCatalogue {
             "scoobycookie &8- &6Mystery Scooby Snack (Food)",
             "executioneredge &8- &4NIX Axe Shard",
             "witherstormhead &8- &5Wither Storm Boss Trophy",
-            "vampireblood &8/ &eunstableblood &8/ &ebearerelixir &8- &4DIO Blood & Elixir");
+            "vampireblood &8/ &eunstableblood &8/ &ebearerelixir &8- &4DIO Blood & Elixir",
+            "hamontonic &8- &eVampirism Cure (keeps the Stand)");
 
     private static final List<String> PAGE_4 = List.of(
             "reaperessence &8/ &evoidessence &8/ &ewheelessence &8- &7Essences",
@@ -162,6 +163,7 @@ final class GiveCatalogue {
             new Entry("unstableblood", () -> com.Chagui68.items.potions.VampirePotions.UNSTABLE_BLOOD),
             new Entry("bearerelixir",
                     () -> com.Chagui68.items.potions.VampirePotions.BEARER_ELIXIR),
+            new Entry("hamontonic", () -> com.Chagui68.items.potions.VampirePotions.HAMON_TONIC),
             new Entry("executioneredge",
                     () -> com.Chagui68.items.components.ExecutionerEdge.EXECUTIONER_EDGE),
             new Entry("executionerguillotine",

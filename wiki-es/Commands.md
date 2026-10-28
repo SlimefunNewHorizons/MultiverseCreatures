@@ -118,6 +118,7 @@ La cantidad por defecto es 1 y puede ser de 1 a 64. Sin destino el objeto va al 
 | `vampireblood` |
 | `unstableblood` |
 | `bearerelixir` |
+| `hamontonic` |
 
 ### Componentes
 
