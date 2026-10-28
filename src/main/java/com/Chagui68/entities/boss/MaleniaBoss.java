@@ -137,6 +137,14 @@ public class MaleniaBoss implements Listener {
         }
     }
 
+    /** Whether Malenia is fighting in {@code world}; her ritual and the Boss Dimension's rules ask. */
+    public boolean isBossActiveIn(World world) {
+        for (Instance inst : active.values()) {
+            if (inst.stand.isValid() && inst.stand.getWorld().equals(world)) return true;
+        }
+        return false;
+    }
+
     public boolean trySpawn(Location location) {
         if (!plugin.isEnabled("entities.malenia") || location.getWorld() == null) return false;
         Location at = location.clone();

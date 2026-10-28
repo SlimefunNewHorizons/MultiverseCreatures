@@ -25,6 +25,7 @@ class InvocationStructuresTest {
         return Stream.of(
                 Arguments.of("NIX", NixInvocationStructure.CANDLE_OFFSETS, NixInvocationStructure.CORNER_OFFSETS),
                 Arguments.of("DIO", DioInvocationStructure.CANDLE_OFFSETS, DioInvocationStructure.CORNER_OFFSETS),
+                Arguments.of("Malenia", MaleniaInvocationStructure.CANDLE_OFFSETS, MaleniaInvocationStructure.CORNER_OFFSETS),
                 Arguments.of("Jack Star", JackInvocationStructure.CANDLE_OFFSETS, JackInvocationStructure.CORNER_OFFSETS),
                 Arguments.of("Pantheon", PantheonAltarStructure.CANDLE_OFFSETS, PantheonAltarStructure.CORNER_OFFSETS));
     }
@@ -52,6 +53,7 @@ class InvocationStructuresTest {
         assertLocation(12.5, 50.5, -17.5, NixInvocationStructure.getAnvilLocation(origin), "NIX's anvil");
         assertLocation(12.5, 51.0, -17.5, DioInvocationStructure.getThroneLocation(origin), "DIO's throne");
         assertLocation(12.5, 51.0, -17.5, PantheonAltarStructure.getAltarLocation(origin), "the pantheon altar");
+        assertLocation(12.5, 51.0, -17.5, MaleniaInvocationStructure.getHeartLocation(origin), "Malenia's heart");
 
         Location ground = new Location(null, 0, 60, 0);
         List<Location> gallows = NixInvocationStructure.getCornerGallowsLocations(ground);

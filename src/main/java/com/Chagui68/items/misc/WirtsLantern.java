@@ -27,10 +27,13 @@ public class WirtsLantern {
             lore.add(MscText.blank());
             lore.add(MscText.line(WHITE, "Passive:"));
             lore.add(MscText.rich(YELLOW, "  ▸ ", GRAY, "Repels hostile mobs in a radius"));
+            lore.add(MscText.rich(YELLOW, "  ▸ ", GRAY, "Mobs cannot harm you"));
+            lore.add(MscText.rich(RED, "  ▸ ", GRAY, "You cannot harm anything"));
+            lore.add(MscText.rich(RED, "  ▸ ", GRAY, "Goes dark in the Boss Dimension"));
             lore.add(MscText.blank());
             lore.add(MscText.quote(DARK_PURPLE, "\"The flame knows no winter.\""));
             lore.add(MscText.blank());
-            lore.add(MscText.footer("Khand"));
+            lore.add(MscText.footer("The Unknown"));
 
             meta.lore(lore);
             meta.getPersistentDataContainer().set(WIRTS_LANTERN_KEY, PersistentDataType.INTEGER, 1);

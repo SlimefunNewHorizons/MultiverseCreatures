@@ -19,7 +19,7 @@ Un ArmorStand animado gigante de escala 7.5×. El clímax del plugin. A diferenc
 | Barra de jefe | `SEGMENTED_6`, roja → azul a lo largo de las fases (ver `phase-thresholds`) |
 | Música | `Undertale — Megalovania` (radio de 60 bloques, se detiene al morir) |
 | Equipamiento | Netherita completa (trim Amatista/Silencio) + Lanza de Netherita + Escudo irrompible |
-| Invocación | `/msc spawn armorstand` |
+| Invocación | **El Círculo de Invocación** en la Dimensión del Jefe: 12 velas rojas encendidas en un anillo de 5×5 y un Fragmento de Eco soltado en el centro (mira [Dimensión Ritual](./Ritual-Dimension.md)) · `/msc spawn armorstand` (OP) |
 
 ### Fases (las transiciones ocurren según el umbral de HP)
 
@@ -209,8 +209,7 @@ Un rey de ajedrez viviente: un ArmorStand invisible vestido con un traje de 15 p
 | Rango / radio / daño cuerpo a cuerpo | `kinger.melee-range` (3) · `kinger.melee-radius` (3.5) · `kinger.melee-damage` (8) |
 | Rango / daño a distancia | `kinger.ranged-range` (30) · `kinger.ranged-damage` (6) |
 | Cooldowns | cuerpo a cuerpo 25 ticks · a distancia 45 ticks |
-| Invocación | `/msc spawn kinger` — **o** coloca un ArmorStand |
-| Reemplazo de ArmorStand | `kinger.spawn-on-armorstand-chance` (0.01 = 1% de los ArmorStands colocados se convierten en Kinger; pon 0 para desactivar) — respeta `kinger.enabled` |
+| Invocación | `/msc spawn kinger` (OP). Cómo aparece en supervivencia es un secreto. |
 
 ### Comportamiento de la IA
 
@@ -240,7 +239,11 @@ El modelo de block displays de `/msc debug model malenia`, peleando con los mism
 | Espada / tajos / aterrizaje | `malenia.blade-damage` (12) · `malenia.slash-damage` (4) · `malenia.ring-damage` (10) |
 | Robo de vida | `malenia.lifesteal` (0.5 — cada golpe que da la cura la mitad de su daño) |
 | Enfriamientos | `malenia.attack-cooldown-ticks` (20) · `malenia.waterfowl-cooldown-ticks` (400) |
-| Invocación | `/msc spawn malenia` |
+| Ritual de invocación | **La Flor Escarlata** en la Dimensión del Jefe (ofrenda: una Antorchaflor) · `/msc spawn malenia` (OP) |
+
+### Invocación
+
+En la Dimensión del Jefe construye **la Flor Escarlata**: un bloque de verruga del Nether en el centro, 4 velas magenta a su lado y un pilar en cada esquina del 5×5 (hifas carmesí con un brillongo encima). Enciende las velas, haz clic derecho en una y suelta una **Antorchaflor** sobre el corazón: florece una flor escarlata y Malenia surge de ella. La estructura completa está en [Dimensión Ritual](./Ritual-Dimension.md); `/mscwiki malenia` la muestra en el juego.
 
 ### Ataques
 
@@ -254,6 +257,23 @@ Camina hacia el jugador más cercano y elige un ataque según la distancia:
 Su **espada** golpea a quien atraviesa, una vez por tajo. Los **tajos** del Torbellino y de la Danza golpean a todos a menos de 2.6 bloques cada 4 ticks. Un **aterrizaje** golpea a todos a menos de 4 bloques y los lanza. Su daño escala con el equipo del jugador, como el de Kinger y Garou. Solo los jugadores le hacen daño; el fuego, las caídas y las explosiones no.
 
 **Muerte:** elimina su cuerpo y su barra, suelta 500 de XP y transmite uno de los `malenia.death-messages`.
+
+---
+
+## 👊 Garou — Minijefe (One-Punch Man)
+
+El Cazador de Héroes, un artista marcial que pelea con las manos desnudas y contraataca los golpes que recibe.
+
+| Estadística | Por defecto |
+|---|---|
+| Vida | `garou.health` (1800) |
+| Tope por golpe | `garou.max-damage-per-hit` (10) |
+| Daño | `garou.attack-damage` (28) · `garou.skill-damage` (16) · `garou.counter-damage` (14) |
+| Contraataque | `garou.counter-chance` (0.25), como mucho una vez cada `garou.counter-cooldown-ms` (3000) |
+| Invocación | `/msc spawn garou` (OP) |
+| Aparición natural | `garou.spawn-chance` (0.15%) — reemplaza a Esqueletos Wither |
+
+**Botín:** siempre el **Garou Cosmic Core**.
 
 ---
 
@@ -320,7 +340,7 @@ Cinco fases, tres vidas y un cuerpo construido con once cabezas de skin.
 | Daño | `melee-damage` (16) · `slam-damage` (20) · `sigkill-damage` (35) |
 | Defensas | esquive Ultra Instinct `dodge-chance` (0.22) · `packet-loss-chance` (0.25) descarta proyectiles · muros cortafuegos, firejail y telarañas |
 | Agro / velocidad / alcance | `aggro-range` (32.0) · `move-speed` (0.32) · `melee-range` (3.8) |
-| Ritual de invocación | Ritual **The System Architect** en la Dimensión del Jefe · `/msc spawn jack` (OP) |
+| Ritual de invocación | **La Terminal del Multiverso** en la Dimensión del Jefe (ofrenda: una Estrella del Nether, Fragmento de Eco, Corazón del Mar, Faro o Architect Kernel; mira [Dimensión Ritual](./Ritual-Dimension.md)) · `/msc spawn jack` (OP) |
 
 ### Modelo
 

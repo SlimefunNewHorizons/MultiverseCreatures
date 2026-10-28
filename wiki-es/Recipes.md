@@ -527,6 +527,7 @@ I M I
 | Bastión de Obsidiana (×4) | `obsidian_bastion_*` | muy alta |
 | Gelatina de Head Slime | `head_slime_gelatin` | baja |
 | Mina Militar | `military_mine` | media |
+| Edelwood Sap → Oil → Pottsfield Gourd → Beatrice's Feather → The Beast's Antler | `edelwood_sap` `edelwood_oil` `pottsfield_gourd` `beatrice_feather` `beast_antler` | muy alta (cadena de 5 pasos para la Linterna de Wirt; ver [Componentes](./Components.md)) |
 
 **No crafteable:** Núcleo Centinela — drop exclusivo del jefe (Centinela de Obsidiana).
 
@@ -540,7 +541,7 @@ Estos objetos intencionadamente **no tienen receta de crafteo**. Provienen de dr
 |---|---|
 | **Excalibur** (NETHERITE_SWORD) | Intercambio: 16 Núcleos Estelares + 32 Lingotes de Netherita (`MobHandler.equipWanderingVillager`) |
 | **Corona del Rey Helado** | Intercambio: 48 Estrellas del Nether + 64 Hielo Azul |
-| **Linterna de Wirt** | Intercambio: 32 Arena de Almas + 16 Tierra de Almas |
+| **Linterna de Wirt** | Intercambio: The Beast's Antler + Edelwood Oil (ambos crafteados, final de la cadena de Edelwood) |
 | **Garras de Mantis** | Intercambio: 16 Lingotes de Hierro + 8 Cuerdas |
 | **Galleta de Scooby** (×5) | Intercambio: 20 Diamantes |
 

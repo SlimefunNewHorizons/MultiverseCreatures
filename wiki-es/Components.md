@@ -58,7 +58,25 @@ Mahoraga ─► Esencia de Rueda ─► Núcleo de Rueda ─► [Alto Horno] Nú
 Netherita Refinada ─► [Alto Horno] Netherita Fundida ─► (mezclada con Núcleo de Rueda Fundido)
 Segador de Almas ─► Esencia de Segador ─► Núcleo de Segador ─► Guadaña Soulreap
 Guardia de Obsidiana ─► Fragmento de Obsidiana + Netherita Refinada (4 Núcleo Estelar + 4 Fragmento + Bloque de Oro Comprimido) ─► Bastión de Obsidiana
+Segador de Almas ─► Esencia de Segador ─► Edelwood Sap ─► Edelwood Oil ─► Pottsfield Gourd ─► Beatrice's Feather ─► The Beast's Antler ─► (+ Edelwood Oil) Linterna de Wirt
 ```
+
+---
+
+## 🏮 Cadena de la Linterna de Wirt (Over the Garden Wall)
+
+Cinco componentes de lo Desconocido, cada uno fabricado con el anterior. El último, junto a otro frasco de Edelwood Oil, compra la **Linterna de Wirt** al Comerciante Multiversal (una por comerciante). Todas las recetas tienen forma (3×3, mesa de crafteo).
+
+| # | Componente (material) | Receta | Lo difícil |
+|---|---|---|---|
+| 1 | **Edelwood Sap** (RESIN_CLUMP) | `L R L / R H R / L R L` — L = Tronco de roble pálido ×4, R = **Esencia de Segador** ×4, H = **Corazón de Crujidor** | La Esencia de Segador la suelta el Segador de Almas (60%); el Corazón de Crujidor necesita Toque de Seda en un Jardín Pálido |
+| 2 | **Edelwood Oil** (DRAGON_BREATH) | `T G T / T S T / T B T` — T = Lágrima de Ghast ×6, G = Afiladora, S = **Edelwood Sap**, B = Frasco de cristal | seis Lágrimas de Ghast del Nether |
+| 3 | **Pottsfield Gourd** (CARVED_PUMPKIN) | `B K B / C O C / B K B` — B = Bloque de hueso ×4, K = **Calavera de esqueleto** ×2, C = Calabaza tallada ×2, O = **Edelwood Oil** | las calaveras de esqueleto solo caen de esqueletos que mata un creeper cargado |
+| 4 | **Beatrice's Feather** (FEATHER) | `L E L / E G E / L E L` — L = Bloque de lapislázuli ×4, E = **Fragmento de Eco** ×4, G = **Pottsfield Gourd** | los Fragmentos de Eco salen de los cofres de las Ciudades Antiguas |
+| 5 | **The Beast's Antler** (DEAD_BUSH) | `R S R / D F D / R S R` — R = Rosa marchita ×4, S = **Estrella del Nether** ×2, D = Tronco de roble oscuro ×2, F = **Beatrice's Feather** | dos Withers, y rosas marchitas de mobs que mata el Wither |
+| — | **Linterna de Wirt** | Intercambio con el Comerciante Multiversal: **The Beast's Antler** + **Edelwood Oil** | una segunda Edelwood Sap y otro Oil |
+
+En total: 8 Esencias de Segador, 2 Corazones de Crujidor, 12 Lágrimas de Ghast, 2 calaveras de esqueleto, 4 Fragmentos de Eco y 2 Estrellas del Nether. Como todo componente, no hacen nada por sí solos y no se pueden colocar, destilar, fundir ni usar en recetas vanilla. El pie de su descripción es *The Unknown*.
 
 ---
 
@@ -91,6 +109,11 @@ Puedes darte cualquier componente directamente para probar:
 /msc give refinedwheelcore
 /msc give reapercore
 /msc give refinednetherite
+/msc give edelwoodsap
+/msc give edelwoodoil
+/msc give pottsfieldgourd
+/msc give beatricefeather
+/msc give beastantler
 ```
 
 Ver [Comandos](./Commands.md) para la referencia completa.

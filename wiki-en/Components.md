@@ -58,7 +58,25 @@ Mahoraga ─► Wheel Essence ─► Wheel Core ─► [Blast Furnace] Molten Wh
 Refined Netherite ─► [Blast Furnace] Molten Netherite ─► (mixed with Molten Wheel Core)
 Soul Reaper ─► Reaper Essence ─► Reaper Core ─► Soulreap Scythe
 Obsidian Guard ─► Obsidian Shard + Refined Netherite (4 Star Core + 4 Scrap + Compressed Gold Block) ─► Obsidian Bastion
+Soul Reaper ─► Reaper Essence ─► Edelwood Sap ─► Edelwood Oil ─► Pottsfield Gourd ─► Beatrice's Feather ─► The Beast's Antler ─► (+ Edelwood Oil) Wirt's Lantern
 ```
+
+---
+
+## 🏮 Wirt's Lantern chain (Over the Garden Wall)
+
+Five components from the Unknown, each crafted from the one before it. The last one, with one more flask of Edelwood Oil, buys **Wirt's Lantern** from the Multiverse Merchant (one per merchant). Every recipe is shaped (3×3, crafting table).
+
+| # | Component (material) | Recipe | Hard part |
+|---|---|---|---|
+| 1 | **Edelwood Sap** (RESIN_CLUMP) | `L R L / R H R / L R L` — L = Pale Oak Log ×4, R = **Reaper Essence** ×4, H = **Creaking Heart** | Reaper Essence drops from Soul Reapers (60%); the Creaking Heart needs Silk Touch in a Pale Garden |
+| 2 | **Edelwood Oil** (DRAGON_BREATH) | `T G T / T S T / T B T` — T = Ghast Tear ×6, G = Grindstone, S = **Edelwood Sap**, B = Glass Bottle | six Ghast Tears from the Nether |
+| 3 | **Pottsfield Gourd** (CARVED_PUMPKIN) | `B K B / C O C / B K B` — B = Bone Block ×4, K = **Skeleton Skull** ×2, C = Carved Pumpkin ×2, O = **Edelwood Oil** | Skeleton Skulls only drop from skeletons killed by a charged creeper |
+| 4 | **Beatrice's Feather** (FEATHER) | `L E L / E G E / L E L` — L = Lapis Block ×4, E = **Echo Shard** ×4, G = **Pottsfield Gourd** | Echo Shards come from Ancient City chests |
+| 5 | **The Beast's Antler** (DEAD_BUSH) | `R S R / D F D / R S R` — R = Wither Rose ×4, S = **Nether Star** ×2, D = Dark Oak Log ×2, F = **Beatrice's Feather** | two Withers, and wither roses from mobs the Wither kills |
+| — | **Wirt's Lantern** | Multiverse Merchant trade: **The Beast's Antler** + **Edelwood Oil** | a second Edelwood Sap and Oil |
+
+In all: 8 Reaper Essences, 2 Creaking Hearts, 12 Ghast Tears, 2 Skeleton Skulls, 4 Echo Shards and 2 Nether Stars. Like every component they do nothing on their own and cannot be placed, brewed, smelted or used in vanilla recipes. Their lore footer is *The Unknown*.
 
 ---
 
@@ -91,6 +109,11 @@ You can hand yourself any component directly for testing:
 /msc give refinedwheelcore
 /msc give reapercore
 /msc give refinednetherite
+/msc give edelwoodsap
+/msc give edelwoodoil
+/msc give pottsfieldgourd
+/msc give beatricefeather
+/msc give beastantler
 ```
 
 See [Commands](./Commands.md) for the full reference.

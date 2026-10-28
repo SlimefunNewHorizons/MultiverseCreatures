@@ -320,7 +320,7 @@ A Wandering Trader replacement — 30% (`SHAGGY_CHANCE`) of trader spawns become
 | 5× Scooby Cookie | 20 Diamonds | 999 |
 | Excalibur | 16 Star Cores + 32 Netherite Ingots | 1 |
 | Ice King's Crown | 48 Nether Stars + 64 Blue Ice | 1 |
-| Wirt's Lantern | 32 Soul Sand + 16 Soul Soil | 1 |
+| Wirt's Lantern | The Beast's Antler + Edelwood Oil | 1 |
 | Mantis Claws | 16 Iron Ingots + 8 String | 999 |
 
 - **Command:** `/msc spawn merchant`

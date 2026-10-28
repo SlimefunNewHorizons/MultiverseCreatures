@@ -19,7 +19,7 @@ A gigantic 7.5×-scale animated ArmorStand. The climax of the plugin. Unlike the
 | Boss bar | `SEGMENTED_6`, red → blue across the phases (see `phase-thresholds`) |
 | Music | `Undertale — Megalovania` (60-block range, stops on death) |
 | Equipment | Full Netherite (Amethyst/Silence trim) + Netherite Lance + unbreakable Shield |
-| Summon | `/msc spawn armorstand` |
+| Summon | **The Invocation Circle** in the Boss Dimension: 12 lit red candles in a 5×5 ring, then an Echo Shard dropped in the middle (see [Ritual Dimension](./Ritual-Dimension.md)) · `/msc spawn armorstand` (OP) |
 
 ### Phases (transitions happen at HP thresholds)
 
@@ -209,8 +209,7 @@ A living chess king: an invisible ArmorStand dressed in a 15-piece ItemDisplay s
 | Melee range / radius / damage | `kinger.melee-range` (3) · `kinger.melee-radius` (3.5) · `kinger.melee-damage` (8) |
 | Ranged range / damage | `kinger.ranged-range` (30) · `kinger.ranged-damage` (6) |
 | Cooldowns | melee 25 ticks · ranged 45 ticks |
-| Spawn | `/msc spawn kinger` — **or** place an ArmorStand |
-| ArmorStand replacement | `kinger.spawn-on-armorstand-chance` (0.01 = 1% of placed ArmorStands become Kinger; set to 0 to disable) — respects `kinger.enabled` |
+| Spawn | `/msc spawn kinger` (OP). How he appears in survival is a secret. |
 
 ### AI behaviour
 
@@ -240,7 +239,11 @@ The block-display model of `/msc debug model malenia`, fighting with the same at
 | Blade / slashes / landing | `malenia.blade-damage` (12) · `malenia.slash-damage` (4) · `malenia.ring-damage` (10) |
 | Lifesteal | `malenia.lifesteal` (0.5 — every hit she lands heals her by half of it) |
 | Cooldowns | `malenia.attack-cooldown-ticks` (20) · `malenia.waterfowl-cooldown-ticks` (400) |
-| Spawn | `/msc spawn malenia` |
+| Summon Ritual | **The Scarlet Bloom** in the Boss Dimension (offering: a Torchflower) · `/msc spawn malenia` (OP) |
+
+### Summoning
+
+In the Boss Dimension build the **Scarlet Bloom**: a nether wart block in the middle, 4 magenta candles beside it and a pillar on each corner of the 5×5 (crimson hyphae with a shroomlight on top). Light the candles, right-click one, then drop a **Torchflower** on the heart: a scarlet flower blooms and Malenia rises out of it. The full layout is in [Ritual Dimension](./Ritual-Dimension.md); `/mscwiki malenia` shows it in game.
 
 ### Attacks
 
@@ -254,6 +257,23 @@ She walks to the nearest player and picks an attack by distance:
 Her **blade** hits whoever it passes through, once per swing. The **slashes** of the Whirlwind and the Waterfowl Dance hit everyone within 2.6 blocks every 4 ticks. A **landing** hits everyone within 4 blocks and launches them. Her damage scales with the player's gear, like Kinger's and Garou's. Only players hurt her; fire, falls and explosions do nothing.
 
 **Death:** removes her body and bar, drops 500 XP and broadcasts one of `malenia.death-messages`.
+
+---
+
+## 👊 Garou — Miniboss (One-Punch Man)
+
+The Hero Hunter, a martial artist who fights barehanded and counters the hits he takes.
+
+| Stat | Default |
+|---|---|
+| Health | `garou.health` (1800) |
+| Hit cap | `garou.max-damage-per-hit` (10) |
+| Damage | `garou.attack-damage` (28) · `garou.skill-damage` (16) · `garou.counter-damage` (14) |
+| Counter | `garou.counter-chance` (0.25), at most once per `garou.counter-cooldown-ms` (3000) |
+| Spawn | `/msc spawn garou` (OP) |
+| Natural spawn | `garou.spawn-chance` (0.15%) — replaces Wither Skeletons |
+
+**Drops:** always the **Garou Cosmic Core**.
 
 ---
 
@@ -320,7 +340,7 @@ Five phases, three lives and a body built out of eleven skin heads.
 | Damage | `melee-damage` (16) · `slam-damage` (20) · `sigkill-damage` (35) |
 | Defences | `dodge-chance` (0.22) Ultra Instinct dodge · `packet-loss-chance` (0.25) discards projectiles · firewall, firejail and cobweb builds |
 | Aggro / speed / reach | `aggro-range` (32.0) · `move-speed` (0.32) · `melee-range` (3.8) |
-| Summon Ritual | **The System Architect** ritual in the Boss Dimension · `/msc spawn jack` (OP) |
+| Summon Ritual | **The Multiverse Terminal** in the Boss Dimension (offering: a Nether Star, Echo Shard, Heart of the Sea, Beacon or Architect Kernel; see [Ritual Dimension](./Ritual-Dimension.md)) · `/msc spawn jack` (OP) |
 
 ### Model
 

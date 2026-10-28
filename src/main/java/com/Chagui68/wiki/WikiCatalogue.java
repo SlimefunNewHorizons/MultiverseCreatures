@@ -218,8 +218,18 @@ public final class WikiCatalogue {
                 .recipe(() -> trade(of(Material.IRON_INGOT, 16), of(Material.STRING, 8), MantisClaws.MANTIS_CLAWS_ITEM.clone()))
                 .build());
         list.add(WikiEntry.item("wirtslantern", RELICS, () -> WirtsLantern.WIRTS_LANTERN)
-                .source(merchant("32 Soul Sand and 16 Soul Soil", "32 de arena de almas y 16 de tierra de almas"))
-                .recipe(() -> trade(of(Material.SOUL_SAND, 32), of(Material.SOUL_SOIL, 16), WirtsLantern.WIRTS_LANTERN.clone()))
+                .about("Held in either hand: hostile mobs are pushed away and stop targeting you, and after 1.5 s "
+                                + "they cannot hurt you. Players, falls, fire, the void and /kill still can. While you "
+                                + "hold it, and for 3 s after putting it away, you cannot hurt anything. It goes dark "
+                                + "in the Boss Dimension.",
+                        "En cualquier mano: los mobs hostiles se apartan y dejan de apuntarte, y tras 1,5 s no "
+                                + "pueden hacerte daño. Los jugadores, las caídas, el fuego, el vacío y /kill sí. Mientras "
+                                + "la llevas, y 3 s después de guardarla, no puedes dañar a nada. En la Dimensión de "
+                                + "Jefes se apaga.")
+                .source(merchant("The Beast's Antler and a flask of Edelwood Oil",
+                        "The Beast's Antler y un frasco de Edelwood Oil"))
+                .recipe(() -> trade(BeastAntler.BEAST_ANTLER.clone(), EdelwoodOil.EDELWOOD_OIL.clone(),
+                        WirtsLantern.WIRTS_LANTERN.clone()))
                 .build());
         list.add(WikiEntry.item("militarymine", RELICS, () -> MilitaryMine.MILITARY_MINE)
                 .about("Place it and it takes the look of the ground around it. One step is enough.",
@@ -356,6 +366,30 @@ public final class WikiCatalogue {
         list.add(WikiEntry.item("refinedwheelcore", CRAFTED, () -> RefinedWheelCore.REFINED_WHEEL_CORE).build());
         list.add(WikiEntry.item("reapercore", CRAFTED, () -> ReaperCore.REAPER_CORE).build());
         list.add(WikiEntry.item("multiversalcore", CRAFTED, () -> MultiversalCore.MULTIVERSAL_CORE).build());
+        // Wirt's Lantern chain: each one is made from the one before it.
+        list.add(WikiEntry.item("edelwoodsap", CRAFTED, () -> EdelwoodSap.EDELWOOD_SAP)
+                .about("First step towards Wirt's Lantern. The Reaper Essence comes from Soul Reapers; the Creaking "
+                                + "Heart needs Silk Touch in a Pale Garden.",
+                        "Primer paso hacia la Linterna de Wirt. La Reaper Essence sale de los Soul Reaper; el Corazón "
+                                + "de Crujidor necesita Toque de Seda en un Jardín Pálido.")
+                .build());
+        list.add(WikiEntry.item("edelwoodoil", CRAFTED, () -> EdelwoodOil.EDELWOOD_OIL)
+                .about("Second step. The merchant also takes one flask with the Beast's Antler.",
+                        "Segundo paso. El comerciante también pide un frasco junto al Beast's Antler.")
+                .build());
+        list.add(WikiEntry.item("pottsfieldgourd", CRAFTED, () -> PottsfieldGourd.POTTSFIELD_GOURD)
+                .about("Third step. Skeleton Skulls only drop from skeletons killed by a charged creeper.",
+                        "Tercer paso. Las calaveras de esqueleto solo caen de esqueletos que mata un creeper cargado.")
+                .build());
+        list.add(WikiEntry.item("beatricefeather", CRAFTED, () -> BeatriceFeather.BEATRICE_FEATHER)
+                .about("Fourth step. Echo Shards are found in Ancient City chests.",
+                        "Cuarto paso. Los Fragmentos de Eco se encuentran en los cofres de las Ciudades Antiguas.")
+                .build());
+        list.add(WikiEntry.item("beastantler", CRAFTED, () -> BeastAntler.BEAST_ANTLER)
+                .about("Last step: trade it with a flask of Edelwood Oil to the Multiverse Merchant for Wirt's Lantern.",
+                        "Último paso: cámbialo con un frasco de Edelwood Oil al Multiverse Merchant por la Linterna de "
+                                + "Wirt.")
+                .build());
     }
 
     private static void bossLoot(List<WikiEntry> list) {
@@ -570,6 +604,22 @@ public final class WikiCatalogue {
                                 + "un Reloj."))
                 .source(WikiSource.of(Material.RED_DYE, "Loot", "Botín",
                         "Vampire Blood.", "Vampire Blood."))
+                .build());
+        list.add(WikiEntry.info("malenia", BOSSES, Material.TORCHFLOWER, NamedTextColor.RED,
+                        "Malenia, Blade of Miquella", "Malenia, Blade of Miquella")
+                .about("The undefeated Empyrean. Every hit she lands heals her, and below half health she unleashes "
+                                + "the Waterfowl Dance.",
+                        "La Empírea invicta. Cada golpe que acierta la cura, y por debajo de la mitad de vida desata "
+                                + "la Danza del Ave Acuática.")
+                .source(WikiSource.of(Material.NETHER_WART_BLOCK, "The Scarlet Bloom", "La Flor Escarlata",
+                        "In the Boss Dimension: a nether wart block, 4 lit magenta candles beside it and 4 pillars in "
+                                + "the corners (crimson hyphae, shroomlight). Right-click a candle, then drop a "
+                                + "Torchflower on the heart.",
+                        "En la Dimensión de Jefes: un bloque de verruga del Nether, 4 velas magenta encendidas a su lado "
+                                + "y 4 pilares en las esquinas (hifas carmesí, brillongo). Clic derecho en una vela y "
+                                + "suelta una Antorchaflor sobre el corazón."))
+                .source(WikiSource.of(Material.EXPERIENCE_BOTTLE, "Loot", "Botín",
+                        "500 experience.", "500 de experiencia."))
                 .build());
         list.add(WikiEntry.info("jackstar", BOSSES, Material.COMMAND_BLOCK, NamedTextColor.DARK_AQUA,
                         "JackStar - The System Architect", "JackStar - The System Architect")

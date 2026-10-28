@@ -60,23 +60,27 @@ Claws forged from the silk and iron of Deepnest.
 
 ---
 
-## 🔮 Wirt's Lantern (Khand)
+## 🔮 Wirt's Lantern (Over the Garden Wall — the Unknown)
 
 > "The flame knows no winter."
 
-A lantern that holds a lost soul.
+A lantern that holds a lost soul: the Beast's. It keeps the holder safe from monsters, never helps them fight.
 
 | Stat | Value |
 |---|---|
 | Material | SOUL_LANTERN |
 | Slot | Main OR off-hand |
-| Passive task | Every 20 ticks while held: <br>• Aplica Night Vision I (100 t, ambient=false, overwrite=false) <br>• **Repels** all non-player living entities within 12 blocks (`REPEL_RADIUS`): outward velocity (+0.3 Y, cap 0.6) + clears their target if it's the holder + 30% chance to spawn SOUL_FIRE_FLAME |
+| Passive task | Every `mob-repel.interval-ticks` (20), for every online player holding it: <br>• Night Vision I (100 t) <br>• **Repels hostile mobs** within `mob-repel.radius` (12) blocks: outward push (`horizontal-force` 0.6, `vertical-force` 0.2, capped at 0.6 up) and 30% SOUL_FIRE_FLAME. Villagers, pets, armor stands and the holder's own mount are left alone <br>• Hostile mobs drop the holder as their target (`target-protection`) |
+| Mob protection | After holding it for `arm-ticks` (30, 1.5 s), damage caused by mobs (melee, their arrows, fireballs, explosions) is cancelled. **Players, falls, fire, lava, drowning, hunger, the void and `/kill` still hurt.** |
+| No harm | While it is held, and for `disarm-ticks` (60, 3 s) after putting it away, the holder deals **no damage to anything**, players included: melee, projectiles, Stands, TNT, pets, fire, lava buckets, flint & steel and poison/wither potions are all blocked. Swapping to a weapon between hits gives no immunity. |
+| Boss Dimension | It does **nothing** there: no protection, repel, de-targeting, night vision or damage block. |
+| Placing | Never placed or hung on an armor stand, anywhere (it would lose what makes it Wirt's). |
 | PDC tag | `msc_wirts_lantern` |
-| Events | `EntityTargetEvent` cancelled if target is holder · `EntityDamageEvent` cancelled unless damager is a player (holder immune to non-player damage) · `EntityDamageByEntityEvent` cancelled if victim is non-player (holder can't harm mobs) · Right-click + armor-stand manipulation cancelled (the lamp is purely protective) |
+| Config | `items.wirts-lantern`: `enabled`, `mob-repel.*`, `night-vision.enabled`, `target-protection.enabled`, `mob-protection.enabled`, `arm-ticks`, `disarm-ticks` |
 
 - **Give:** `/msc give wirtslantern`
-- **Trade:** from the Multiverse Merchant for 32 Soul Sand + 16 Soul Soil
-- **Theme:** Khand (Diablo Tristram-style protective lantern)
+- **Trade:** from the Multiverse Merchant for **The Beast's Antler** + **Edelwood Oil**, the end of the Edelwood chain (see [Components](./Components.md#-wirts-lantern-chain-over-the-garden-wall))
+- **Theme:** Over the Garden Wall (Wirt, the Beast and the Edelwood trees of the Unknown)
 
 ---
 

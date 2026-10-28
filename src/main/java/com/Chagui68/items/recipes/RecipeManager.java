@@ -3,7 +3,12 @@ package com.Chagui68.items.recipes;
 import com.Chagui68.items.armor.EightHandledWheel;
 import com.Chagui68.items.armor.ObsidianBastion;
 import com.Chagui68.items.armor.Worldbinder;
+import com.Chagui68.items.components.BeastAntler;
+import com.Chagui68.items.components.BeatriceFeather;
 import com.Chagui68.items.components.BoneMarrow;
+import com.Chagui68.items.components.EdelwoodOil;
+import com.Chagui68.items.components.EdelwoodSap;
+import com.Chagui68.items.components.PottsfieldGourd;
 import com.Chagui68.items.components.ChaosCore;
 import com.Chagui68.items.components.ChaosFragment;
 import com.Chagui68.items.components.ChaosOrb;
@@ -104,6 +109,7 @@ public class RecipeManager {
         safely("registerExecutionerGuillotine", RecipeManager::registerExecutionerGuillotine);
         safely("registerArchitectDeployer", RecipeManager::registerArchitectDeployer);
         safely("registerBearerElixir", RecipeManager::registerBearerElixir);
+        safely("registerEdelwoodChain", RecipeManager::registerEdelwoodChain);
     }
 
     /**
@@ -533,6 +539,51 @@ public class RecipeManager {
         brewer.addPotionMix(new PotionMix(elixir, VampirePotions.BEARER_ELIXIR.clone(),
                 PotionMix.createPredicateChoice(VampirePotions::isUnstableBlood),
                 new RecipeChoice.MaterialChoice(Material.WITHER_ROSE)));
+    }
+
+    /**
+     * Wirt's Lantern chain, from Over the Garden Wall: Edelwood Sap -> Edelwood Oil -> Pottsfield Gourd ->
+     * Beatrice's Feather -> The Beast's Antler. The Multiverse Merchant trades the lantern for the antler
+     * and one more flask of oil.
+     */
+    private static void registerEdelwoodChain() {
+        ShapedRecipe sap = new ShapedRecipe(key("edelwood_sap"), EdelwoodSap.EDELWOOD_SAP.clone());
+        sap.shape("LRL", "RHR", "LRL");
+        sap.setIngredient('L', Material.PALE_OAK_LOG);
+        sap.setIngredient('R', exact(ReaperEssence.REAPER_ESSENCE.clone()));
+        sap.setIngredient('H', Material.CREAKING_HEART);
+        Bukkit.addRecipe(sap);
+
+        ShapedRecipe oil = new ShapedRecipe(key("edelwood_oil"), EdelwoodOil.EDELWOOD_OIL.clone());
+        oil.shape("TGT", "TST", "TBT");
+        oil.setIngredient('T', Material.GHAST_TEAR);
+        oil.setIngredient('G', Material.GRINDSTONE);
+        oil.setIngredient('S', exact(EdelwoodSap.EDELWOOD_SAP.clone()));
+        oil.setIngredient('B', Material.GLASS_BOTTLE);
+        Bukkit.addRecipe(oil);
+
+        ShapedRecipe gourd = new ShapedRecipe(key("pottsfield_gourd"), PottsfieldGourd.POTTSFIELD_GOURD.clone());
+        gourd.shape("BKB", "COC", "BKB");
+        gourd.setIngredient('B', Material.BONE_BLOCK);
+        gourd.setIngredient('K', Material.SKELETON_SKULL);
+        gourd.setIngredient('C', Material.CARVED_PUMPKIN);
+        gourd.setIngredient('O', exact(EdelwoodOil.EDELWOOD_OIL.clone()));
+        Bukkit.addRecipe(gourd);
+
+        ShapedRecipe feather = new ShapedRecipe(key("beatrice_feather"), BeatriceFeather.BEATRICE_FEATHER.clone());
+        feather.shape("LEL", "EGE", "LEL");
+        feather.setIngredient('L', Material.LAPIS_BLOCK);
+        feather.setIngredient('E', Material.ECHO_SHARD);
+        feather.setIngredient('G', exact(PottsfieldGourd.POTTSFIELD_GOURD.clone()));
+        Bukkit.addRecipe(feather);
+
+        ShapedRecipe antler = new ShapedRecipe(key("beast_antler"), BeastAntler.BEAST_ANTLER.clone());
+        antler.shape("RSR", "DFD", "RSR");
+        antler.setIngredient('R', Material.WITHER_ROSE);
+        antler.setIngredient('S', Material.NETHER_STAR);
+        antler.setIngredient('D', Material.DARK_OAK_LOG);
+        antler.setIngredient('F', exact(BeatriceFeather.BEATRICE_FEATHER.clone()));
+        Bukkit.addRecipe(antler);
     }
 
     private static boolean isAwkwardPotion(ItemStack item) {

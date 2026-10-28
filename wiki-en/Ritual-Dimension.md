@@ -170,6 +170,67 @@ S . . . S
 
 ---
 
+## 🌺 Invoking Malenia: The Scarlet Bloom
+
+**Malenia, Blade of Miquella** is summoned inside the **Boss Dimension** (`boss_dimension`) at the Scarlet Bloom, the rot's heart. Coordinates are relative to the south-west corner of the 5×5, and the floor is not checked. `/mscwiki malenia` shows the structure in front of you.
+
+### Layout (5×5 footprint)
+
+```
+P . . . P        P = Corner pillar (2 blocks tall)
+. . c . .        c = Magenta Candle (lit)
+. c W c .        W = Nether Wart Block (the rot's heart)
+. . c . .
+P . . . P
+```
+
+### Required Materials
+- **1 Nether Wart Block** (`nether_wart_block`) at the centre `(2, 0, 2)`.
+- **4 Magenta Candles** (`magenta_candle`) next to it: North `(2, 0, 1)`, South `(2, 0, 3)`, West `(1, 0, 2)`, East `(3, 0, 2)`.
+- **4 Corner pillars** at `(0, 0)`, `(4, 0)`, `(0, 4)` and `(4, 4)`, each **2 blocks tall**:
+  - `Y=0` — Crimson Hyphae (`crimson_hyphae`).
+  - `Y=1` — Shroomlight (`shroomlight`).
+
+### Invocation Procedure
+1. Build the structure anywhere inside `boss_dimension`.
+2. Light the **4 magenta candles** and right-click one of them.
+3. **The rot stirs**: scarlet threads run from the four shroomlights into the heart, and a closed bud of rot turns above it. Breaking the structure or putting a candle out cancels it.
+4. **The offering**: drop a **Torchflower** (`torchflower`, the Scarlet Aeonia) on the heart (within **3 blocks**).
+5. **The bloom**: the flower is consumed and a scarlet flower opens over the heart for two and a half seconds; every player within 60 blocks sees *Malenia — Blade of Miquella*. Then it bursts and **Malenia** stands in it.
+
+> Only one invocation per world at a time, and the heart does not wake while Malenia is already alive there. While she fights, the Boss Dimension's build and command locks apply as for the other bosses. Admins can still call her anywhere with `/msc spawn malenia`.
+
+---
+
+## 💻 Invoking Jack Star: The Multiverse Terminal
+
+**JackStar — The System Architect** is summoned inside the **Boss Dimension** at the Multiverse Terminal. Coordinates are relative to the south-west corner of the 5×5, and the floor is not checked. `/mscwiki jack` shows the structure.
+
+### Layout (5×5 footprint)
+
+```
+L . . . L        L = Corner pillar (2 blocks tall)
+. . c . .        c = Cyan Candle (lit)
+. c T c .        T = Terminal core
+. . c . .
+L . . . L
+```
+
+### Required Materials
+- **1 Terminal core** at `(2, 0, 2)`: Respawn Anchor, Lodestone, Enchanting Table or Beacon.
+- **4 candles** next to it (North, South, West, East): cyan, light blue, blue or plain candles, or soul campfires.
+- **4 Corner pillars** at the corners, each **2 blocks tall**:
+  - `Y=0` — Crying Obsidian, Obsidian, Polished Blackstone Bricks, Chiseled Polished Blackstone, Deepslate Bricks or Iron Block.
+  - `Y=1` — Lightning Rod.
+
+### Invocation Procedure
+1. Build the terminal anywhere inside `boss_dimension`, light the **4 candles** and right-click one of them.
+2. The terminal authenticates and starts its hacking sequence.
+3. **The offering**: drop a **Nether Star**, an **Echo Shard**, a **Heart of the Sea**, a **Beacon** or an **Architect Kernel** on the core.
+4. **JackStar** boots up on the terminal.
+
+---
+
 ## 🏛️ DrakesBosses gods: the Pantheon Altar
 
 With **DrakesBosses** installed (soft dependency), its gods can also be summoned inside `boss_dimension`. Without DrakesBosses the altar does nothing. DrakesBosses spawns the god with its own stats, skills, loot and rewards.

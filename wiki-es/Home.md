@@ -34,7 +34,8 @@ Cada spawn de mob vanilla tiene una probabilidad configurable de ser reemplazado
 | **Leyenda artúrica** | Excalibur (rayo Llama Solar) |
 | **Half-Life** | Head Slime (parásito estilo headcrab) |
 | **Scooby-Doo / Mystery Inc.** | Galleta de Scooby · Comerciante Multiversal "Shaggy" |
-| **Diablo** | Linterna de Wirt (linterna que repele mobs) |
+| **Over the Garden Wall** | Linterna de Wirt (linterna que repele mobs) · la cadena de Edelwood para conseguirla |
+| **Elden Ring** | Malenia, Espada de Miquella (se invoca en la Flor Escarlata) |
 | **Original / Multiverso** | Centinela de Obsidiana, Guardia de Obsidiana, Void Crawler, Caballero Ender, Brujas de Tormenta/Veneno, Segador de Almas, Mago del Caos, etc. |
 
 ---

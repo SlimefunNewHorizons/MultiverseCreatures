@@ -10,6 +10,8 @@ import com.Chagui68.items.weapons.melee.Excalibur;
 import com.Chagui68.items.food.ScoobyCookie;
 import com.Chagui68.items.misc.MantisClaws;
 import com.Chagui68.items.components.StarCore;
+import com.Chagui68.items.components.BeastAntler;
+import com.Chagui68.items.components.EdelwoodOil;
 import com.Chagui68.items.misc.WirtsLantern;
 import io.papermc.paper.world.MoonPhase;
 import org.bukkit.Bukkit;
@@ -551,8 +553,9 @@ public class MobHandler implements Listener {
 
         ItemStack wirtsLantern = WirtsLantern.WIRTS_LANTERN.clone();
         MerchantRecipe lanternTrade = new MerchantRecipe(wirtsLantern, 1);
-        lanternTrade.addIngredient(new ItemStack(Material.SOUL_SAND, 32));
-        lanternTrade.addIngredient(new ItemStack(Material.SOUL_SOIL, 16));
+        // The end of the Edelwood chain: the Beast's Antler, and a flask of oil to light it.
+        lanternTrade.addIngredient(BeastAntler.BEAST_ANTLER.clone());
+        lanternTrade.addIngredient(EdelwoodOil.EDELWOOD_OIL.clone());
         trades.add(lanternTrade);
 
         ItemStack mantisClaws = MantisClaws.MANTIS_CLAWS_ITEM.clone();

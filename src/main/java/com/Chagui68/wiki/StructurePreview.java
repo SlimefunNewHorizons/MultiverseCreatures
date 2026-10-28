@@ -3,6 +3,7 @@ package com.Chagui68.wiki;
 import com.Chagui68.ritual.BossInvocationStructure;
 import com.Chagui68.ritual.DioInvocationStructure;
 import com.Chagui68.ritual.JackInvocationStructure;
+import com.Chagui68.ritual.MaleniaInvocationStructure;
 import com.Chagui68.ritual.NixInvocationStructure;
 import com.Chagui68.ritual.PantheonAltarStructure;
 import com.Chagui68.ritual.PantheonAltarStructure.Pantheon;
@@ -76,6 +77,11 @@ final class StructurePreview {
                         + " gold throne. Any head or skull works on the pillars.",
                 "DIO, en la Dimensión de Jefes: enciende las 4 velas amarillas, haz clic derecho en una y suelta un"
                         + " reloj sobre el trono de oro. En los pilares vale cualquier cabeza o calavera."),
+        MALENIA("malenia",
+                "Malenia, in the Boss Dimension: light the 4 magenta candles, right-click one, then drop a"
+                        + " torchflower on the nether wart heart.",
+                "Malenia, en la Dimensión de Jefes: enciende las 4 velas magenta, haz clic derecho en una y suelta"
+                        + " una antorchaflor sobre el corazón de verruga del Nether."),
         JACK("jack",
                 "Jack Star: light the 4 candles, right-click one, then drop a Nether Star on the core (an Echo"
                         + " Shard, a Heart of the Sea, a beacon or an Architect Kernel also works).",
@@ -212,6 +218,9 @@ final class StructurePreview {
             case DIO -> altar(DioInvocationStructure.CANDLE_OFFSETS, DioInvocationStructure.CORNER_OFFSETS,
                     Material.GOLD_BLOCK, Material.YELLOW_CANDLE,
                     Material.GOLD_BLOCK, Material.EMERALD_BLOCK, Material.SKELETON_SKULL);
+            case MALENIA -> altar(MaleniaInvocationStructure.CANDLE_OFFSETS, MaleniaInvocationStructure.CORNER_OFFSETS,
+                    MaleniaInvocationStructure.CORE, MaleniaInvocationStructure.CANDLE,
+                    MaleniaInvocationStructure.PILLAR, MaleniaInvocationStructure.PILLAR_TOP);
             case JACK -> altar(JackInvocationStructure.CANDLE_OFFSETS, JackInvocationStructure.CORNER_OFFSETS,
                     Material.RESPAWN_ANCHOR, Material.CYAN_CANDLE,
                     Material.CRYING_OBSIDIAN, Material.LIGHTNING_ROD);

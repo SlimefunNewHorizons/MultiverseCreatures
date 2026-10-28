@@ -528,6 +528,7 @@ I M I
 | Obsidian Bastion (×4) | `obsidian_bastion_*` | very high |
 | Head Slime Gelatin | `head_slime_gelatin` | low |
 | Military Mine | `military_mine` | mid |
+| Edelwood Sap → Oil → Pottsfield Gourd → Beatrice's Feather → The Beast's Antler | `edelwood_sap` `edelwood_oil` `pottsfield_gourd` `beatrice_feather` `beast_antler` | very high (5-step chain for Wirt's Lantern; see [Components](./Components.md)) |
 
 **Not craftable:** Sentinel Core — boss-only drop (Obsidian Sentinel).
 
@@ -541,7 +542,7 @@ These items intentionally have **no crafting recipe**. They come from drops or t
 |---|---|
 | **Excalibur** (NETHERITE_SWORD) | Trade: 16 Star Cores + 32 Netherite Ingots (`MobHandler.equipWanderingVillager`) |
 | **Ice King's Crown** | Trade: 48 Nether Stars + 64 Blue Ice |
-| **Wirt's Lantern** | Trade: 32 Soul Sand + 16 Soul Soil |
+| **Wirt's Lantern** | Trade: The Beast's Antler + Edelwood Oil (both crafted, end of the Edelwood chain) |
 | **Mantis Claws** | Trade: 16 Iron Ingots + 8 String |
 | **Scooby Cookie** (×5) | Trade: 20 Diamonds |
 

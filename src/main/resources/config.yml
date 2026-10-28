@@ -1117,9 +1117,10 @@ items:
       multiplier: 0.8
     freeze-immunity: true
 
+  # Wirt's Lantern, held in either hand. It does nothing inside the Boss Dimension.
   wirts-lantern:
     enabled: true
-    mob-repel:
+    mob-repel:                    # pushes hostile mobs away (villagers, pets, armor stands and mounts stay)
       enabled: true
       radius: 12.0
       interval-ticks: 20
@@ -1128,8 +1129,12 @@ items:
       particle-chance: 0.3
     night-vision:
       enabled: true
-    target-protection:
+    target-protection:            # hostile mobs drop the holder as their target
       enabled: true
+    mob-protection:               # mobs cannot hurt the holder; players, falls, fire, the void and /kill still do
+      enabled: true
+    arm-ticks: 30                 # how long it must be held before mobs stop hurting the holder
+    disarm-ticks: 60              # the holder deals no damage while holding it and this long after putting it away
 
   grimoire:
     enabled: true
@@ -1275,8 +1280,10 @@ merchant:
     wirts-lantern:
       enabled: true
       price:
-        - material: "SOUL_SAND"
-          amount: 32
-        - material: "SOUL_SOIL"
-          amount: 16
+        - material: "DEAD_BUSH"
+          amount: 1
+          custom-item: "beastantler"
+        - material: "DRAGON_BREATH"
+          amount: 1
+          custom-item: "edelwoodoil"
       max-uses: 1

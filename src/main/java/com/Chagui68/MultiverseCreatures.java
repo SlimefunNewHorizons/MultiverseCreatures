@@ -247,6 +247,8 @@ public class MultiverseCreatures extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BossInvocationManager(this), this);
         getServer().getPluginManager().registerEvents(new NixInvocationManager(this), this);
         getServer().getPluginManager().registerEvents(new DioInvocationManager(this), this);
+        getServer().getPluginManager().registerEvents(
+                new com.Chagui68.listener.bossdimension.MaleniaInvocationManager(this), this);
         jackInvocationManager = new JackInvocationManager(this);
         getServer().getPluginManager().registerEvents(jackInvocationManager, this);
         pantheonInvocationManager = new PantheonInvocationManager(this);
@@ -504,6 +506,7 @@ public class MultiverseCreatures extends JavaPlugin {
                 || (nixBoss != null && nixBoss.isBossActiveIn(world))
                 || (jackStarBoss != null && jackStarBoss.isBossActiveIn(world))
                 || (dioBoss != null && dioBoss.isBossActiveIn(world))
+                || (malenia != null && malenia.isBossActiveIn(world))
                 || (witherStormBoss != null && witherStormBoss.isBossActiveIn(world))
                 || (pantheonInvocationManager != null && pantheonInvocationManager.isBossActiveIn(world));
     }

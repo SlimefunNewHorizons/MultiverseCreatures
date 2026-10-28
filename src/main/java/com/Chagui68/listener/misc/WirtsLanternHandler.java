@@ -16,13 +16,8 @@ import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
@@ -31,12 +26,18 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Wirt's Lantern, held in either hand: hostile mobs are pushed away and stop targeting the holder,
+ * mobs cannot hurt them once the lantern has been held for {@code arm-ticks}, and the holder cannot
+ * hurt anything while holding it nor for {@code disarm-ticks} after putting it away, so swapping to
+ * a weapon between hits gives no immunity. Inside the Boss Dimension it does nothing.
+ */
 public class WirtsLanternHandler implements Listener {
 
     /** Potion effects that hurt over time; instant damage lands as an ordinary damage event. */
@@ -44,7 +45,17 @@ public class WirtsLanternHandler implements Listener {
 
     private final Plugin plugin;
     private final Random random = new Random();
-    private final Set<UUID> activeRepel = ConcurrentHashMap.newKeySet();
+    /** When each player last took the lantern into a hand, while it is still there. */
+    private final Map<UUID, Long> heldSince = new ConcurrentHashMap<>();
+    /** When each player last had the lantern in a hand. */
+    private final Map<UUID, Long> lastHeld = new ConcurrentHashMap<>();
+    private final boolean enabled;
+    private final boolean repelEnabled;
+    private final boolean nightVisionEnabled;
+    private final boolean targetProtection;
+    private final boolean mobProtection;
+    private final long armMillis;
+    private final long disarmMillis;
     private final double repelRadius;
     private final int repelIntervalTicks;
     private final double particleChance;
@@ -56,11 +67,19 @@ public class WirtsLanternHandler implements Listener {
     public WirtsLanternHandler(Plugin plugin) {
         this.plugin = plugin;
         var config = plugin.getConfig();
-        repelRadius = config.getDouble("items.wirts-lantern.mob-repel.radius", 12.0);
-        repelIntervalTicks = config.getInt("items.wirts-lantern.mob-repel.interval-ticks", 20);
-        particleChance = config.getDouble("items.wirts-lantern.mob-repel.particle-chance", 0.3);
-        horizontalForce = config.getDouble("items.wirts-lantern.mob-repel.horizontal-force", 0.6);
-        verticalForce = config.getDouble("items.wirts-lantern.mob-repel.vertical-force", 0.2);
+        String p = "items.wirts-lantern.";
+        enabled = config.getBoolean(p + "enabled", true);
+        repelEnabled = config.getBoolean(p + "mob-repel.enabled", true);
+        nightVisionEnabled = config.getBoolean(p + "night-vision.enabled", true);
+        targetProtection = config.getBoolean(p + "target-protection.enabled", true);
+        mobProtection = config.getBoolean(p + "mob-protection.enabled", true);
+        armMillis = Math.max(0, config.getInt(p + "arm-ticks", 30)) * 50L;
+        disarmMillis = Math.max(0, config.getInt(p + "disarm-ticks", 60)) * 50L;
+        repelRadius = config.getDouble(p + "mob-repel.radius", 12.0);
+        repelIntervalTicks = Math.max(1, config.getInt(p + "mob-repel.interval-ticks", 20));
+        particleChance = config.getDouble(p + "mob-repel.particle-chance", 0.3);
+        horizontalForce = config.getDouble(p + "mob-repel.horizontal-force", 0.6);
+        verticalForce = config.getDouble(p + "mob-repel.vertical-force", 0.2);
         startRepelTask();
     }
 
@@ -69,14 +88,11 @@ public class WirtsLanternHandler implements Listener {
         ticker = new BukkitRunnable() {
             @Override
             public void run() {
-                for (UUID uuid : new HashSet<>(activeRepel)) {
-                    Player p = Bukkit.getPlayer(uuid);
-                    if (p == null || !p.isOnline() || !hasLantern(p)) {
-                        activeRepel.remove(uuid);
-                        continue;
-                    }
-                    applyNightVision(p);
-                    repelNearbyEntities(p);
+                // Every online player, so a lantern put in a hand from the inventory or by /give counts too.
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    if (!track(p)) continue;
+                    if (nightVisionEnabled) applyNightVision(p);
+                    if (repelEnabled || targetProtection) repelNearbyEntities(p);
                 }
             }
         }.runTaskTimer(plugin, 0L, repelIntervalTicks);
@@ -92,7 +108,7 @@ public class WirtsLanternHandler implements Listener {
 
     /** Lantern in either hand, outside the Boss Dimension: inside it the lantern does nothing at all. */
     private boolean hasLantern(Player p) {
-        if (inBossDimension(p)) return false;
+        if (!enabled || inBossDimension(p)) return false;
         return isLantern(p.getInventory().getItemInMainHand()) || isLantern(p.getInventory().getItemInOffHand());
     }
 
@@ -105,48 +121,74 @@ public class WirtsLanternHandler implements Listener {
         return item.getItemMeta().getPersistentDataContainer().has(WirtsLantern.WIRTS_LANTERN_KEY, PersistentDataType.INTEGER);
     }
 
+    /** Refreshes when {@code p} took and last had the lantern; true while it is in a hand. */
+    private boolean track(Player p) {
+        long now = System.currentTimeMillis();
+        UUID id = p.getUniqueId();
+        if (hasLantern(p)) {
+            heldSince.putIfAbsent(id, now);
+            lastHeld.put(id, now);
+            return true;
+        }
+        if (heldSince.remove(id) != null) lastHeld.put(id, now);
+        return false;
+    }
+
+    /** Mobs cannot hurt {@code p}: the lantern has been in their hand for at least {@code arm-ticks}. */
+    private boolean shielded(Player p) {
+        if (!mobProtection || !track(p)) return false;
+        Long since = heldSince.get(p.getUniqueId());
+        return since != null && System.currentTimeMillis() - since >= armMillis;
+    }
+
+    /** {@code p} deals no damage: the lantern is in their hand or left it less than {@code disarm-ticks} ago. */
+    private boolean pacified(Player p) {
+        if (inBossDimension(p)) return false;
+        if (track(p)) return true;
+        Long last = lastHeld.get(p.getUniqueId());
+        return last != null && System.currentTimeMillis() - last < disarmMillis;
+    }
+
     private void repelNearbyEntities(Player p) {
         Location center = p.getLocation();
         for (Entity entity : p.getWorld().getNearbyEntities(center, repelRadius, repelRadius, repelRadius)) {
-            if (entity.equals(p)) continue;
-            if (entity instanceof Player) continue;
-            if (!(entity instanceof LivingEntity living)) continue;
+            // Only hostile mobs: villagers, pets, armor stands and the holder's own mount stay put.
+            if (!(entity instanceof Enemy) || !(entity instanceof LivingEntity living)) continue;
+            if (entity.equals(p.getVehicle()) || entity.getPassengers().contains(p)) continue;
 
-            Vector direction = living.getLocation().toVector().subtract(center.toVector());
-            if (direction.lengthSquared() > 0) {
-                Vector away = direction.normalize().multiply(horizontalForce);
-                away.setY(Math.min(away.getY() + verticalForce, 0.6));
-                living.setVelocity(living.getVelocity().add(away));
+            if (repelEnabled) {
+                Vector direction = living.getLocation().toVector().subtract(center.toVector());
+                if (direction.lengthSquared() > 0) {
+                    Vector away = direction.normalize().multiply(horizontalForce);
+                    away.setY(Math.min(away.getY() + verticalForce, 0.6));
+                    living.setVelocity(living.getVelocity().add(away));
+                }
+                if (random.nextDouble() < particleChance) {
+                    p.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, living.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0.01);
+                }
             }
 
-            if (living instanceof Mob mob && mob.getTarget() == p) {
+            if (targetProtection && living instanceof Mob mob && mob.getTarget() == p) {
                 mob.setTarget(null);
-            }
-
-            if (random.nextDouble() < particleChance) {
-                p.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, living.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0.01);
             }
         }
     }
 
     @EventHandler
     public void onTarget(EntityTargetEvent e) {
-        if (!(e.getTarget() instanceof Player p)) return;
-        if (!hasLantern(p)) return;
-        if (e.getEntity() instanceof LivingEntity) {
-            e.setCancelled(true);
-        }
+        if (!targetProtection || !(e.getTarget() instanceof Player p)) return;
+        if (e.getEntity() instanceof Enemy && track(p)) e.setCancelled(true);
     }
 
+    /** Only mobs are kept off: players, the void, falls, fire, drowning, hunger and /kill still hurt. */
     @EventHandler
     public void onEntityDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p)) return;
-        if (!hasLantern(p)) return;
-
-        if (e instanceof EntityDamageByEntityEvent byEntity) {
-            if (byEntity.getDamager() instanceof Player) return;
-        }
-        e.setCancelled(true);
+        Entity cause = e.getDamageSource().getCausingEntity();
+        if (cause == null && e instanceof EntityDamageByEntityEvent byEntity) cause = byEntity.getDamager();
+        if (cause instanceof Projectile proj && proj.getShooter() instanceof Entity shooter) cause = shooter;
+        if (!(cause instanceof LivingEntity) || owner(cause) != null) return;
+        if (shielded(p)) e.setCancelled(true);
     }
 
     /** A holder deals no damage to anything, players included, by any means that traces back to them. */
@@ -154,7 +196,7 @@ public class WirtsLanternHandler implements Listener {
     public void onHolderDealsDamage(EntityDamageEvent e) {
         Player holder = owner(e.getDamageSource().getCausingEntity());
         if (holder == null && e instanceof EntityDamageByEntityEvent byEntity) holder = owner(byEntity.getDamager());
-        if (holder == null || holder.equals(e.getEntity()) || !hasLantern(holder)) return;
+        if (holder == null || holder.equals(e.getEntity()) || !pacified(holder)) return;
         e.setCancelled(true);
     }
 
@@ -162,13 +204,13 @@ public class WirtsLanternHandler implements Listener {
     @EventHandler
     public void onHolderIgnitesEntity(EntityCombustByEntityEvent e) {
         Player holder = owner(e.getCombuster());
-        if (holder != null && !holder.equals(e.getEntity()) && hasLantern(holder)) e.setCancelled(true);
+        if (holder != null && !holder.equals(e.getEntity()) && pacified(holder)) e.setCancelled(true);
     }
 
     /** Poison and wither from a holder's splash potions: instant damage already goes through the damage event. */
     @EventHandler
     public void onHolderSplash(PotionSplashEvent e) {
-        if (!(e.getPotion().getShooter() instanceof Player holder) || !hasLantern(holder)) return;
+        if (!(e.getPotion().getShooter() instanceof Player holder) || !pacified(holder)) return;
         if (e.getPotion().getEffects().stream().noneMatch(effect -> DAMAGING_EFFECTS.contains(effect.getType()))) return;
         for (LivingEntity affected : e.getAffectedEntities()) {
             if (!affected.equals(holder)) e.setIntensity(affected, 0);
@@ -178,7 +220,7 @@ public class WirtsLanternHandler implements Listener {
     /** The same for a holder's lingering clouds. */
     @EventHandler
     public void onHolderCloud(AreaEffectCloudApplyEvent e) {
-        if (!(e.getEntity().getSource() instanceof Player holder) || !hasLantern(holder)) return;
+        if (!(e.getEntity().getSource() instanceof Player holder) || !pacified(holder)) return;
         AreaEffectCloud cloud = e.getEntity();
         boolean damaging = cloud.getCustomEffects().stream().anyMatch(effect -> DAMAGING_EFFECTS.contains(effect.getType()))
                 || (cloud.getBasePotionType() != null && cloud.getBasePotionType().getPotionEffects().stream()
@@ -189,13 +231,13 @@ public class WirtsLanternHandler implements Listener {
     /** No lava poured while holding it. */
     @EventHandler
     public void onHolderPoursLava(PlayerBucketEmptyEvent e) {
-        if (e.getBucket() == Material.LAVA_BUCKET && hasLantern(e.getPlayer())) e.setCancelled(true);
+        if (e.getBucket() == Material.LAVA_BUCKET && pacified(e.getPlayer())) e.setCancelled(true);
     }
 
     /** No fire lit while holding it. */
     @EventHandler
     public void onHolderLightsFire(BlockIgniteEvent e) {
-        if (e.getPlayer() != null && hasLantern(e.getPlayer())) e.setCancelled(true);
+        if (e.getPlayer() != null && pacified(e.getPlayer())) e.setCancelled(true);
     }
 
     /** The player behind a damage source: themselves, their projectile, TNT, potion cloud or tamed pet. */
@@ -209,52 +251,24 @@ public class WirtsLanternHandler implements Listener {
     }
 
     @EventHandler
-    public void onItemHeld(PlayerItemHeldEvent e) {
-        checkLantern(e.getPlayer());
-    }
-
-    @EventHandler
-    public void onSwapHand(PlayerSwapHandItemsEvent e) {
-        checkLantern(e.getPlayer());
-    }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent e) {
-        checkLantern(e.getPlayer());
-    }
-
-    /** Into the Boss Dimension the lantern goes dark; out of it, it lights again. */
-    @EventHandler
-    public void onChangedWorld(PlayerChangedWorldEvent e) {
-        checkLantern(e.getPlayer());
-    }
-
-    @EventHandler
     public void onQuit(PlayerQuitEvent e) {
-        activeRepel.remove(e.getPlayer().getUniqueId());
+        heldSince.remove(e.getPlayer().getUniqueId());
+        lastHeld.remove(e.getPlayer().getUniqueId());
     }
 
+    /** It can never be placed or hung on a stand, anywhere: a placed lantern would lose what makes it Wirt's. */
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
         ItemStack item = e.getItem();
-        if (item == null || !isLantern(item) || inBossDimension(e.getPlayer())) return;
+        if (item == null || !isLantern(item)) return;
         e.setCancelled(true);
     }
 
     @EventHandler
     public void onArmorStandManipulate(PlayerArmorStandManipulateEvent e) {
         ItemStack item = e.getPlayerItem();
-        if (item == null || !isLantern(item) || inBossDimension(e.getPlayer())) return;
+        if (item == null || !isLantern(item)) return;
         e.setCancelled(true);
-    }
-
-    private void checkLantern(Player p) {
-        if (hasLantern(p)) {
-            activeRepel.add(p.getUniqueId());
-            applyNightVision(p);
-        } else {
-            activeRepel.remove(p.getUniqueId());
-        }
     }
 
     private void applyNightVision(Player p) {

@@ -33,7 +33,8 @@ Every vanilla mob spawn has a configurable chance to be replaced by an MSC count
 | **Arthurian legend** | Excalibur (Solar Flare beam) |
 | **Half-Life** | Head Slime (headcrab-style parasite) |
 | **Scooby-Doo / Mystery Inc.** | Scooby Cookie · Multiverse Merchant "Shaggy" |
-| **Diablo** | Wirt's Lantern (mob repel lantern) |
+| **Over the Garden Wall** | Wirt's Lantern (mob repel lantern) · the Edelwood chain that buys it |
+| **Elden Ring** | Malenia, Blade of Miquella (summoned at the Scarlet Bloom) |
 | **Original / Multiverse** | Obsidian Sentinel, Obsidian Guard, Void Crawler, Ender Knight, Storm/Venom Witches, Soul Reaper, Chaos Mage, etc. |
 
 ---

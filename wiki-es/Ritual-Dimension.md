@@ -170,6 +170,67 @@ S . . . S
 
 ---
 
+## 🌺 Invocación de Malenia: La Flor Escarlata
+
+**Malenia, Espada de Miquella** se invoca dentro de la **Boss Dimension** (`boss_dimension`) en la Flor Escarlata, el corazón de la putrefacción. Las coordenadas son relativas a la esquina suroeste del 5×5 y el suelo no se comprueba. `/mscwiki malenia` muestra la estructura delante de ti.
+
+### Estructura (5×5)
+
+```
+P . . . P        P = Pilar de esquina (2 bloques de alto)
+. . c . .        c = Vela magenta (encendida)
+. c W c .        W = Bloque de verruga del Nether (el corazón)
+. . c . .
+P . . . P
+```
+
+### Materiales
+- **1 Bloque de verruga del Nether** (`nether_wart_block`) en el centro `(2, 0, 2)`.
+- **4 Velas magenta** (`magenta_candle`) a su lado: Norte `(2, 0, 1)`, Sur `(2, 0, 3)`, Oeste `(1, 0, 2)`, Este `(3, 0, 2)`.
+- **4 Pilares** en `(0, 0)`, `(4, 0)`, `(0, 4)` y `(4, 4)`, cada uno de **2 bloques**:
+  - `Y=0` — Hifas carmesí (`crimson_hyphae`).
+  - `Y=1` — Brillongo (`shroomlight`).
+
+### Procedimiento
+1. Construye la estructura en cualquier lugar de `boss_dimension`.
+2. Enciende las **4 velas magenta** y haz clic derecho en una.
+3. **La putrefacción despierta**: hilos escarlata van de los cuatro brillongos al corazón y un capullo de podredumbre gira encima. Si rompes la estructura o se apaga una vela, se cancela.
+4. **La ofrenda**: suelta una **Antorchaflor** (`torchflower`, la Aeonia Escarlata) sobre el corazón (a menos de **3 bloques**).
+5. **La floración**: la flor se consume y una flor escarlata se abre sobre el corazón durante dos segundos y medio; todo jugador a menos de 60 bloques ve *Malenia — Blade of Miquella*. Luego estalla y **Malenia** aparece en ella.
+
+> Solo una invocación por mundo a la vez, y el corazón no despierta si Malenia ya está viva allí. Mientras pelea, se aplican los bloqueos de construcción y comandos de la Boss Dimension. Los admins pueden seguir llamándola en cualquier sitio con `/msc spawn malenia`.
+
+---
+
+## 💻 Invocación de Jack Star: La Terminal del Multiverso
+
+**JackStar — El Arquitecto del Sistema** se invoca dentro de la **Boss Dimension** en la Terminal del Multiverso. Las coordenadas son relativas a la esquina suroeste del 5×5 y el suelo no se comprueba. `/mscwiki jack` muestra la estructura.
+
+### Estructura (5×5)
+
+```
+L . . . L        L = Pilar de esquina (2 bloques de alto)
+. . c . .        c = Vela cian (encendida)
+. c T c .        T = Núcleo de la terminal
+. . c . .
+L . . . L
+```
+
+### Materiales
+- **1 Núcleo** en `(2, 0, 2)`: Nexo de reaparición, Magnetita, Mesa de encantamientos o Faro.
+- **4 velas** a su lado (Norte, Sur, Oeste, Este): cian, azul claro, azul o normales, o fogatas de almas.
+- **4 Pilares** en las esquinas, cada uno de **2 bloques**:
+  - `Y=0` — Obsidiana llorosa, Obsidiana, Ladrillos de piedra negra pulida, Piedra negra pulida cincelada, Ladrillos de pizarra profunda o Bloque de hierro.
+  - `Y=1` — Pararrayos.
+
+### Procedimiento
+1. Construye la terminal en `boss_dimension`, enciende las **4 velas** y haz clic derecho en una.
+2. La terminal se autentica y empieza su secuencia de hackeo.
+3. **La ofrenda**: suelta una **Estrella del Nether**, un **Fragmento de Eco**, un **Corazón del Mar**, un **Faro** o un **Architect Kernel** sobre el núcleo.
+4. **JackStar** arranca sobre la terminal.
+
+---
+
 ## 🏛️ Dioses de DrakesBosses: el Altar del Panteón
 
 Con **DrakesBosses** instalado (dependencia suave), sus dioses también se pueden invocar dentro de `boss_dimension`. Sin DrakesBosses el altar no responde. DrakesBosses spawnea al dios con sus propias stats, habilidades, loot y recompensas.

@@ -60,23 +60,27 @@ Garras forjadas con la seda y el hierro de Deepnest.
 
 ---
 
-## 🔮 Linterna de Wirt (Khand)
+## 🔮 Linterna de Wirt (Over the Garden Wall — lo Desconocido)
 
 > "La llama no conoce el invierno."
 
-Una linterna que guarda un alma perdida.
+Una linterna que guarda un alma perdida: la de la Bestia. Protege de los monstruos al que la lleva, pero nunca le ayuda a pelear.
 
 | Estadística | Valor |
 |---|---|
 | Material | SOUL_LANTERN |
 | Ranura | Mano principal O secundaria |
-| Tarea pasiva | Cada 20 ticks mientras se sostiene: <br>• Aplica Visión Nocturna I (100 t, ambient=false, overwrite=false) <br>• **Repele** a todas las entidades vivas no jugador dentro de 12 bloques (`REPEL_RADIUS`): velocidad hacia afuera (+0.3 Y, máx. 0.6) + limpia su objetivo si es el portador + 30% de probabilidad de generar SOUL_FIRE_FLAME |
+| Tarea pasiva | Cada `mob-repel.interval-ticks` (20), para cada jugador conectado que la lleve: <br>• Visión Nocturna I (100 t) <br>• **Repele a los mobs hostiles** a menos de `mob-repel.radius` (12) bloques: empuje hacia fuera (`horizontal-force` 0.6, `vertical-force` 0.2, máx. 0.6 hacia arriba) y 30% de SOUL_FIRE_FLAME. Aldeanos, mascotas, soportes de armadura y la montura del portador no se mueven <br>• Los mobs hostiles dejan de tener al portador como objetivo (`target-protection`) |
+| Protección contra mobs | Tras llevarla `arm-ticks` (30, 1,5 s), se cancela el daño causado por mobs (golpes, sus flechas, bolas de fuego, explosiones). **Los jugadores, las caídas, el fuego, la lava, ahogarse, el hambre, el vacío y `/kill` siguen haciendo daño.** |
+| Sin daño | Mientras la lleva, y `disarm-ticks` (60, 3 s) después de guardarla, el portador **no hace daño a nada**, jugadores incluidos: golpes, proyectiles, Stands, TNT, mascotas, fuego, cubos de lava, mechero y pociones de veneno/wither quedan bloqueados. Cambiar a un arma entre golpe y golpe no da inmunidad. |
+| Dimensión de Jefes | Allí **no hace nada**: ni protección, ni repulsión, ni desvío de objetivos, ni visión nocturna, ni bloqueo de daño. |
+| Colocar | Nunca se puede colocar ni poner en un soporte de armadura, en ningún sitio (perdería lo que la hace de Wirt). |
 | Etiqueta PDC | `msc_wirts_lantern` |
-| Eventos | `EntityTargetEvent` cancelado si el objetivo es el portador · `EntityDamageEvent` cancelado a menos que el atacante sea un jugador (el portador es inmune al daño de no jugadores) · `EntityDamageByEntityEvent` cancelado si la víctima es un no jugador (el portador no puede dañar mobs) · click derecho + manipulación de armorstand cancelados (la lámpara es puramente protectora) |
+| Config | `items.wirts-lantern`: `enabled`, `mob-repel.*`, `night-vision.enabled`, `target-protection.enabled`, `mob-protection.enabled`, `arm-ticks`, `disarm-ticks` |
 
 - **Give:** `/msc give wirtslantern`
-- **Intercambio:** del Comerciante Multiversal por 32 Arena de Almas + 16 Tierra de Almas
-- **Tema:** Khand (linterna protectora estilo Diablo Tristram)
+- **Intercambio:** del Comerciante Multiversal por **The Beast's Antler** + **Edelwood Oil**, el final de la cadena de Edelwood (mira [Componentes](./Components.md#-cadena-de-la-linterna-de-wirt-over-the-garden-wall))
+- **Tema:** Over the Garden Wall (Wirt, la Bestia y los árboles Edelwood de lo Desconocido)
 
 ---
 

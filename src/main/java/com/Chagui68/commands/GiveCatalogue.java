@@ -144,7 +144,9 @@ final class GiveCatalogue {
             "shadowcloak &8/ &eswordmold &8/ &emilitarycomponent &8- &7Relics",
             "reinforcedbone &8/ &ereinforcedboneblock &8- &7Bone Crafting",
             "chaosorb &8/ &echaospowder &8/ &echaosfragment &8- &7Chaos Alch.",
-            "condensedchaosorb &8/ &eenderfragment &8- &7Infused Catalysts");
+            "condensedchaosorb &8/ &eenderfragment &8- &7Infused Catalysts",
+            "edelwoodsap &8/ &eedelwoodoil &8/ &epottsfieldgourd &8- &7Edelwood Chain",
+            "beatricefeather &8/ &ebeastantler &8- &7Wirt's Lantern Trade");
 
     private static final List<List<String>> PAGES = List.of(PAGE_1, PAGE_2, PAGE_3, PAGE_4);
 
@@ -234,7 +236,13 @@ final class GiveCatalogue {
             new Entry("voidessence", () -> VoidEssence.VOID_ESSENCE),
             new Entry("wheelessence", () -> WheelEssence.WHEEL_ESSENCE),
             new Entry("refinednetherite", () -> RefinedNetherite.REFINED_NETHERITE),
-            new Entry("moltennetherite", () -> MoltenNetherite.MOLTEN_NETHERITE));
+            new Entry("moltennetherite", () -> MoltenNetherite.MOLTEN_NETHERITE),
+            // Wirt's Lantern chain
+            new Entry("edelwoodsap", () -> com.Chagui68.items.components.EdelwoodSap.EDELWOOD_SAP),
+            new Entry("edelwoodoil", () -> com.Chagui68.items.components.EdelwoodOil.EDELWOOD_OIL),
+            new Entry("pottsfieldgourd", () -> com.Chagui68.items.components.PottsfieldGourd.POTTSFIELD_GOURD),
+            new Entry("beatricefeather", () -> com.Chagui68.items.components.BeatriceFeather.BEATRICE_FEATHER),
+            new Entry("beastantler", () -> com.Chagui68.items.components.BeastAntler.BEAST_ANTLER));
 
     private static final Map<String, Entry> BY_NAME = buildIndex();
 

@@ -320,7 +320,7 @@ Un reemplazo del Comerciante Errante — el 30% (`SHAGGY_CHANCE`) de los spawns 
 | 5× Galleta de Scooby | 20 Diamantes | 999 |
 | Excalibur | 16 Núcleos Estelares + 32 Lingotes de Netherita | 1 |
 | Corona del Rey Helado | 48 Estrellas del Nether + 64 Hielo Azul | 1 |
-| Linterna de Wirt | 32 Arena de Almas + 16 Tierra de Almas | 1 |
+| Linterna de Wirt | The Beast's Antler + Edelwood Oil | 1 |
 | Garras de Mantis | 16 Lingotes de Hierro + 8 Cuerdas | 999 |
 
 - **Comando:** `/msc spawn merchant`
