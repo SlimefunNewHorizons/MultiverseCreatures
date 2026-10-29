@@ -167,7 +167,7 @@ public final class VampireManager implements Listener {
                 Component.text("You are now a vampire and a Stand bearer", GRAY),
                 Title.Times.times(Duration.ofMillis(400), Duration.ofSeconds(4), Duration.ofSeconds(1))));
         player.sendMessage(MscText.rich(DARK_RED, "✦ ", GRAY, "Your body can now hold a ", GOLD, "Stand", GRAY,
-                ": the Arrow can no longer kill you and will awaken it. But the ", YELLOW, "sol", GRAY,
+                ": the Arrow can no longer kill you and will awaken it. But the ", YELLOW, "sun", GRAY,
                 " no longer forgives you: under the open sky by day, you will burn."));
         player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 120, 0));
         player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 60, 0));
