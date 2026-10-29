@@ -55,7 +55,7 @@ public class BossDimensionManager {
         if (plugin.getConfig().getBoolean("boss-dimension.red-sky", true)) {
             BossDimensionSky.apply(plugin);
         }
-        reloadWithWastelandGenerator();
+        warnIfLoadedWithoutGenerator();
         resetDimensionIfNeeded();
 
         if (bossWorld != null) {
@@ -90,22 +90,17 @@ public class BossDimensionManager {
     }
 
     /**
-     * Takes the dimension back from a world manager (Multiverse) that loaded it before this plugin without
-     * {@link WastelandGenerator}: every chunk generated from then on would be vanilla terrain. The world is
-     * saved and unloaded, so {@link #createBossDimension()} loads it again with the wasteland generator.
+     * Warns when a world manager (Multiverse) loaded the dimension without {@link WastelandGenerator}:
+     * every chunk generated from then on would be vanilla terrain. The world is kept as it is, because
+     * unloading and recreating it in the same startup tick froze the server before "Done".
      */
-    private void reloadWithWastelandGenerator() {
+    private void warnIfLoadedWithoutGenerator() {
         if (bossWorld != null) return;
         World loaded = Bukkit.getWorld(WORLD_NAME);
         if (loaded == null || loaded.getGenerator() instanceof WastelandGenerator) return;
-        if (!loaded.getPlayers().isEmpty() || !Bukkit.unloadWorld(loaded, true)) {
-            plugin.getLogger().warning(WORLD_NAME + " was loaded by another plugin without the MultiverseCreatures"
-                    + " generator and could not be reloaded: new chunks there will be vanilla terrain. Give it the"
-                    + " generator MultiverseCreatures in that plugin.");
-            return;
-        }
-        plugin.getLogger().info(WORLD_NAME + " was loaded by another plugin without the MultiverseCreatures"
-                + " generator: reloading it with the wasteland generator.");
+        plugin.getLogger().warning(WORLD_NAME + " was loaded by another plugin without the MultiverseCreatures"
+                + " generator: new chunks there will be vanilla terrain. Set 'generator: MultiverseCreatures'"
+                + " for it in plugins/Multiverse-Core/worlds.yml.");
     }
 
     /** Whether a world folder was built by an older generator and has to be rebuilt. */

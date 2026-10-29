@@ -305,7 +305,7 @@ Con el jefe inactivo puedes salir directamente con **`/msc dimtp`** (los comando
 ## 🧰 Notas técnicas
 
 - Nombre del mundo: `boss_dimension` (se crea en la primera entrada, se descarga al desactivar el plugin).
-- Si otro plugin (como Multiverse) carga `boss_dimension` sin el generador de este plugin, al arrancar el plugin lo guarda, lo descarga y lo vuelve a cargar con el generador del páramo, para que los chunks nuevos nunca sean terreno vanilla. Los chunks generados antes se quedan como están. También se le puede dar a un gestor de mundos el generador `MultiverseCreatures`.
+- Multiverse carga `boss_dimension` al arrancar. Dale el generador `MultiverseCreatures` en `plugins/Multiverse-Core/worlds.yml` (`generator: MultiverseCreatures`); este plugin carga antes que Multiverse-Core para que el generador esté listo. Sin eso, el plugin deja el mundo como está y avisa en consola: los chunks nuevos serán terreno vanilla.
 - Punto de spawn: `0.5, 41, 0.5`, el centro de la arena.
 - Reglas del mundo: sin ciclo de día/noche, sin ciclo de clima, sin spawns de mobs, reaparición inmediata, sin anuncios de avances.
 - El cielo se fuerza a rojo vía un override de bioma; `boss-dimension.red-sky: false` lo deja como está (el tinte se aplica a un bioma vanilla, así que es global).

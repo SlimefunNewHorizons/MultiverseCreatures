@@ -7,6 +7,8 @@ author: Chagui68
 description: A themed creatures and items plugin
 website: https://github.com/SlimefunNewHorizons/MultiverseCreatures
 softdepend: [Slimefun, InfinityExpansion, SlimeTinker, DrakesBosses]
+# Multiverse loads boss_dimension on startup: this plugin must be enabled by then to hand it the generator.
+loadbefore: [Multiverse-Core]
 
 commands:
   msc:
