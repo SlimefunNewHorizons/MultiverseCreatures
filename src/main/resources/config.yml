@@ -101,6 +101,11 @@ general:
   # Worlds where the plugin is allowed to operate. Empty list = every world.
   # The plugin's own worlds (boss_dimension, drakes_bosses) are always allowed.
   allowed-creature-worlds: []
+  # Worlds where the plugin must NOT operate, checked before the allowlist above. Use this to
+  # keep MSC out of a handful of worlds (e.g. a "classic, vanilla-only" world) without having to
+  # list every other world you DO want it in. The plugin's own worlds (boss_dimension,
+  # drakes_bosses) always win over this list too, same as the allowlist.
+  disallowed-creature-worlds: []
   # If true, MSC creatures found in a world outside the allowlist are deleted. Off by default:
   # this removes live entities, so it only runs when an operator asks for it.
   purge-disallowed-creatures: false

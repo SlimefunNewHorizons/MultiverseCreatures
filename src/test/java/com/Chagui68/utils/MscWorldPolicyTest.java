@@ -28,7 +28,7 @@ class MscWorldPolicyTest {
         assertTrue(MscWorldPolicy.isAllowed(List.of(), worldName));
         assertTrue(MscWorldPolicy.isAllowed(null, worldName));
     }
-
+
 
     @Test
     @DisplayName("Verify a populated allowlist restricts and normalizes world names")
@@ -48,7 +48,7 @@ class MscWorldPolicyTest {
         // plugin creates itself must keep working.
         assertTrue(MscWorldPolicy.isAllowed(List.of("survival"), worldName));
     }
-
+
 
     @Test
     @DisplayName("Verify a null world name is never allowed")
@@ -56,5 +56,47 @@ class MscWorldPolicyTest {
         assertFalse(MscWorldPolicy.isAllowed(List.of(), null));
         assertFalse(MscWorldPolicy.isAllowed(List.of("survival"), null));
         assertFalse(MscWorldPolicy.isAllowed(List.of("survival"), ""));
+    }
+
+    @ParameterizedTest(name = "Denylist blocks \"{0}\" even though the allowlist is empty")
+    @ValueSource(strings = {"clasico", "CLASICO", " clasico ", "clasico_nether", "clasico_the_end"})
+    @DisplayName("Verify the denylist overrides the documented 'empty allowlist = every world'")
+    void testDenylistBlocksWorldsDespiteEmptyAllowlist(String worldName) {
+        List<String> disallowed = List.of("clasico", "clasico_nether", "clasico_the_end");
+        assertFalse(MscWorldPolicy.isAllowed(List.of(), disallowed, worldName),
+                "An empty allowlist must not let the denylist through");
+    }
+
+    @Test
+    @DisplayName("Verify the denylist does not affect worlds it does not name")
+    void testDenylistOnlyBlocksNamedWorlds() {
+        List<String> disallowed = List.of("clasico");
+        assertTrue(MscWorldPolicy.isAllowed(List.of(), disallowed, "survival"));
+        assertTrue(MscWorldPolicy.isAllowed(List.of(), disallowed, "world_nether"));
+    }
+
+    @Test
+    @DisplayName("Verify the denylist is also checked against a populated allowlist")
+    void testDenylistWinsOverAllowlist() {
+        // A world named in both lists is blocked: the denylist is checked first, so a stale or
+        // conflicting allowlist entry can never resurrect a world an operator explicitly excluded.
+        List<String> allowed = List.of("clasico", "survival");
+        List<String> disallowed = List.of("clasico");
+        assertFalse(MscWorldPolicy.isAllowed(allowed, disallowed, "clasico"));
+        assertTrue(MscWorldPolicy.isAllowed(allowed, disallowed, "survival"));
+    }
+
+    @ParameterizedTest(name = "Plugin world \"{0}\" stays allowed even when denylisted")
+    @ValueSource(strings = {"boss_dimension", "drakes_bosses", "DRAKES_BOSSES"})
+    @DisplayName("Verify INTERNAL_WORLDS override the denylist")
+    void testInternalWorldsOverrideDenylist(String worldName) {
+        List<String> disallowed = List.of("boss_dimension", "drakes_bosses");
+        assertTrue(MscWorldPolicy.isAllowed(List.of(), disallowed, worldName));
+    }
+
+    @Test
+    @DisplayName("Verify the two-arg overload keeps its old behaviour (no denylist)")
+    void testTwoArgOverloadHasNoDenylist() {
+        assertTrue(MscWorldPolicy.isAllowed(List.of(), "clasico"));
     }
 }
