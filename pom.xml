@@ -39,7 +39,7 @@
             <artifactId>joml</artifactId>
             <!-- The JOML Minecraft 1.21.11 ships: compiled against a newer one, a call can link to an
                  overload the server does not have and fail with NoSuchMethodError at run time. -->
-            <version>1.10.8</version>
+            <version>1.10.9</version>
             <scope>provided</scope>
         </dependency>
 
@@ -70,7 +70,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-transport</artifactId>
-            <version>4.2.18.Final</version>
+            <version>4.2.19.Final</version>
             <scope>provided</scope>
         </dependency>
 
@@ -78,7 +78,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.14.0</version>
+            <version>2.15.0</version>
         </dependency>
     </dependencies>
 
