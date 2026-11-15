@@ -4,7 +4,6 @@ import com.Chagui68.MultiverseCreatures;
 import com.Chagui68.items.components.HeadSlimeHeart;
 import com.Chagui68.utils.MscEntityUtils;
 import com.Chagui68.utils.MscText;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -37,7 +36,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;

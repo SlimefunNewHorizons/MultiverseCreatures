@@ -4,7 +4,7 @@
 # Version of this file. A server that updates the plugin keeps its own config.yml and the plugin
 # adds whatever keys are missing on start (values you edited are never touched), stamping the new
 # version here. See MscConfigMigration.CONFIG_VERSION — keep the two in step.
-config-version: 10
+config-version: 11
 #
 # SlimeTinker Infinity against every boss except Mahoraga (which adapts on its own):
 #   pierce-infinity-armor: boss hits pierce the full Infinity set (absorption is cleared first)
@@ -109,6 +109,19 @@ general:
   # If true, MSC creatures found in a world outside the allowlist are deleted. Off by default:
   # this removes live entities, so it only runs when an operator asks for it.
   purge-disallowed-creatures: false
+  # Elite versions of the natural mobs (Obsidian Guard, Head Slime, Creeper Jr, Arrow Skeleton,
+  # Shadow Rogue, Bone Shield, Flame Elemental, Frost Golem, Void Crawler, Storm Caller, Venom Witch,
+  # Soul Reaper, Chaos Mage, Warlord, Ender Knight): the same creature, bigger, tougher and harder
+  # hitting, with a gold "Elite" name. Minibosses, bosses and traders have no elite.
+  elite:
+    enabled: true
+    # An elite's spawn chance, as a share of its entity's own: 0.7 = 30% less likely.
+    spawn-chance-multiplier: 0.7
+    health-multiplier: 2.5
+    damage-multiplier: 1.5        # its blows and projectiles on players
+    speed-multiplier: 1.15
+    scale: 1.25                   # its size
+    experience-multiplier: 3.0
 
 
 # ---------------------------------------------------------------------------
@@ -481,11 +494,59 @@ entities:
     ring-damage: 10.0             # landing from the leap or the Waterfowl Dance
     lifesteal: 0.5                # share of every hit she lands that heals her
     attack-cooldown-ticks: 6
-    waterfowl-cooldown-ticks: 400 # the Waterfowl Dance, only below half health
+    waterfowl-cooldown-ticks: 400 # the Waterfowl Dance, below half health
     death-messages:
       - "&c%player% was cut down by Malenia, Blade of Miquella"
       - "&c%player% could not dodge the Waterfowl Dance"
       - "&c%player% has never known defeat... until Malenia"
+
+  # -------------------------------------------------------------------------
+  # Starscourge Radahn - a mounted warlord: swords, greatbow, gravity (/msc spawn radahn)
+  # He never stops riding. At half health he leaves for the sky and comes back down as a star.
+  # -------------------------------------------------------------------------
+  radahn:
+    enabled: true
+    health: 2200.0
+    max-damage-per-hit: 14.0
+    hitbox-scale: 2.0
+    aggro-range: 48.0
+    move-speed: 0.42              # blocks a tick at the gallop
+    attack-cooldown-ticks: 22
+    sword-damage: 14.0            # his greatsword as he rides by, once per swing on each player it passes through
+    slam-damage: 10.0             # the blades coming down at the end of the Event Horizon
+    pull-strength: 0.2            # blocks a tick players are dragged towards him by the Event Horizon
+    bow-range: 40.0               # he shoots at players from 9 blocks to this far
+    shot-share: 0.5               # the great arrow: share of the player's maximum health, through armour
+    rain-share: 0.15              # each arrow of the rain, which turn after their marks: share of maximum health
+    rain-arrows: 3                # arrows of the rain for every player in range
+    volley-damage: 8.0            # each arrow of the fan
+    volley-arrows: 5
+    cataclysm-radius: 20.0        # at half health: everyone still inside this ring when the star lands dies
+    death-messages:
+      - "&5%player% was pulled into Radahn's orbit"
+      - "&5%player% was crushed under a falling star"
+      - "&5%player% was ridden down by Radahn"
+
+  # -------------------------------------------------------------------------
+  # Herobrine (/msc spawn herobrine)
+  # -------------------------------------------------------------------------
+  herobrine:
+    enabled: true
+    health: 1300.0
+    max-damage-per-hit: 12.0
+    hitbox-scale: 1.25
+    aggro-range: 34.0
+    move-speed: 0.3
+    attack-cooldown-ticks: 12
+    pick-damage: 11.0
+    quake-damage: 6.0             # the ground under his overhead strike
+    bolt-damage: 12.0             # each lightning bolt
+    stare-ticks: 40               # how long a player may stare at him before he appears behind them
+    gloom-ticks: 100              # how long White Eyes darkens and slows
+    death-messages:
+      - "&f%player% looked at Herobrine too long"
+      - "&f%player% never saw him move"
+      - "&f%player% turned round too late"
 
   # -------------------------------------------------------------------------
   # DIO - JoJo's Bizarre Adventure, with his Stand The World (/msc spawn dio)

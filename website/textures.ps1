@@ -24,7 +24,7 @@ $blocks = 'obsidian', 'crying_obsidian', 'black_concrete', 'blackstone', 'blacks
     'gold_block', 'raw_gold_block', 'red_wool', 'red_terracotta', 'red_concrete', 'white_terracotta',
     'iron_block', 'quartz_block_side', 'quartz_block_top', 'black_wool', 'yellow_terracotta', 'orange_terracotta',
     'terracotta', 'brown_terracotta', 'brown_concrete', 'sandstone_top', 'red_concrete_powder', 'orange_concrete',
-    'mushroom_stem', 'nether_wart_block', 'redstone_block', 'purple_stained_glass', 'magenta_stained_glass'
+    'mushroom_stem', 'nether_wart_block', 'redstone_block', 'purple_stained_glass', 'magenta_stained_glass', 'mangrove_planks'
 $wanted = @{}
 foreach ($b in $blocks) { $wanted["assets/minecraft/textures/block/$b.png"] = "$b.png" }
 $wanted["assets/minecraft/textures/entity/skeleton/wither_skeleton.png"] = "wither_skeleton.png"

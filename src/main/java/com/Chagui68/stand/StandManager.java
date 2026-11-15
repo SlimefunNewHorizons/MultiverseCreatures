@@ -3,7 +3,6 @@ package com.Chagui68.stand;
 import com.Chagui68.MultiverseCreatures;
 import com.Chagui68.utils.MscText;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Color;

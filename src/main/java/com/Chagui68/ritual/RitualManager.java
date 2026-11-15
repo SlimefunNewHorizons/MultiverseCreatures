@@ -2,8 +2,6 @@ package com.Chagui68.ritual;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.Chagui68.MultiverseCreatures;
 
 import java.util.HashMap;

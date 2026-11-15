@@ -1,15 +1,11 @@
 package com.Chagui68.entities.boss;
 
-import com.Chagui68.testsupport.LimbGeometry;
-import com.Chagui68.testsupport.ProjectPaths;
-import com.Chagui68.utils.MscLimb;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;

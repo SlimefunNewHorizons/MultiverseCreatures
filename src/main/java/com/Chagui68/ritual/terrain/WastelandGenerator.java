@@ -2,7 +2,6 @@ package com.Chagui68.ritual.terrain;
 
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.generator.BiomeProvider;

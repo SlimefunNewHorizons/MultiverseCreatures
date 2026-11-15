@@ -260,6 +260,17 @@ Su **espada** golpea a quien atraviesa, una vez por tajo. Los **tajos** del Torb
 
 ---
 
+## 🧩 Los jefes articulados
+
+Malenia y los dos jefes de abajo comparten un motor (`entities/boss/rig`): un cuerpo de block displays sobre un esqueleto, animado con movimientos por fotogramas clave. Entre ataques giran hacia su objetivo a velocidad limitada, corren desde lejos, caminan el último tramo, rodean al objetivo mientras su siguiente ataque no está listo, retroceden si los acorralan y pueden esquivar un golpe; mientras preparan un ataque siguen girando hacia su objetivo. La pose se envía cada 2 ticks durante un ataque, cada 4 el resto del tiempo, nunca si no hay jugadores cerca y nunca para una pieza que no se movió. Cada jefe nuevo usa como máximo 200 displays. Cualquiera se previsualiza con `/msc debug model <nombre> [movimiento]`; todos están en el visor web.
+
+| Jefe | Invocación | De qué va la pelea |
+|---|---|---|
+| **Starscourge Radahn** | `/msc spawn radahn` | Un caudillo a caballo que nunca deja de cabalgar. Galopa hacia su objetivo en curva y corta al pasar. De 9 a `bow-range` (40) bloques toma su gran arco: una flecha que quita `shot-share` (50%) de la vida máxima, un abanico de `volley-arrows` (5) contra un jugador, o una lluvia de flechas que persiguen a sus blancos y quitan `rain-share` (15%) cada una, todo atravesando armadura. El Horizonte de Sucesos arrastra a todos hacia él antes de un golpe. A media vida sube al cielo y vuelve como una estrella: quien siga dentro del anillo rojo (`cataclysm-radius`, 20) al caer, muere. |
+| **Herobrine** | `/msc spawn herobrine` | Míralo `stare-ticks` (40) y aparece a tu espalda. Se teletransporta tras su objetivo, invoca rayos sobre anillos de aviso, oscurece y ralentiza a todos los cercanos. |
+
+Cada uno tiene `health`, `max-damage-per-hit`, `hitbox-scale`, `aggro-range`, `move-speed`, `attack-cooldown-ticks` y sus propias claves de daño en `entities.<nombre>` de `config.yml`. Sueltan 500 de experiencia.
+
 ## 👊 Garou — Minijefe (One-Punch Man)
 
 El Cazador de Héroes, un artista marcial que pelea con las manos desnudas y contraataca los golpes que recibe.

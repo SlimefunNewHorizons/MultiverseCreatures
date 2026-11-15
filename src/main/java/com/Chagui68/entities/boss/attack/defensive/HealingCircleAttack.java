@@ -5,7 +5,6 @@ import com.Chagui68.entities.boss.BossHost;
 import com.Chagui68.entities.boss.attack.ChoreographedAttack;
 import com.Chagui68.entities.boss.fx.Ease;
 import com.Chagui68.entities.boss.fx.Fx;
-import com.Chagui68.entities.boss.fx.Palette;
 import com.Chagui68.entities.boss.fx.Poses;
 import com.Chagui68.entities.boss.fx.Sfx;
 import com.Chagui68.entities.boss.fx.Shapes;

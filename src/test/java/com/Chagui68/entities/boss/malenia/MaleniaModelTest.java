@@ -1,5 +1,7 @@
-package com.Chagui68.entities.boss;
+package com.Chagui68.entities.boss.malenia;
 
+import com.Chagui68.entities.boss.rig.Rig;
+import com.Chagui68.entities.boss.rig.RigViewerExport;
 import com.Chagui68.utils.DisplaySculpt;
 import org.bukkit.util.Transformation;
 import org.joml.Matrix4f;
@@ -13,25 +15,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MaleniaModelTest {
 
-    /** min x, y, z, max x, y, z of the drawn pieces, in blocks. */
-    static float[] bounds(List<DisplaySculpt.Piece> pieces) {
-        float[] b = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
-        for (DisplaySculpt.Piece piece : pieces) {
-            Transformation t = piece.transformation();
-            Matrix4f m = new Matrix4f().translate(t.getTranslation()).rotate(t.getLeftRotation()).scale(t.getScale());
-            for (int i = 0; i < 8; i++) {
-                Vector3f c = m.transformPosition(new Vector3f(i & 1, (i >> 1) & 1, (i >> 2) & 1));
-                b[0] = Math.min(b[0], c.x); b[1] = Math.min(b[1], c.y); b[2] = Math.min(b[2], c.z);
-                b[3] = Math.max(b[3], c.x); b[4] = Math.max(b[4], c.y); b[5] = Math.max(b[5], c.z);
-            }
-        }
-        return b;
-    }
-
     @Test
     @DisplayName("She stands on the ground, 2.6 to 3.2 blocks tall, nothing out past the katana")
     void fitsHerFrame() {
-        float[] b = bounds(MaleniaModel.pieces());
+        float[] b = RigViewerExport.bounds(MaleniaModel.pieces());
         assertEquals(0f, b[1], .03f, "she stands on the ground");
         assertTrue(b[4] > 2.55f && b[4] < 3.2f, "her height: " + b[4]);
         for (int i : new int[]{0, 2, 3, 5}) assertTrue(Math.abs(b[i]) < 2.2f, "her reach: " + b[i]);
@@ -52,9 +39,12 @@ class MaleniaModelTest {
     @Test
     @DisplayName("Every attack starts from her stance, keeps its keys in order, and never sinks her through the floor")
     void attacksAreSound() {
-        for (MaleniaRig.Move move : MaleniaRig.MOVES) {
-            for (Matrix4f bone : MaleniaRig.bones(move, 0)) {
-                assertTrue(bone.equals(new Matrix4f(), 1e-4f), move.id() + " does not start at rest");
+        for (Rig.Move move : MaleniaRig.MOVES) {
+            // The loops her stand walks to start mid-stride.
+            if (!move.id().equals("walk") && !move.id().equals("run")) {
+                for (Matrix4f bone : MaleniaRig.RIG.bones(move, 0)) {
+                    assertTrue(bone.equals(new Matrix4f(), 1e-4f), move.id() + " does not start at rest");
+                }
             }
             move.bones().forEach((bone, keys) -> {
                 for (int i = 1; i < keys.size(); i++) {
@@ -62,7 +52,7 @@ class MaleniaModelTest {
                 }
                 assertTrue(keys.get(keys.size() - 1).tick() <= move.ticks(), move.id() + ": " + bone + " keys past the end");
             });
-            float[] reach = MaleniaViewerExport.reach(MaleniaModel.pieces(), move);
+            float[] reach = RigViewerExport.reach(MaleniaRig.FORM, move);
             assertTrue(reach[1] > -.5f, move.id() + " goes " + reach[1] + " below the floor");
         }
     }
@@ -70,13 +60,13 @@ class MaleniaModelTest {
     @Test
     @DisplayName("The Waterfowl Dance whirls her through the air across an area, her cape streaming behind")
     void waterfowlWhirls() {
-        MaleniaRig.Move dance = MaleniaRig.move("waterfowl");
-        float[] reach = MaleniaViewerExport.reach(MaleniaModel.pieces(), dance);
+        Rig.Move dance = MaleniaRig.FORM.move("waterfowl");
+        float[] reach = RigViewerExport.reach(MaleniaRig.FORM, dance);
         assertTrue(reach[3] - reach[0] > 4f && reach[4] > 3.5f, "she covers an area in the air");
-        float spin = MaleniaRig.sample(dance.bones().get(MaleniaRig.Bone.ROOT), 60)[1] - MaleniaRig.sample(dance.bones().get(MaleniaRig.Bone.ROOT), 59)[1];
+        float spin = Rig.sample(dance.bones().get(0), 60)[1] - Rig.sample(dance.bones().get(0), 59)[1];
         assertTrue(Math.abs(spin) >= 80, "she spins about a quarter turn a tick: " + spin);
-        assertTrue(MaleniaRig.follow(dance, 60, false)[0] > 40, "the cape streams out as she whirls");
-        assertEquals(0f, MaleniaRig.follow(MaleniaRig.move("idle"), 0, false)[0], 1e-4f, "the cape hangs at rest");
+        assertTrue(MaleniaRig.RIG.follow(dance, 60, false)[0] > 40, "the cape streams out as she whirls");
+        assertEquals(0f, MaleniaRig.RIG.follow(MaleniaRig.FORM.move("idle"), 0, false)[0], 1e-4f, "the cape hangs at rest");
     }
 
     @Test
@@ -84,9 +74,9 @@ class MaleniaModelTest {
     void posingIsRigid() {
         DisplaySculpt.Piece piece = MaleniaModel.pieces().get(0);
         Matrix4f turn = new Matrix4f().translate(1, 2, 3).rotateY(1.1f).rotateX(.4f);
-        Transformation posed = MaleniaRig.posed(piece, turn);
+        Transformation posed = Rig.posed(piece, turn);
         assertTrue(posed.getScale().equals(piece.transformation().getScale(), 1e-5f), "the piece keeps its size");
-        assertTrue(MaleniaRig.posed(piece, new Matrix4f()).getTranslation().equals(piece.transformation().getTranslation(), 1e-5f),
+        assertTrue(Rig.posed(piece, new Matrix4f()).getTranslation().equals(piece.transformation().getTranslation(), 1e-5f),
                 "at rest the piece stays where it is");
     }
 
@@ -94,11 +84,11 @@ class MaleniaModelTest {
     @DisplayName("The robe flares as one cloth: its tiles stretch to close the gaps instead of tearing apart")
     void skirtStaysWhole() {
         List<DisplaySculpt.Piece> pieces = MaleniaModel.pieces();
-        int[] owners = MaleniaRig.owners(pieces);
+        int[] owners = MaleniaRig.RIG.owners(pieces);
         for (String id : new String[]{"idle", "whirlwind", "waterfowl", "leap"}) {
-            MaleniaRig.Move move = MaleniaRig.move(id);
+            Rig.Move move = MaleniaRig.FORM.move(id);
             for (int tick = 0; tick <= move.ticks(); tick += 4) {
-                List<Transformation> posed = MaleniaRig.pose(move, tick, pieces, owners);
+                List<Transformation> posed = MaleniaRig.pose(move, tick, pieces, owners, new Matrix4f());
                 for (int i = 0; i < pieces.size(); i++) {
                     if (owners[i] != MaleniaRig.Bone.SKIRT.ordinal()) continue;
                     float restGap = Float.MAX_VALUE;

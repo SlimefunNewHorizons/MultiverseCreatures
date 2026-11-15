@@ -22,9 +22,16 @@ import java.util.List;
  */
 public final class DisplaySculpt {
 
-    /** One block display: the part it belongs to, its block, its centre, its turn and its size. */
+    /**
+     * One block display: the part it belongs to, its block, its centre, its turn and its size. With a
+     * {@code skin} (a base64 head texture) it is a textured player head filling that same box instead.
+     */
     public record Piece(String part, Material material, Vector3f center, Quaternionf rotation, Vector3f size,
-                        boolean glow) {
+                        boolean glow, String skin) {
+
+        public Piece(String part, Material material, Vector3f center, Quaternionf rotation, Vector3f size, boolean glow) {
+            this(part, material, center, rotation, size, glow, null);
+        }
 
         /** The display transform that draws this piece from the model's origin. */
         public Transformation transformation() {
@@ -235,6 +242,18 @@ public final class DisplaySculpt {
                 quad(paint.at(c, r), p00, p01, p10, p11, thickness, out);
             }
         }
+    }
+
+    /** A tapered tube from {@code a} to {@code b}, {@code columns} tiles round: a limb, a staff, a horn. */
+    public void tube(Paint paint, Vector3f a, Vector3f b, float ra, float rb, int columns) {
+        Vector3f d = new Vector3f(b).sub(a).normalize();
+        Vector3f hint = Math.abs(d.x) < 0.9f ? new Vector3f(1, 0, 0) : new Vector3f(0, 1, 0);
+        loft(along(a, b, new float[]{ra, rb}, new float[]{ra, rb}, hint), columns, null, null, paint, 0.014f);
+    }
+
+    /** A shell round the y axis through rows of {y, radius across, radius front to back, centre x, centre z}. */
+    public void shell(float[][] rows, int columns, Paint paint) {
+        loft(new Lathe(rows).rings(), columns, null, null, paint, 0.014f);
     }
 
     private static Vector3f shaped(Ring ring, double angle, int column, int row, Shape shape) {

@@ -5,9 +5,8 @@ import com.Chagui68.utils.MscLog;
 import com.Chagui68.utils.MscText;
 import com.Chagui68.utils.MscWorldPolicy;
 import com.Chagui68.MultiverseCreatures;
+import com.Chagui68.entities.EliteMobs;
 import com.Chagui68.items.misc.IceCrown;
-import com.Chagui68.items.weapons.melee.Excalibur;
-import com.Chagui68.items.food.ScoobyCookie;
 import com.Chagui68.items.misc.MantisClaws;
 import com.Chagui68.items.components.StarCore;
 import com.Chagui68.items.components.BeastAntler;
@@ -76,6 +75,8 @@ public class MobHandler implements Listener {
     private double venomWitchRaidChance;
     private double chaosMageRaidChance;
     private boolean debug;
+    /** Whether the last roll that came up was an elite's ({@link #rolls}). */
+    private boolean elite;
     /**
      * Opt-in cleanup of MSC creatures in worlds outside the allowlist.
      *
@@ -135,6 +136,22 @@ public class MobHandler implements Listener {
                     + " venomWitchRaidChance=" + venomWitchRaidChance
                     + " chaosMageRaidChance=" + chaosMageRaidChance);
         }
+    }
+
+    /**
+     * Rolls for an entity that spawns with {@code chance}, and beside it for its elite, which spawns
+     * with a share of that chance: true when either came up, {@link #spawn} then knowing which.
+     */
+    private boolean rolls(double chance) {
+        int band = EliteMobs.band(random.nextDouble(), chance, plugin.getEliteMobs().share());
+        elite = band == 2;
+        return band > 0;
+    }
+
+    /** Spawns the entity the last roll brought, as an elite when the roll was the elite's. */
+    private void spawn(Runnable spawner) {
+        if (elite) plugin.getEliteMobs().spawn(spawner);
+        else spawner.run();
     }
 
     @EventHandler
@@ -382,90 +399,90 @@ public class MobHandler implements Listener {
             plugin.getMahoraga().trySpawn(loc);
             return;
         }
-        if (random.nextDouble() < obsidianGuardChance) {
+        if (rolls(obsidianGuardChance)) {
             if (!plugin.isEnabled("entities.obsidian-guard")) return;
             event.setCancelled(true);
-            plugin.getObsidianGuard().trySpawn(loc);
+            spawn(() -> plugin.getObsidianGuard().trySpawn(loc));
         }
     }
 
     private void handleSlimeSpawn(CreatureSpawnEvent event, Location loc) {
         if (event.getEntity().getScoreboardTags().contains("MSC_HeadSlime")) return;
 
-        if (random.nextDouble() < headSlimeChance) {
+        if (rolls(headSlimeChance)) {
             if (!plugin.isEnabled("entities.head-slime")) return;
             event.setCancelled(true);
-            plugin.getHeadSlime().trySpawn(loc);
+            spawn(() -> plugin.getHeadSlime().trySpawn(loc));
         }
     }
 
     private void handleCreeperSpawn(CreatureSpawnEvent event, Location loc) {
         if (event.getEntity().getScoreboardTags().contains("MSC_CreeperJr")) return;
 
-        if (random.nextDouble() < creeperJrChance) {
+        if (rolls(creeperJrChance)) {
             if (!plugin.isEnabled("entities.creeper-jr")) return;
             event.setCancelled(true);
-            plugin.getCreeperJr().trySpawn(loc);
+            spawn(() -> plugin.getCreeperJr().trySpawn(loc));
         }
     }
 
     private void handleSkeletonSpawn(CreatureSpawnEvent event, Location loc) {
-        if (random.nextDouble() < arrowSkeletonChance) {
+        if (rolls(arrowSkeletonChance)) {
             if (plugin.isEnabled("entities.arrow-skeleton") && plugin.getArrowSkeleton() != null) {
                 event.setCancelled(true);
-                plugin.getArrowSkeleton().trySpawn(loc);
+                spawn(() -> plugin.getArrowSkeleton().trySpawn(loc));
                 return;
             }
         }
-        if (random.nextDouble() < shadowRogueChance) {
+        if (rolls(shadowRogueChance)) {
             if (!plugin.isEnabled("entities.shadow-rogue")) return;
             event.setCancelled(true);
-            plugin.getShadowRogue().trySpawn(loc);
+            spawn(() -> plugin.getShadowRogue().trySpawn(loc));
             return;
         }
-        if (random.nextDouble() < boneShieldChance) {
+        if (rolls(boneShieldChance)) {
             if (!plugin.isEnabled("entities.bone-shield")) return;
             event.setCancelled(true);
-            plugin.getBoneShield().trySpawn(loc);
+            spawn(() -> plugin.getBoneShield().trySpawn(loc));
         }
     }
 
     private void handleBlazeSpawn(CreatureSpawnEvent event, Location loc) {
-        if (random.nextDouble() < flameElementalChance) {
+        if (rolls(flameElementalChance)) {
             if (!plugin.isEnabled("entities.flame-elemental")) return;
             event.setCancelled(true);
-            plugin.getFlameElemental().trySpawn(loc);
+            spawn(() -> plugin.getFlameElemental().trySpawn(loc));
         }
     }
 
     private void handleGolemSpawn(CreatureSpawnEvent event, Location loc) {
         if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.BUILD_IRONGOLEM) return;
-        if (random.nextDouble() < frostGolemBuildChance) {
+        if (rolls(frostGolemBuildChance)) {
             if (!plugin.isEnabled("entities.frost-golem")) return;
             event.setCancelled(true);
-            plugin.getFrostGolem().trySpawn(loc);
+            spawn(() -> plugin.getFrostGolem().trySpawn(loc));
         }
     }
 
     private void handleSpiderSpawn(CreatureSpawnEvent event, Location loc) {
-        if (random.nextDouble() < voidCrawlerChance) {
+        if (rolls(voidCrawlerChance)) {
             if (!plugin.isEnabled("entities.void-crawler")) return;
             event.setCancelled(true);
-            plugin.getVoidCrawler().trySpawn(loc);
+            spawn(() -> plugin.getVoidCrawler().trySpawn(loc));
         }
     }
 
     private void handleWitchSpawn(CreatureSpawnEvent event, Location loc) {
-        if (random.nextDouble() < stormCallerChance) {
+        if (rolls(stormCallerChance)) {
             if (!plugin.isEnabled("entities.storm-caller")) return;
             event.setCancelled(true);
-            plugin.getStormCaller().trySpawn(loc);
+            spawn(() -> plugin.getStormCaller().trySpawn(loc));
             return;
         }
-        if (random.nextDouble() < venomWitchChance) {
+        if (rolls(venomWitchChance)) {
             if (!plugin.isEnabled("entities.venom-witch")) return;
             event.setCancelled(true);
-            plugin.getVenomWitch().trySpawn(loc);
+            spawn(() -> plugin.getVenomWitch().trySpawn(loc));
         }
     }
 
@@ -480,34 +497,34 @@ public class MobHandler implements Listener {
             plugin.getGarouBoss().trySpawn(loc);
             return;
         }
-        if (random.nextDouble() < soulReaperChance) {
+        if (rolls(soulReaperChance)) {
             if (!plugin.isEnabled("entities.soul-reaper")) return;
             event.setCancelled(true);
-            plugin.getSoulReaper().trySpawn(loc);
+            spawn(() -> plugin.getSoulReaper().trySpawn(loc));
         }
     }
 
     private void handleEvokerSpawn(CreatureSpawnEvent event, Location loc) {
-        if (random.nextDouble() < chaosMageChance) {
+        if (rolls(chaosMageChance)) {
             if (!plugin.isEnabled("entities.chaos-mage")) return;
             event.setCancelled(true);
-            plugin.getChaosMage().trySpawn(loc);
+            spawn(() -> plugin.getChaosMage().trySpawn(loc));
         }
     }
 
     private void handlePillagerSpawn(CreatureSpawnEvent event, Location loc) {
-        if (random.nextDouble() < warlordChance) {
+        if (rolls(warlordChance)) {
             if (!plugin.isEnabled("entities.warlord")) return;
             event.setCancelled(true);
-            plugin.getWarlord().trySpawn(loc);
+            spawn(() -> plugin.getWarlord().trySpawn(loc));
         }
     }
 
     private void handleEndermanSpawn(CreatureSpawnEvent event, Location loc) {
-        if (random.nextDouble() < enderKnightChance) {
+        if (rolls(enderKnightChance)) {
             if (!plugin.isEnabled("entities.ender-knight")) return;
             event.setCancelled(true);
-            plugin.getEnderKnight().trySpawn(loc);
+            spawn(() -> plugin.getEnderKnight().trySpawn(loc));
         }
     }
 

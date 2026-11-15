@@ -4,7 +4,6 @@ import com.Chagui68.utils.MscEntityUtils;
 import com.Chagui68.MultiverseCreatures;
 import com.Chagui68.music.MusicDisc;
 import com.Chagui68.utils.MscText;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;

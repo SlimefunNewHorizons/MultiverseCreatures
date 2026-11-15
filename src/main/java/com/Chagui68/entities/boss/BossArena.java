@@ -9,7 +9,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -29,12 +28,6 @@ public final class BossArena {
                 && !p.isDead()
                 && p.getGameMode() != GameMode.CREATIVE
                 && p.getGameMode() != GameMode.SPECTATOR;
-    }
-
-    /** Compatibility alias for isValidTarget. */
-    @Deprecated
-    public static boolean esObjetivoValido(Player p) {
-        return isValidTarget(p);
     }
 
     /** Returns all valid players in the world that a boss can target. */

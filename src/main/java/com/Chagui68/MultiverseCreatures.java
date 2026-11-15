@@ -39,7 +39,6 @@ import com.Chagui68.listener.bossdimension.PantheonInvocationManager;
 import com.Chagui68.listener.combat.ItemCombatHandler;
 import com.Chagui68.listener.CustomItemPlaceHandler;
 import com.Chagui68.listener.ComponentEventGuard;
-import com.Chagui68.listener.entities.EntitiesIAHandler;
 import com.Chagui68.listener.food.ItemFoodHandler;
 import com.Chagui68.listener.misc.DiscJukeboxHandler;
 import com.Chagui68.listener.misc.IceCrownHandler;
@@ -95,7 +94,10 @@ public class MultiverseCreatures extends JavaPlugin {
     private ChaosMage chaosMage;
     private EnderKnight enderKnight;
     private Kinger kinger;
-    private com.Chagui68.entities.boss.MaleniaBoss malenia;
+    private com.Chagui68.entities.boss.malenia.MaleniaBoss malenia;
+    private com.Chagui68.entities.EliteMobs eliteMobs;
+    /** Every boss on the shared rig, Malenia among them, by its config key. */
+    private final java.util.Map<String, com.Chagui68.entities.boss.rig.RiggedBoss> riggedBosses = new java.util.LinkedHashMap<>();
     private com.Chagui68.entities.monster.MonsterStalker monsterStalker;
     private com.Chagui68.listener.bossdimension.BossDimensionRules bossDimensionRules;
     private NixBoss nixBoss;
@@ -205,7 +207,12 @@ public class MultiverseCreatures extends JavaPlugin {
         chaosMage = new ChaosMage(this);
         enderKnight = new EnderKnight(this);
         kinger = new Kinger(this);
-        malenia = new com.Chagui68.entities.boss.MaleniaBoss(this);
+        malenia = new com.Chagui68.entities.boss.malenia.MaleniaBoss(this);
+        for (com.Chagui68.entities.boss.rig.RiggedBoss boss : java.util.List.of(malenia,
+                new com.Chagui68.entities.boss.radahn.RadahnBoss(this),
+                new com.Chagui68.entities.boss.herobrine.HerobrineBoss(this))) {
+            riggedBosses.put(boss.key(), boss);
+        }
         monsterStalker = new com.Chagui68.entities.monster.MonsterStalker(this);
         nixBoss = new NixBoss(this);
         jackStarBoss = new JackStarBoss(this);
@@ -222,6 +229,8 @@ public class MultiverseCreatures extends JavaPlugin {
             bossDimensionManager.createBossDimension();
         });
 
+        eliteMobs = new com.Chagui68.entities.EliteMobs(this);
+        getServer().getPluginManager().registerEvents(eliteMobs, this);
         MobHandler mobHandler = new MobHandler(this);
         getServer().getPluginManager().registerEvents(mobHandler, this);
         getServer().getPluginManager().registerEvents(bossDamageLog, this);
@@ -231,7 +240,6 @@ public class MultiverseCreatures extends JavaPlugin {
         // entidades dentro del evento rompe el iterador del mundo. Cada 5 s basta.
         recountTask = getServer().getScheduler().runTaskTimer(this, mobHandler::refrescarRecuento, 100L, 100L);
         getServer().getPluginManager().registerEvents(new ItemFoodHandler(this), this);
-        getServer().getPluginManager().registerEvents(new EntitiesIAHandler(), this);
         itemCombatHandler = new ItemCombatHandler(this);
         getServer().getPluginManager().registerEvents(itemCombatHandler, this);
         getServer().getPluginManager().registerEvents(new IceCrownHandler(this), this);
@@ -351,7 +359,8 @@ public class MultiverseCreatures extends JavaPlugin {
         if (monsterStalker != null) monsterStalker.stopAll();
         if (bossDimensionRules != null) bossDimensionRules.stopTasks();
         if (kinger != null) kinger.stopTasks();
-        if (malenia != null) malenia.stopTasks();
+        riggedBosses.values().forEach(com.Chagui68.entities.boss.rig.RiggedBoss::stopTasks);
+        riggedBosses.clear();
         if (nixBoss != null) nixBoss.stopTasks();
         if (jackStarBoss != null) jackStarBoss.stopTasks();
         if (dioBoss != null) dioBoss.stopTasks();
@@ -477,8 +486,22 @@ public class MultiverseCreatures extends JavaPlugin {
         return kinger;
     }
 
-    public com.Chagui68.entities.boss.MaleniaBoss getMalenia() {
+    public com.Chagui68.entities.boss.malenia.MaleniaBoss getMalenia() {
         return malenia;
+    }
+
+    /** The elite versions of the natural mobs. */
+    public com.Chagui68.entities.EliteMobs getEliteMobs() {
+        return eliteMobs;
+    }
+
+    /** The rigged boss whose config key is {@code key}, or null. */
+    public com.Chagui68.entities.boss.rig.RiggedBoss getRiggedBoss(String key) {
+        return riggedBosses.get(key);
+    }
+
+    public java.util.Collection<com.Chagui68.entities.boss.rig.RiggedBoss> getRiggedBosses() {
+        return riggedBosses.values();
     }
 
     public NixBoss getNixBoss() {
@@ -508,7 +531,7 @@ public class MultiverseCreatures extends JavaPlugin {
                 || (nixBoss != null && nixBoss.isBossActiveIn(world))
                 || (jackStarBoss != null && jackStarBoss.isBossActiveIn(world))
                 || (dioBoss != null && dioBoss.isBossActiveIn(world))
-                || (malenia != null && malenia.isBossActiveIn(world))
+                || riggedBosses.values().stream().anyMatch(boss -> boss.isBossActiveIn(world))
                 || (witherStormBoss != null && witherStormBoss.isBossActiveIn(world))
                 || (pantheonInvocationManager != null && pantheonInvocationManager.isBossActiveIn(world));
     }

@@ -4,7 +4,6 @@ import com.Chagui68.MultiverseCreatures;
 import com.Chagui68.items.components.StormCrystal;
 import com.Chagui68.utils.MscEntityUtils;
 import com.Chagui68.utils.MscText;
-import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;

@@ -86,8 +86,10 @@ public final class StandViewerExport {
         }
         // The Wither Storm's five forms, drawn with block displays.
         json.append(',').append(com.Chagui68.entities.boss.witherstorm.WitherStormViewerExport.entries());
-        // Malenia's two phases, drawn with block displays like the storm, and her revival.
-        json.append(',').append(com.Chagui68.entities.boss.MaleniaViewerExport.entries());
+        // The rigged bosses, every form: block displays on a skeleton, with their moves. Radahn's heads
+        // wear skins painted in code: they are written out first, to be shown and to be uploaded.
+        com.Chagui68.utils.HeadSkins.write(com.Chagui68.entities.boss.radahn.RadahnModel.skins());
+        json.append(',').append(com.Chagui68.entities.boss.rig.RigViewerExport.entries());
         // Concept models: a BDEngine export kept head for head, posed with its own rig.
         json.append(',').append(ConceptViewerExport.entry());
         json.append("]}");
@@ -165,7 +167,9 @@ public final class StandViewerExport {
                 p.x, p.y, p.z, q.x, q.y, q.z, q.w, s.x, s.y, s.z);
     }
 
-    static String skinUrl(String texture) {
+    public static String skinUrl(String texture) {
+        // A skin nobody has uploaded yet is shown from the file the export wrote for it.
+        if (texture.startsWith(com.Chagui68.utils.HeadSculpt.LOCAL)) return com.Chagui68.utils.HeadSkins.dataUrl(texture);
         Matcher url = SKIN_URL.matcher(new String(Base64.getDecoder().decode(texture), StandardCharsets.UTF_8));
         return url.find() ? url.group(1).replace("http://", "https://") : "";
     }

@@ -633,6 +633,28 @@ public final class WikiCatalogue {
                 .source(WikiSource.of(Material.EXPERIENCE_BOTTLE, "Loot", "Botín",
                         "500 experience.", "500 de experiencia."))
                 .build());
+        list.add(WikiEntry.info("radahn", BOSSES, Material.CRYING_OBSIDIAN, NamedTextColor.DARK_PURPLE,
+                        "Starscourge Radahn", "Starscourge Radahn")
+                .about("A warlord in gold who never leaves the saddle. He rides past and cuts, shoots his greatbow from "
+                                + "afar (one arrow takes half your health, others turn after you), and drags everyone to "
+                                + "him before a slam. At half health he comes back down as a star: leave the red ring.",
+                        "Un caudillo dorado que nunca baja del caballo. Pasa cabalgando y corta, dispara su gran arco "
+                                + "de lejos (una flecha quita media vida, otras te persiguen) y arrastra a todos hacia él "
+                                + "antes de un golpe. A media vida vuelve como una estrella: sal del anillo rojo.")
+                .source(WikiSource.of(Material.COMMAND_BLOCK, "Summoning", "Invocación",
+                        "/msc spawn radahn", "/msc spawn radahn"))
+                .source(WikiSource.of(Material.EXPERIENCE_BOTTLE, "Loot", "Botín",
+                        "500 experience.", "500 de experiencia."))
+                .build());
+        list.add(WikiEntry.info("herobrine", BOSSES, Material.SEA_LANTERN, NamedTextColor.WHITE,
+                        "Herobrine", "Herobrine")
+                .about("Stare at him and he appears behind you. He blinks, calls lightning and darkens the world.",
+                        "Míralo fijamente y aparece a tu espalda. Se teletransporta, invoca rayos y oscurece el mundo.")
+                .source(WikiSource.of(Material.COMMAND_BLOCK, "Summoning", "Invocación",
+                        "/msc spawn herobrine", "/msc spawn herobrine"))
+                .source(WikiSource.of(Material.EXPERIENCE_BOTTLE, "Loot", "Botín",
+                        "500 experience.", "500 de experiencia."))
+                .build());
         list.add(WikiEntry.info("jackstar", BOSSES, Material.COMMAND_BLOCK, NamedTextColor.DARK_AQUA,
                         "JackStar - The System Architect", "JackStar - The System Architect")
                 .about("The architect of the server. He revives twice and calls other bosses as subprocesses.",

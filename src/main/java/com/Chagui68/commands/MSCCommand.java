@@ -1,5 +1,7 @@
 package com.Chagui68.commands;
 
+import com.Chagui68.entities.boss.rig.RigForm;
+import com.Chagui68.entities.boss.rig.RigForms;
 import com.Chagui68.MultiverseCreatures;
 import com.Chagui68.entities.Kinger;
 import com.Chagui68.entities.KingerModel;
@@ -81,7 +83,6 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
 
     /** What {@code /msc debug} can draw instead of reporting damage. */
     private static final List<String> DEBUG_ACTIONS = List.of("geometry", "model");
-    private static final List<String> MODEL_TARGETS = List.of("malenia");
     private static final long MODEL_PREVIEW_TICKS = 600L;
 
     /** What {@code /msc debug geometry <boss>} accepts after the boss. */
@@ -762,23 +763,23 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(RED + "Only a player can preview a model.");
                 return;
             }
-            if (args.length < 3 || !args[2].equalsIgnoreCase("malenia")) {
-                sender.sendMessage(RED + "Usage: /msc debug model malenia [attack]");
+            RigForm form = args.length < 3 ? null : RigForms.of(args[2].toLowerCase());
+            if (form == null) {
+                sender.sendMessage(RED + "Usage: /msc debug model <" + String.join("|", RigForms.keys()) + "> [move]");
                 return;
             }
             if (args.length > 3) {
-                var attack = com.Chagui68.entities.boss.MaleniaRig.move(args[3].toLowerCase());
-                if (attack == null) {
-                    sender.sendMessage(RED + "Malenia's attacks: " + String.join(", ",
-                            com.Chagui68.entities.boss.MaleniaRig.MOVES.stream().map(m -> m.id()).toList()));
+                var move = form.move(args[3].toLowerCase());
+                if (move == null) {
+                    sender.sendMessage(RED + form.name() + "'s moves: " + String.join(", ", form.moves().stream().map(m -> m.id()).toList()));
                     return;
                 }
-                com.Chagui68.entities.boss.MaleniaRig.preview(plugin, player, attack);
-                sender.sendMessage(GREEN + "Malenia plays " + attack.label() + " in front of you.");
+                form.preview(plugin, player, move, 0);
+                sender.sendMessage(GREEN + form.name() + " plays " + move.label() + " in front of you.");
                 return;
             }
-            com.Chagui68.entities.boss.MaleniaModel.preview(plugin, player, MODEL_PREVIEW_TICKS);
-            sender.sendMessage(GREEN + "Malenia's model stands in front of you for 30 seconds.");
+            form.preview(plugin, player, null, MODEL_PREVIEW_TICKS);
+            sender.sendMessage(GREEN + form.name() + "'s model stands in front of you for 30 seconds.");
             return;
         }
 
@@ -903,7 +904,7 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
             } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("geometry")) {
                 addMatching(completions, GEOMETRY_TARGETS, args[2]);
             } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("model")) {
-                addMatching(completions, MODEL_TARGETS, args[2]);
+                addMatching(completions, RigForms.keys(), args[2]);
             } else if (subCommand.equals("music")
                     && (args[1].equalsIgnoreCase("play") || args[1].equalsIgnoreCase("disc"))) {
                 addMatching(completions, plugin.getMusicManager().getSongNames(), args[2]);
@@ -918,7 +919,8 @@ public class MSCCommand implements CommandExecutor, TabCompleter {
                 addMatching(completions, GIVE_TARGETS, args[3]);
                 addMatchingPlayers(completions, args[3]);
             } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("model")) {
-                addMatching(completions, com.Chagui68.entities.boss.MaleniaRig.MOVES.stream().map(m -> m.id()).toList(), args[3]);
+                RigForm form = RigForms.of(args[2].toLowerCase());
+                if (form != null) addMatching(completions, form.moves().stream().map(m -> m.id()).toList(), args[3]);
             } else if (subCommand.equals("debug") && args[1].equalsIgnoreCase("geometry")
                     && !args[2].equalsIgnoreCase("sentinel")) {
                 // Only the three dressed models have limbs to walk: the Sentinel is the stand itself.

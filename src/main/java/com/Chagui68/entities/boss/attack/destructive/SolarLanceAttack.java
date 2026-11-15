@@ -9,7 +9,6 @@ import com.Chagui68.entities.boss.fx.Palette;
 import com.Chagui68.entities.boss.fx.Poses;
 import com.Chagui68.entities.boss.fx.Prop;
 import com.Chagui68.entities.boss.fx.Sfx;
-import com.Chagui68.entities.boss.fx.Shapes;
 import com.Chagui68.entities.boss.fx.Stage;
 import com.Chagui68.entities.boss.fx.Timeline;
 import com.Chagui68.entities.boss.fx.Victim;

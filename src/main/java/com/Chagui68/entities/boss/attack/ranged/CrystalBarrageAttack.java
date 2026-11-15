@@ -18,7 +18,6 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

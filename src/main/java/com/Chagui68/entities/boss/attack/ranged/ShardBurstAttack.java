@@ -16,7 +16,6 @@ import com.Chagui68.entities.boss.fx.Telegraph;
 import com.Chagui68.entities.boss.fx.Timeline;
 import com.Chagui68.entities.boss.fx.Victim;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;

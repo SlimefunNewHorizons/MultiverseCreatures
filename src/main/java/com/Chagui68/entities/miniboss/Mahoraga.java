@@ -7,7 +7,6 @@ import com.Chagui68.integration.DrakesBossesIntegration;
 import com.Chagui68.items.components.WheelEssence;
 import com.Chagui68.utils.MscEntityUtils;
 import com.Chagui68.utils.MscText;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;

@@ -11,6 +11,11 @@ those models.
 | 2 | `mvn test` then open `website/public/viewer/` | Preview every model in 3D, with the real skins ("Painted skins") |
 | 3 | `MINESKIN_API_KEY=... python website/models/stand-skins/mineskin.py <name>...` | Uploads the head skins to MineSkin (unlisted) and writes `src/main/resources/stands/<name>.txt` |
 
+Radahn is not a skin cut in eleven: his heads are sculpted and painted in code (`RadahnModel`, with
+`HeadSculpt`). `mvn test` writes each skin he wears to `target/head-skins/`, and
+`MINESKIN_API_KEY=... python website/models/stand-skins/heads.py` uploads the new ones and writes
+`src/main/resources/radahn/skins.txt`. Run it after his art changes; `RadahnModelTest` fails until then.
+
 The `<name>` is a Stand key (`star-platinum`, `killer-queen`, `crazy-diamond`, `magicians-red`) or
 `dio-brando` for DIO himself. A model file can also be a BDEngine `/summon` export pasted as it is;
 servers can override any of them in `plugins/MultiverseCreatures/stands/`.

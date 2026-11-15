@@ -31,6 +31,7 @@ dependency-reduced-pom.xml
 .DS_Store
 Thumbs.db
 /graphify-out
+jars/
 
 # Other build tools
 build/

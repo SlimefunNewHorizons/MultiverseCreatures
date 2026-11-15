@@ -1,4 +1,4 @@
-package com.Chagui68.entities.boss;
+package com.Chagui68.entities.boss.malenia;
 
 import com.Chagui68.utils.DisplaySculpt;
 import com.Chagui68.utils.DisplaySculpt.Lathe;
@@ -7,13 +7,7 @@ import com.Chagui68.utils.DisplaySculpt.Piece;
 import com.Chagui68.utils.DisplaySculpt.Ring;
 import com.Chagui68.utils.DisplaySculpt.Shape;
 import com.Chagui68.utils.DisplaySculpt.Span;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.BlockDisplay;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Transformation;
 import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -44,8 +38,6 @@ import static com.Chagui68.utils.DisplaySculpt.v;
  */
 public final class MaleniaModel {
 
-    /** Tag on every display piece, so a preview or a boss can find its own body. */
-    public static final String TAG = "MSC_MaleniaModel";
     // ---- Palette ----
     private static final Material BRASS = Material.RAW_GOLD_BLOCK;
     private static final Material BRASS_LIGHT = Material.GOLD_BLOCK;
@@ -771,48 +763,4 @@ public final class MaleniaModel {
         s.box(LACE, at, v(size * .7f, size * .7f, .006f), new Matrix3f(c1, c2, c3).getNormalizedRotation(new Quaternionf()));
     }
 
-    // =====================================================================================
-    // In the world
-    // =====================================================================================
-
-    /**
-     * Spawns {@code pieces} at {@code feet}, facing {@code yaw}. The
-     * pieces are not saved with the world, so a crash or a chunk unload never leaves a body behind.
-     */
-    public static List<BlockDisplay> spawn(List<Piece> pieces, Location feet, float yaw) {
-        Location at = feet.clone();
-        at.setYaw(yaw);
-        at.setPitch(0f);
-        List<BlockDisplay> out = new ArrayList<>(pieces.size());
-        for (Piece piece : pieces) {
-            out.add(at.getWorld().spawn(at, BlockDisplay.class, display -> {
-                display.setBlock(piece.material().createBlockData());
-                display.setTransformation(piece.transformation());
-                display.setPersistent(false);
-                if (piece.glow()) display.setBrightness(new Display.Brightness(15, 15));
-                display.addScoreboardTag(TAG);
-                display.addScoreboardTag(TAG + "_" + piece.part());
-            }));
-        }
-        return out;
-    }
-
-    /** Shows her in front of a viewer for {@code ticks}, turned to face them. */
-    public static void preview(Plugin plugin, Player viewer, long ticks) {
-        List<BlockDisplay> body = spawn(PIECES, ahead(viewer), viewer.getLocation().getYaw() + 180f);
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> body.forEach(BlockDisplay::remove), ticks);
-    }
-
-    static void animate(BlockDisplay display, Transformation to, int ticks) {
-        display.setInterpolationDelay(0);
-        display.setInterpolationDuration(ticks);
-        display.setTransformation(to);
-    }
-
-    /** Four blocks ahead of the viewer, from the yaw alone, so looking up or down still puts her ahead. */
-    private static Location ahead(Player viewer) {
-        Location eye = viewer.getLocation();
-        double yaw = Math.toRadians(eye.getYaw());
-        return eye.clone().add(-Math.sin(yaw) * 4, 0, Math.cos(yaw) * 4);
-    }
 }

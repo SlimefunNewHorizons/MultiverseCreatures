@@ -12,6 +12,7 @@ on:
     paths:
       - 'website/**'
       - 'src/main/resources/stands/**'
+      - 'src/main/resources/radahn/**'
       - 'src/main/resources/witherstorm/**'
       - 'src/main/resources/monster/**'
       - 'src/main/java/com/Chagui68/entities/monster/**'

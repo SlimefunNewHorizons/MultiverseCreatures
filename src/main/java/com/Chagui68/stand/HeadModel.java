@@ -78,6 +78,32 @@ public final class HeadModel {
     private record Raw(String texture, Vector3f position, Vector3f scale) {
     }
 
+    /** One head exactly as the export has it: its skin and its row-major 4x4 transformation. */
+    public record Head(String texture, float[] matrix) {
+    }
+
+    /**
+     * Reads every head of an exported command as it is, pose and all.
+     *
+     * @throws IllegalArgumentException when skins and transformations do not pair up
+     */
+    public static List<Head> read(String command) {
+        List<String> textures = new ArrayList<>();
+        Matcher texture = TEXTURE.matcher(command);
+        while (texture.find()) {
+            textures.add(texture.group(1));
+        }
+        List<float[]> matrices = matrices(command);
+        if (textures.size() != matrices.size()) {
+            throw new IllegalArgumentException(textures.size() + " skins for " + matrices.size() + " transformations");
+        }
+        List<Head> heads = new ArrayList<>();
+        for (int i = 0; i < textures.size(); i++) {
+            heads.add(new Head(textures.get(i), matrices.get(i)));
+        }
+        return heads;
+    }
+
     /**
      * Reads an exported command.
      *
@@ -89,6 +115,15 @@ public final class HeadModel {
         while (texture.find()) {
             textures.add(texture.group(1));
         }
+        List<float[]> matrices = matrices(command);
+        if (textures.size() != 11 || matrices.size() != 11) {
+            throw new IllegalArgumentException("expected 11 heads with a skin and a transformation, found "
+                    + textures.size() + " skins and " + matrices.size() + " transformations");
+        }
+        return build(square(textures, matrices));
+    }
+
+    private static List<float[]> matrices(String command) {
         List<float[]> matrices = new ArrayList<>();
         Matcher matrix = MATRIX.matcher(command);
         while (matrix.find()) {
@@ -102,11 +137,7 @@ public final class HeadModel {
             }
             matrices.add(values);
         }
-        if (textures.size() != 11 || matrices.size() != 11) {
-            throw new IllegalArgumentException("expected 11 heads with a skin and a transformation, found "
-                    + textures.size() + " skins and " + matrices.size() + " transformations");
-        }
-        return build(square(textures, matrices));
+        return matrices;
     }
 
     /** Takes out the turn the model was exported with, measured on its head, and centres it there. */

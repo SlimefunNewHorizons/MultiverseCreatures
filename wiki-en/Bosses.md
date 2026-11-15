@@ -260,6 +260,17 @@ Her **blade** hits whoever it passes through, once per swing. The **slashes** of
 
 ---
 
+## 🧩 The rigged bosses
+
+Malenia and the two bosses below share one engine (`entities/boss/rig`): a body of block displays on a skeleton, played by keyframed moves. Between attacks they turn to their target at a limited rate, run from afar, walk the last stretch, circle while their next attack is not ready, back off when crowded and may dodge a blow; while winding an attack up they keep turning to their target. A pose is sent every 2 ticks in an attack, every 4 otherwise, never while no player is in range, and never for a piece that did not move. Each new boss is drawn with at most 200 displays. Preview any of them with `/msc debug model <name> [move]`; all are in the web model viewer.
+
+| Boss | Spawn | What the fight is about |
+|---|---|---|
+| **Starscourge Radahn** | `/msc spawn radahn` | A mounted warlord who never stops riding. Gallops at his target in a curve and cuts as he passes. From 9 to `bow-range` (40) blocks he takes his greatbow: one arrow for `shot-share` (50%) of maximum health, a fan of `volley-arrows` (5) at one player, or a rain of arrows that turn after their marks for `rain-share` (15%) each, all through armour. The Event Horizon drags everyone to him before a slam. At half health he leaves for the sky and comes back down as a star: everyone still inside the red ring (`cataclysm-radius`, 20) when it lands dies. |
+| **Herobrine** | `/msc spawn herobrine` | Stare at him for `stare-ticks` (40) and he is behind you. Blinks behind his target, calls lightning onto warned rings, darkens and slows everyone near. |
+
+Each has `health`, `max-damage-per-hit`, `hitbox-scale`, `aggro-range`, `move-speed`, `attack-cooldown-ticks` and its own damage keys under `entities.<name>` in `config.yml`. They drop 500 experience.
+
 ## 👊 Garou — Miniboss (One-Punch Man)
 
 The Hero Hunter, a martial artist who fights barehanded and counters the hits he takes.

@@ -17,7 +17,6 @@ import com.Chagui68.entities.boss.fx.Victim;
 import org.bukkit.Particle;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

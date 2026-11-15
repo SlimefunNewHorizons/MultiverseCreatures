@@ -3,7 +3,6 @@ package com.Chagui68.entities;
 import com.Chagui68.utils.MscEntityUtils;
 import com.Chagui68.MultiverseCreatures;
 import com.Chagui68.utils.MscText;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
