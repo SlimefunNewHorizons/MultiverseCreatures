@@ -113,6 +113,10 @@ public class FlameElemental implements Listener {
 
         Location bLoc = blaze.getLocation();
         Location tLoc = target.getLocation();
+        if (bLoc.getWorld() != tLoc.getWorld()) { // el objetivo cambio de dimension: no se puede medir la distancia
+            blaze.setTarget(null);
+            return;
+        }
         double distSq = bLoc.distanceSquared(tLoc);
         inst.meteorCooldown++;
 
